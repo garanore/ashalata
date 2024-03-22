@@ -15,8 +15,8 @@ const addworkerSchema = new mongoose.Schema(
     WorkerDic: { type: String, required: true },
     WorkerMarital: { type: String, required: true },
     WorkerStudy: { type: String, required: true },
-    WorkerNID: { type: Number, required: true },
-    WorkerMobile: { type: Number, required: true },
+    WorkerNID: { type: String, required: true },
+    WorkerMobile: { type: String, required: true },
     WorkerMail: { type: String, required: true },
     Workerimage: { type: String, default: null }, // Image path or URL
     WorkerCenterAdd: { type: String, required: true },

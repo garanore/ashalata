@@ -1,46 +1,43 @@
 // member.model.js
 const mongoose = require("mongoose");
-// Define the schema for the member
+
 const memberSchema = new mongoose.Schema(
   {
-    // Define fields for the member schema
     BranchMember: { type: String },
     CenterMember: { type: String },
-    memberID: { type: String, unique: true },
-    memberName: { type: String },
-    MfhName: { type: String },
-    memberJob: { type: String },
-    memberVillage: { type: String },
-    memberUnion: { type: String },
-    memberPost: { type: String },
-    memberSubDic: { type: String },
+    memberID: { type: String, unique: true, required: true },
+    memberName: { type: String, required: true },
+    MfhName: { type: String, required: true },
+    memberJob: { type: String, required: true },
+    memberVillage: { type: String, required: true },
+    memberUnion: { type: String, required: true },
+    memberPost: { type: String, required: true },
+    memberSubDic: { type: String, required: true },
     MdateOfBirth: { type: String, default: null },
-    memberDic: { type: String },
-    memberMarital: { type: String },
-    memberStudy: { type: String },
-    memberFhead: { type: String },
-    memberfMM: { type: String },
-    memberfMF: { type: String },
-    memberfMTotal: { type: String },
-    EarningMember: { type: String },
-    FamilyMemberENO: { type: String },
+    memberDic: { type: String, required: true },
+    memberMarital: { type: String, required: true },
+    memberStudy: { type: String, required: true },
+    memberFhead: { type: String, required: true },
+    memberfMM: { type: String, required: true },
+    memberfMF: { type: String, required: true },
+    memberfMTotal: { type: String, required: true },
+    EarningMember: { type: String, required: true },
+    FamilyMemberENO: { type: String, required: true },
     loanamount: { type: String },
     nonorganizaiotnloan: { type: String },
-    YearlyIncome: { type: String },
-    LandProperty: { type: String },
-    TotalMoney: { type: String },
-    MemberNIDnumber: { type: String },
-    MemberMobile: { type: String },
-    NominiName: { type: String },
-    NominiFather: { type: String },
-    MemberNominiRelation: { type: String },
-    agreementChecked: { type: Boolean },
+    YearlyIncome: { type: String, required: true },
+    LandProperty: { type: String, required: true },
+    TotalMoney: { type: String, required: true },
+    MemberNIDnumber: { type: String, required: true },
+    MemberMobile: { type: String, required: true },
+    NominiName: { type: String, required: true },
+    NominiFather: { type: String, required: true },
+    MemberNominiRelation: { type: String, required: true },
+    agreementChecked: { type: Boolean, required: true },
   },
   { timestamps: true }
 );
 
-// Create a mongoose model using the schema
 const Member = mongoose.model("Member", memberSchema);
 
-// Export the model for use in other files
 module.exports = Member;

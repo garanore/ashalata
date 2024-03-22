@@ -13,7 +13,6 @@ const AddWorker = require("./models/worker.model.js");
 const addOfficeWorker = require("./models/officeWorker.model.js");
 const Member = require("./models/member.model.js");
 const OpenSaving = require("./models/saving.model.js");
-const Installment = require("./models/installment.model.js");
 
 const { ObjectId } = require("mongoose").Types;
 
@@ -536,12 +535,6 @@ app.post("/openloan", async (req, res) => {
     const { memberID, selectedMember, loanType, OLamount, OLtotal } = req.body;
     const loanID = await generateLoanID();
 
-    // Calculate installment amount
-    const loanAmount = parseFloat(OLamount); // Convert to number if necessary
-    const weeks = 41; // Assuming 41 weeks
-    const installmentAmount = loanAmount / weeks;
-
-    // Save loan application data
     const newLoanApplication = new OpenLoan({
       memberID,
       loanID,
@@ -554,20 +547,8 @@ app.post("/openloan", async (req, res) => {
       OLamount,
       OLtotal,
     });
-    await newLoanApplication.save();
 
-    // Save installment details
-    for (let i = 1; i <= weeks; i++) {
-      const newInstallment = new Installment({
-        center: selectedMember.CenterMember,
-        memberName: selectedMember.memberName,
-        mobile: selectedMember.MemberMobile,
-        loanType,
-        amount: installmentAmount,
-        week: i,
-      });
-      await newInstallment.save();
-    }
+    await newLoanApplication.save();
 
     res
       .status(201)
