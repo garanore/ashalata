@@ -236,67 +236,6 @@ app.put("/worker-callback/:ID", async (req, res) => {
 
 //----------------------------------------------------------------
 
-//Office Worker Start
-//----------------------------------------------------------------
-
-const generateOfficeWorkerID = async () => {
-  const count = await addOfficeWorker.countDocuments();
-  const paddedCount = (count + 1).toString().padStart(4, "0");
-  return `OW${paddedCount}`;
-};
-
-app.post("/OfficeWorkerAdd", async (req, res) => {
-  try {
-    const {
-      officeWorkerName,
-      OfficeWorkerParent,
-      OfficeWorkerJob,
-      officeWorkerHome,
-      OfficeWorkerUnion,
-      OfficeWdateOfBirth,
-      officeWorkerPost,
-      OfficeWorkerSubDic,
-      OfficeWorkerDic,
-      OfficeWorkerMarital,
-      OfficeWorkerStudy,
-      OfficeWorkerNID,
-      OfficeWorkerMobile,
-      OfficeWorkerMail,
-      OfficeWorkerCenter,
-      OfficeWorkerBranch,
-      Designation,
-      agreementChecked,
-    } = req.body;
-    const officeworkerID = await generateOfficeWorkerID();
-    const newOfficeWorker = new addOfficeWorker({
-      officeworkerID,
-      officeWorkerName,
-      OfficeWorkerParent,
-      OfficeWorkerJob,
-      officeWorkerHome,
-      OfficeWorkerUnion,
-      OfficeWdateOfBirth,
-      officeWorkerPost,
-      OfficeWorkerSubDic,
-      OfficeWorkerDic,
-      OfficeWorkerMarital,
-      OfficeWorkerStudy,
-      OfficeWorkerNID,
-      OfficeWorkerMobile,
-      OfficeWorkerMail,
-      OfficeWorkerCenter,
-      OfficeWorkerBranch,
-      Designation,
-      agreementChecked,
-    });
-    await newOfficeWorker.save();
-    res.status(201).json({ message: "Office Worker data saved successfully" });
-  } catch (error) {
-    console.error("Office Worker Admission Error:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-});
-
 // Open Branch Start
 
 //----------------------------------------------------------------
