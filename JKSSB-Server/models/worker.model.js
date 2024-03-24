@@ -21,6 +21,7 @@ const addworkerSchema = new mongoose.Schema(
     Workerimage: { type: String, default: null }, // Image path or URL
     WorkerCenterAdd: { type: String, required: true },
     WorkerBranchAdd: { type: String, required: true },
+    Designation: { type: String, required: true },
     agreementChecked: { type: Boolean, required: true },
   },
   { timestamps: true }

@@ -26,7 +26,7 @@ app.use(bodyParser.json());
 // eslint-disable-next-line no-undef
 const port = process.env.PORT || 9000;
 
-// for loaclhost
+// for loaclhost ---------------------------------------------------------
 
 app.use(cors({ origin: "http://localhost:5173" }));
 
@@ -44,7 +44,7 @@ app.use(cors({ origin: "http://localhost:5173" }));
   }
 })();
 
-//for server
+//for server----------------------------------------------------------
 
 // app.use(cors({ origin: "https://ashalata.gandhipoka.com" }));
 
@@ -124,6 +124,7 @@ app.post("/workeradmission", async (req, res) => {
       Workerimage,
       WorkerCenterAdd,
       WorkerBranchAdd,
+      Designation,
       agreementChecked,
     } = req.body;
     const workerID = await generateWorkerID();
@@ -146,6 +147,7 @@ app.post("/workeradmission", async (req, res) => {
       Workerimage,
       WorkerCenterAdd,
       WorkerBranchAdd,
+      Designation,
       agreementChecked,
     });
     await newWorker.save();
@@ -166,7 +168,7 @@ app.get("/worker-callback", async (req, res) => {
     }
     const workers = await AddWorker.find(
       query,
-      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd agreementChecked"
+      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd Designation agreementChecked"
     );
 
     res.json(workers);
