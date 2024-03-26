@@ -8,11 +8,11 @@ const router = express.Router();
 const User = require("./models/user.model.js");
 const OpenCenter = require("./models/center.model.js");
 const OpenBranch = require("./models/branch.model.js");
-const OpenLoan = require("./models/openloan.model.js");
 const AddWorker = require("./models/worker.model.js");
-const addOfficeWorker = require("./models/officeWorker.model.js");
 const Member = require("./models/member.model.js");
 const OpenSaving = require("./models/saving.model.js");
+const Installment = require("./models/installment.model.js");
+const Loan = require("./models/loan.model.js");
 
 const { ObjectId } = require("mongoose").Types;
 
@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 // eslint-disable-next-line no-undef
 const port = process.env.PORT || 9000;
 
-// for loaclhost
+// for loaclhost ---------------------------------------------------------
 
 app.use(cors({ origin: "http://localhost:5173" }));
 
@@ -43,7 +43,7 @@ app.use(cors({ origin: "http://localhost:5173" }));
   }
 })();
 
-//for server
+//for server----------------------------------------------------------
 
 // app.use(cors({ origin: "https://ashalata.gandhipoka.com" }));
 
@@ -123,6 +123,7 @@ app.post("/workeradmission", async (req, res) => {
       Workerimage,
       WorkerCenterAdd,
       WorkerBranchAdd,
+      Designation,
       agreementChecked,
     } = req.body;
     const workerID = await generateWorkerID();
@@ -145,6 +146,7 @@ app.post("/workeradmission", async (req, res) => {
       Workerimage,
       WorkerCenterAdd,
       WorkerBranchAdd,
+      Designation,
       agreementChecked,
     });
     await newWorker.save();
@@ -165,7 +167,7 @@ app.get("/worker-callback", async (req, res) => {
     }
     const workers = await AddWorker.find(
       query,
-      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd agreementChecked"
+      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd Designation agreementChecked"
     );
 
     res.json(workers);
@@ -232,67 +234,6 @@ app.put("/worker-callback/:ID", async (req, res) => {
 });
 
 //----------------------------------------------------------------
-
-//Office Worker Start
-//----------------------------------------------------------------
-
-const generateOfficeWorkerID = async () => {
-  const count = await addOfficeWorker.countDocuments();
-  const paddedCount = (count + 1).toString().padStart(4, "0");
-  return `OW${paddedCount}`;
-};
-
-app.post("/OfficeWorkerAdd", async (req, res) => {
-  try {
-    const {
-      officeWorkerName,
-      OfficeWorkerParent,
-      OfficeWorkerJob,
-      officeWorkerHome,
-      OfficeWorkerUnion,
-      OfficeWdateOfBirth,
-      officeWorkerPost,
-      OfficeWorkerSubDic,
-      OfficeWorkerDic,
-      OfficeWorkerMarital,
-      OfficeWorkerStudy,
-      OfficeWorkerNID,
-      OfficeWorkerMobile,
-      OfficeWorkerMail,
-      OfficeWorkerCenter,
-      OfficeWorkerBranch,
-      Designation,
-      agreementChecked,
-    } = req.body;
-    const officeworkerID = await generateOfficeWorkerID();
-    const newOfficeWorker = new addOfficeWorker({
-      officeworkerID,
-      officeWorkerName,
-      OfficeWorkerParent,
-      OfficeWorkerJob,
-      officeWorkerHome,
-      OfficeWorkerUnion,
-      OfficeWdateOfBirth,
-      officeWorkerPost,
-      OfficeWorkerSubDic,
-      OfficeWorkerDic,
-      OfficeWorkerMarital,
-      OfficeWorkerStudy,
-      OfficeWorkerNID,
-      OfficeWorkerMobile,
-      OfficeWorkerMail,
-      OfficeWorkerCenter,
-      OfficeWorkerBranch,
-      Designation,
-      agreementChecked,
-    });
-    await newOfficeWorker.save();
-    res.status(201).json({ message: "Office Worker data saved successfully" });
-  } catch (error) {
-    console.error("Office Worker Admission Error:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-});
 
 // Open Branch Start
 
@@ -516,12 +457,9 @@ app.put("/center-callback/:ID", async (req, res) => {
 //----------------------------------------------------------------
 
 // Open loan  Start
-
-//----------------------------------------------------------------
-
 const generateLoanID = async () => {
   try {
-    const count = await OpenLoan.countDocuments();
+    const count = await Loan.countDocuments();
     const paddedCount = (count + 1).toString().padStart(4, "0");
     return `L${paddedCount}`;
   } catch (error) {
@@ -530,32 +468,98 @@ const generateLoanID = async () => {
   }
 };
 
-app.post("/openloan", async (req, res) => {
+app.post("/openloan/save-dates", async (req, res) => {
   try {
-    const { memberID, selectedMember, loanType, OLamount, OLtotal } = req.body;
-    const loanID = await generateLoanID();
-
-    const newLoanApplication = new OpenLoan({
+    const {
       memberID,
-      loanID,
-      OLname: selectedMember.memberName,
-      fathername: selectedMember.MfhName,
-      OLbranch: selectedMember.BranchMember,
-      OLcenter: selectedMember.CenterMember,
-      OLmobile: selectedMember.MemberMobile,
+      OLname,
+      fathername,
+      OLbranch,
+      OLcenter,
+      OLmobile,
       loanType,
       OLamount,
       OLtotal,
+      installment,
+      withoutInterst,
+      onlyInterest,
+      selectedDate,
+      nextDates,
+    } = req.body;
+    const loanID = await generateLoanID();
+    // Create a new document using the DateModel
+    const dateDocument = new Loan({
+      memberID,
+      loanID,
+      OLname,
+      fathername,
+      OLbranch,
+      OLcenter,
+      OLmobile,
+      loanType,
+      OLamount,
+      OLtotal,
+      installment,
+      withoutInterst,
+      onlyInterest,
+      selectedDate,
+      nextDates,
     });
 
-    await newLoanApplication.save();
+    // Save the document to the database
+    await dateDocument.save();
 
-    res
-      .status(201)
-      .json({ message: "Loan application data saved successfully" });
+    // Send a success response
+    res.status(200).json({ message: "Dates saved successfully" });
   } catch (error) {
-    console.error("Loan Application Error:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    // If an error occurs during the save operation, send an error response
+    console.error("Error saving dates:", error.message);
+    res.status(500).json({ error: "Failed to save dates" });
+  }
+});
+
+app.get("/get-dates", async (req, res) => {
+  try {
+    // Retrieve all documents from the DateModel collection
+    const dates = await Loan.find();
+
+    // Send the retrieved dates as a response
+    res.status(200).json(dates);
+  } catch (error) {
+    // If an error occurs during the retrieval process, send an error response
+    console.error("Error fetching dates:", error.message);
+    res.status(500).json({ error: "Failed to fetch dates" });
+  }
+});
+
+app.get("/get-dates/:nextDate", async (req, res) => {
+  const nextDate = req.params.nextDate;
+
+  try {
+    // Retrieve documents from the DateModel collection where nextDate array contains the provided value
+    const dates = await Loan.find(
+      { nextDates: { $in: [nextDate] } },
+      {
+        _id: 0,
+        WorkerName: 1,
+        selectedDate: 1,
+        nextDates: { $elemMatch: { $eq: nextDate } },
+      }
+    );
+
+    if (dates.length === 0) {
+      // If no matching documents are found, send a 404 Not Found response
+      // res
+      //   .status(404)
+      //   .json({ error: "No dates found for the provided nextDate" });
+    } else {
+      // Send the retrieved dates as a response
+      res.status(200).json(dates);
+    }
+  } catch (error) {
+    // If an error occurs during the retrieval process, send an error response
+    console.error("Error fetching dates:", error.message);
+    res.status(500).json({ error: "Failed to fetch dates" });
   }
 });
 

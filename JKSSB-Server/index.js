@@ -8,12 +8,11 @@ const router = express.Router();
 const User = require("./models/user.model.js");
 const OpenCenter = require("./models/center.model.js");
 const OpenBranch = require("./models/branch.model.js");
-const OpenLoan = require("./models/openloan.model.js");
 const AddWorker = require("./models/worker.model.js");
-const addOfficeWorker = require("./models/officeWorker.model.js");
 const Member = require("./models/member.model.js");
 const OpenSaving = require("./models/saving.model.js");
 const Installment = require("./models/installment.model.js");
+const Loan = require("./models/loan.model.js");
 
 const { ObjectId } = require("mongoose").Types;
 
@@ -458,12 +457,9 @@ app.put("/center-callback/:ID", async (req, res) => {
 //----------------------------------------------------------------
 
 // Open loan  Start
-
-//----------------------------------------------------------------
-
 const generateLoanID = async () => {
   try {
-    const count = await OpenLoan.countDocuments();
+    const count = await Loan.countDocuments();
     const paddedCount = (count + 1).toString().padStart(4, "0");
     return `L${paddedCount}`;
   } catch (error) {
@@ -472,50 +468,98 @@ const generateLoanID = async () => {
   }
 };
 
-app.post("/openloan", async (req, res) => {
+app.post("/openloan/save-dates", async (req, res) => {
   try {
-    const { memberID, selectedMember, loanType, OLamount, OLtotal } = req.body;
-    const loanID = await generateLoanID();
-
-    // Calculate installment amount
-    const loanAmount = parseFloat(OLamount); // Convert to number if necessary
-    const weeks = 41; // Assuming 41 weeks
-    const installmentAmount = loanAmount / weeks;
-
-    // Save loan application data
-    const newLoanApplication = new OpenLoan({
+    const {
       memberID,
-      loanID,
-      OLname: selectedMember.memberName,
-      fathername: selectedMember.MfhName,
-      OLbranch: selectedMember.BranchMember,
-      OLcenter: selectedMember.CenterMember,
-      OLmobile: selectedMember.MemberMobile,
+      OLname,
+      fathername,
+      OLbranch,
+      OLcenter,
+      OLmobile,
       loanType,
       OLamount,
       OLtotal,
+      installment,
+      withoutInterst,
+      onlyInterest,
+      selectedDate,
+      nextDates,
+    } = req.body;
+    const loanID = await generateLoanID();
+    // Create a new document using the DateModel
+    const dateDocument = new Loan({
+      memberID,
+      loanID,
+      OLname,
+      fathername,
+      OLbranch,
+      OLcenter,
+      OLmobile,
+      loanType,
+      OLamount,
+      OLtotal,
+      installment,
+      withoutInterst,
+      onlyInterest,
+      selectedDate,
+      nextDates,
     });
-    await newLoanApplication.save();
 
-    // Save installment details
-    for (let i = 1; i <= weeks; i++) {
-      const newInstallment = new Installment({
-        center: selectedMember.CenterMember,
-        memberName: selectedMember.memberName,
-        mobile: selectedMember.MemberMobile,
-        loanType,
-        amount: installmentAmount,
-        week: i,
-      });
-      await newInstallment.save();
-    }
+    // Save the document to the database
+    await dateDocument.save();
 
-    res
-      .status(201)
-      .json({ message: "Loan application data saved successfully" });
+    // Send a success response
+    res.status(200).json({ message: "Dates saved successfully" });
   } catch (error) {
-    console.error("Loan Application Error:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    // If an error occurs during the save operation, send an error response
+    console.error("Error saving dates:", error.message);
+    res.status(500).json({ error: "Failed to save dates" });
+  }
+});
+
+app.get("/get-dates", async (req, res) => {
+  try {
+    // Retrieve all documents from the DateModel collection
+    const dates = await Loan.find();
+
+    // Send the retrieved dates as a response
+    res.status(200).json(dates);
+  } catch (error) {
+    // If an error occurs during the retrieval process, send an error response
+    console.error("Error fetching dates:", error.message);
+    res.status(500).json({ error: "Failed to fetch dates" });
+  }
+});
+
+app.get("/get-dates/:nextDate", async (req, res) => {
+  const nextDate = req.params.nextDate;
+
+  try {
+    // Retrieve documents from the DateModel collection where nextDate array contains the provided value
+    const dates = await Loan.find(
+      { nextDates: { $in: [nextDate] } },
+      {
+        _id: 0,
+        WorkerName: 1,
+        selectedDate: 1,
+        nextDates: { $elemMatch: { $eq: nextDate } },
+      }
+    );
+
+    if (dates.length === 0) {
+      // If no matching documents are found, send a 404 Not Found response
+      // res
+      //   .status(404)
+      //   .json({ error: "No dates found for the provided nextDate" });
+    } else {
+      // Send the retrieved dates as a response
+      res.status(200).json(dates);
+    }
+  } catch (error) {
+    // If an error occurs during the retrieval process, send an error response
+    console.error("Error fetching dates:", error.message);
+    res.status(500).json({ error: "Failed to fetch dates" });
   }
 });
 
