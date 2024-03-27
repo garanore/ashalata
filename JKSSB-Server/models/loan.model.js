@@ -15,6 +15,7 @@ const dateSchema = new mongoose.Schema({
   installment: { type: Number },
   withoutInterst: { type: Number },
   onlyInterest: { type: Number },
+  CenterDay: { type: String },
 
   selectedDate: {
     type: String,

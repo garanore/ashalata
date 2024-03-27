@@ -4,10 +4,11 @@ const openCenterSchema = new mongoose.Schema(
   {
     centerID: { type: String, unique: true },
     CenterName: { type: String, required: true },
-    AddressCenter: { type: String, required: true },
+    centerBranch: { type: String },
+    CenterAddress: { type: String, required: true },
     CenterMnumber: { type: String, required: true },
     centerWorker: { type: String },
-    centerBranch: { type: String },
+    CenterDay: { type: String },
   },
   { timestamps: true }
 );

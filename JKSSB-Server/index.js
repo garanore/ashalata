@@ -186,7 +186,7 @@ app.get("/worker-callback/:ID", async (req, res) => {
 
     const worker = await AddWorker.findOne(
       query,
-      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd agreementChecked"
+      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd Designation agreementChecked"
     );
 
     if (!worker) {
@@ -352,19 +352,21 @@ app.post("/opencenter", async (req, res) => {
   try {
     const {
       CenterName,
-      AddressCenter,
+      CenterAddress,
       CenterMnumber,
       centerWorker,
       centerBranch,
+      CenterDay,
     } = req.body;
     const centerID = await generateCenterID();
     const newCenterApplication = new OpenCenter({
       centerID,
       CenterName,
-      AddressCenter,
+      CenterAddress,
       CenterMnumber,
       centerWorker,
       centerBranch,
+      CenterDay,
     });
     await newCenterApplication.save();
     res.status(201).json({ message: "Center Create successfully" });
@@ -387,7 +389,7 @@ app.get("/center-callback", async (req, res) => {
 
     const centers = await OpenCenter.find(
       query,
-      "centerID CenterName AddressCenter CenterMnumber centerWorker centerBranch"
+      "centerID CenterName CenterAddress CenterMnumber centerWorker centerBranch CenterDay"
     ).populate("centerWorker", "WorkerName");
 
     res.json(centers);
@@ -406,7 +408,7 @@ app.get("/center-callback/:ID", async (req, res) => {
 
     const center = await OpenCenter.findOne(
       query,
-      " centerID CenterName AddressCenter CenterMnumber centerWorker centerBranch"
+      " centerID CenterName CenterAddress CenterMnumber centerWorker centerBranch CenterDay"
     );
 
     if (!center) {
@@ -483,6 +485,7 @@ app.post("/openloan/save-dates", async (req, res) => {
       installment,
       withoutInterst,
       onlyInterest,
+      CenterDay,
       selectedDate,
       nextDates,
     } = req.body;
@@ -502,6 +505,7 @@ app.post("/openloan/save-dates", async (req, res) => {
       installment,
       withoutInterst,
       onlyInterest,
+      CenterDay,
       selectedDate,
       nextDates,
     });
@@ -567,6 +571,7 @@ app.get("/get-dates/:nextDate", async (req, res) => {
         installment: 1,
         withoutInterst: 1,
         onlyInterest: 1,
+        CenterDay: 1,
         selectedDate: 1,
         nextDates: { $elemMatch: { $eq: nextDate } },
       }
