@@ -388,7 +388,7 @@ app.get("/center-callback", async (req, res) => {
     const centers = await OpenCenter.find(
       query,
       "centerID CenterName AddressCenter CenterMnumber centerWorker centerBranch"
-    );
+    ).populate("centerWorker", "WorkerName");
 
     res.json(centers);
   } catch (error) {
@@ -518,15 +518,28 @@ app.post("/openloan/save-dates", async (req, res) => {
   }
 });
 
-app.get("/get-dates", async (req, res) => {
+app.get("/get-installmentDate", async (req, res) => {
   try {
-    // Retrieve all documents from the DateModel collection
     const dates = await Loan.find();
 
     // Send the retrieved dates as a response
     res.status(200).json(dates);
   } catch (error) {
-    // If an error occurs during the retrieval process, send an error response
+    console.error("Error fetching dates:", error.message);
+    res.status(500).json({ error: "Failed to fetch dates" });
+  }
+});
+
+app.get("/get-installmentDate/:center", async (req, res) => {
+  try {
+    const selectedCenter = req.params.center; // Use req.params.center to get the center from URL path
+
+    // Filter documents based on the selected center
+    const dates = await Loan.find({ OLcenter: selectedCenter });
+
+    // Send the retrieved dates as a response
+    res.status(200).json(dates);
+  } catch (error) {
     console.error("Error fetching dates:", error.message);
     res.status(500).json({ error: "Failed to fetch dates" });
   }
@@ -541,7 +554,19 @@ app.get("/get-dates/:nextDate", async (req, res) => {
       { nextDates: { $in: [nextDate] } },
       {
         _id: 0,
-        WorkerName: 1,
+        OLname: 1,
+        memberID: 1,
+        loanID: 1,
+        fathername: 1,
+        OLbranch: 1,
+        OLcenter: 1,
+        OLmobile: 1,
+        loanType: 1,
+        OLamount: 1,
+        OLtotal: 1,
+        installment: 1,
+        withoutInterst: 1,
+        onlyInterest: 1,
         selectedDate: 1,
         nextDates: { $elemMatch: { $eq: nextDate } },
       }
@@ -570,7 +595,7 @@ app.get("/loan-callback", async (req, res) => {
     // If center parameter is provided, filter loans by center
     const query = center ? { OLcenter: center } : {};
 
-    const loans = await OpenLoan.find(
+    const loans = await Loan.find(
       query,
       "memberID loanID OLname fathername OLbranch OLcenter OLmobile loanType OLamount OLtotal"
     );
@@ -692,7 +717,7 @@ app.get("/member-callback", async (req, res) => {
     }
     const members = await Member.find(
       query,
-      "BranchMember  CenterMember memberID memberName MfhName MdateOfBirth memberJob memberVillage memberUnion memberPost memberSubDic memberDic memberMarital memberStudy memberFhead memberfMM memberfMF memberfMTotal EarningMember FamilyMemberENO loanamount nonorganizaiotnloan YearlyIncome LandProperty TotalMoney MemberNIDnumber MemberMobile NominiName NominiFather MemberNominiRelation "
+      "BranchMember  CenterMember memberID AdmissionDate memberName MfhName MdateOfBirth memberJob memberVillage memberUnion memberPost memberSubDic memberDic memberMarital memberStudy memberFhead memberfMM memberfMF memberfMTotal EarningMember FamilyMemberENO loanamount nonorganizaiotnloan YearlyIncome LandProperty TotalMoney MemberNIDnumber MemberMobile NominiName NominiFather MemberNominiRelation "
     );
     res.json(members);
   } catch (error) {
@@ -708,7 +733,7 @@ app.get("/member-callback/:ID", async (req, res) => {
 
     const member = await Member.findOne(
       query,
-      "BranchMember CenterMember memberID memberName MfhName MdateOfBirth memberJob memberVillage memberUnion memberPost memberSubDic memberDic memberMarital memberStudy memberFhead memberfMM memberfMF memberfMTotal EarningMember FamilyMemberENO loanamount nonorganizationloan YearlyIncome LandProperty TotalMoney MemberNIDnumber MemberMobile NominiName NominiFather MemberNominiRelation"
+      "BranchMember CenterMember memberID AdmissionDate memberName MfhName MdateOfBirth memberJob memberVillage memberUnion memberPost memberSubDic memberDic memberMarital memberStudy memberFhead memberfMM memberfMF memberfMTotal EarningMember FamilyMemberENO loanamount nonorganizationloan YearlyIncome LandProperty TotalMoney MemberNIDnumber MemberMobile NominiName NominiFather MemberNominiRelation"
     );
 
     if (!member) {

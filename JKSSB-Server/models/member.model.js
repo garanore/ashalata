@@ -6,6 +6,7 @@ const memberSchema = new mongoose.Schema(
     BranchMember: { type: String },
     CenterMember: { type: String },
     memberID: { type: String, unique: true, required: true },
+    AdmissionDate: { type: String, default: null },
     memberName: { type: String, required: true },
     MfhName: { type: String, required: true },
     memberJob: { type: String, required: true },
