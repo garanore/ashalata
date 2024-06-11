@@ -90,7 +90,7 @@ function OpenSavings() {
 
   const generateSavingID = (count) => {
     const paddedCount = (count + 1).toString().padStart(4, "0");
-    return `L${paddedCount}`;
+    return `S${paddedCount}`;
   };
 
   // Find Member With Member ID------------------------------------------------
@@ -250,70 +250,60 @@ function OpenSavings() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (installmentStart && SavingAmount) {
-      const formattedDate = moment(installmentStart).format("DD-MM-YY");
+    const formattedDate = moment(installmentStart).format("DD-MM-YY");
+    const nextDates = generateNextDates(installmentStart);
 
-      const nextDates = generateNextDates(installmentStart);
+    try {
+      // Send request to backend API to save the next dates
+      const response = await fetch(
+        "https://ashalota.gandhipoka.com/opensaving",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            SavingID: SavingID,
+            memberID: memberID,
+            SavingName: selectedMember?.memberName || "", // Use optional chaining and provide a default value
+            fathername: selectedMember?.MfhName || "", // Use optional chaining and provide a default value
+            SavingBranch: selectedMember?.BranchMember || "", // Use optional chaining and provide a default value
+            SavingCenter: selectedMember?.CenterIDMember || "", // Use optional chaining and provide a default value
+            SavingMobile: selectedMember?.MemberMobile || "", // Use optional chaining and provide a default value
+            installmentStart: formattedDate,
+            nextDates: nextDates,
+            SavingAmount: SavingAmount,
+            installment: installment,
+            SavingType: SavingTypeTranslations[SavingType],
+            SavingTime: SavingTimeTranslations[SavingTime],
+            CenterDay: centerDay,
+          }),
+        }
+      );
 
-      try {
-        // Send request to backend API to save the next dates
-        const response = await fetch(
-          "https://ashalota.gandhipoka.com/opensaving",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              SavingID: SavingID,
-              memberID: memberID,
-              SavingName: selectedMember.memberName,
-              fathername: selectedMember.MfhName,
-              SavingBranch: selectedMember.BranchMember,
-              SavingCenter: selectedMember.CenterIDMember,
-              SavingMobile: selectedMember.MemberMobile,
-              installmentStart: formattedDate,
-              nextDates: nextDates,
-              SavingAmount: SavingAmount,
-              installment: installment,
-              SavingType: SavingTypeTranslations[SavingType],
-              SavingTime: SavingTimeTranslations[SavingTime],
-              CenterDay: centerDay,
-            }),
-          }
-        );
-
+      if (response.ok) {
         setSavingCount(SavingCount + 1);
-
-        if (response.ok) {
-          setSelectedMember("");
-          setInstallmentStart(null);
-          setSavingAmount("");
-          setSavingType("");
-          setSavingTime("");
-          setInstallment("");
-          setMemberID("");
-          setSubmitMessage(""); // Clear submit message
-          setSubmitMessage("Successfully submitted!");
-        } else {
-          // Handle unexpected response status
-          console.error("Unexpected response status:", response.status);
-          setSubmitMessage(
-            `Error: Unexpected response status ${response.status}`
-          );
-          console.error("Failed to save next dates:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error.message);
-        // Log the detailed error response from the server
-        if (error.response) {
-          console.error("Server response data:", error.response.data);
-        }
-        setSubmitMessage(`Error: ${error.message}`);
-        console.error("Error saving dates:", error.message);
+        setSelectedMember("");
+        setInstallmentStart(null);
+        setSavingAmount("");
+        setSavingType("");
+        setSavingTime("");
+        setInstallment("");
+        setMemberID("");
+        setSubmitMessage("Successfully submitted!");
+      } else {
+        const errorData = await response.json();
+        console.error("Unexpected response status:", response.status);
+        console.error("Error data:", errorData);
+        setSubmitMessage(
+          `Error: Unexpected response status ${response.status} - ${
+            errorData.error || response.statusText
+          }`
+        );
       }
-    } else {
-      console.log("Please select a date and enter Saving amount first");
+    } catch (error) {
+      console.error("Error submitting form:", error.message);
+      setSubmitMessage(`Error: ${error.message}`);
     }
   };
 

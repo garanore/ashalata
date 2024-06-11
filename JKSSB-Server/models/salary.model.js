@@ -13,6 +13,8 @@ const WorkerSalarySchema = new Schema({
   special: { type: [Number] }, // Array of numbers
   distance: { type: [Number] }, // Array of numbers
   deameSlance: { type: [Number] }, // Array of numbers
+  totalSalary: { type: [Number] }, // Array of numbers
+  netPay: { type: [Number] }, // Array of numbers
   mobileBill: { type: [Number] }, // Array of numbers
   commission: { type: [Number] }, // Array of numbers
   bonus: { type: [Number] }, // Array of numbers
@@ -25,6 +27,8 @@ const WorkerSalarySchema = new Schema({
   offGrt: { type: [Number] }, // Array of numbers
   earned: { type: [Number] }, // Array of numbers
   offPf: { type: [Number] }, // Array of numbers
+  totalPF: { type: [Number] }, // Array of numbers
+  totalSalAndAllowances: { type: [Number] }, // Array of numbers
   comment: { type: [String] }, // Array of strings for comments
 });
 

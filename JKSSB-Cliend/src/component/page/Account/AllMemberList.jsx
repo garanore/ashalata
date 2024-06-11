@@ -23,8 +23,12 @@ function AllMemberList() {
     fetchData();
   }, []);
 
-  const handleEdit = (member) => {
+  const handleView = (member) => {
     navigate("/home/MemberAbout", { state: { memberID: member._id } });
+  };
+
+  const handleEdit = (member) => {
+    navigate("/home/MemberEdit", { state: { memberID: member._id } });
   };
 
   return (
@@ -47,7 +51,7 @@ function AllMemberList() {
             </thead>
             <tbody>
               {MemberData.map((Member) => (
-                <tr key={Member.BranchID}>
+                <tr key={Member._id}>
                   <td>{Member.memberID}</td>
                   <td>{Member.memberName}</td>
                   <td>{Member.CenterIDMember}</td>
@@ -56,10 +60,17 @@ function AllMemberList() {
                   <td>
                     <button
                       type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => handleView(Member)}
+                    >
+                      View
+                    </button>
+                    <button
+                      type="button"
                       className="ms-3 btn btn-primary btn-sm"
                       onClick={() => handleEdit(Member)}
                     >
-                      View
+                      Edit
                     </button>
                   </td>
                 </tr>

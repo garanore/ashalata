@@ -434,9 +434,20 @@ const SideBar = () => {
                         }`}
                       >
                         <Link to="Salary" className="sidebar-link">
-                          বেতন
+                          বেতন তৈরি করুণ
                         </Link>
                       </li>
+
+                      <li
+                        className={`sidebar-item ${
+                          location.pathname === "/SalaryList" ? "active" : ""
+                        }`}
+                      >
+                        <Link to="SalaryList" className="sidebar-link">
+                          বেতন বিবরণ
+                        </Link>
+                      </li>
+
                       <li
                         className={`sidebar-item ${
                           location.pathname === "/OfficeCollection"

@@ -24,7 +24,7 @@ const memberSchema = new mongoose.Schema(
     memberfMF: { type: String, required: true },
     memberfMTotal: { type: String, required: true },
     EarningMember: { type: String, required: true },
-    FamilyMemberENO: { type: String, required: true },
+    FamilyMemberENO: { type: String },
     loanamount: { type: String },
     nonorganizaiotnloan: { type: String },
     YearlyIncome: { type: String, required: true },

@@ -396,8 +396,6 @@ app.put("/worker-callback/:ID", async (req, res) => {
 app.post("/save-worker-salary", async (req, res) => {
   const { salaryDate, data } = req.body;
 
-  console.log("Received data:", req.body);
-
   if (!data) {
     return res.status(400).json({ message: "No data provided" });
   }
@@ -419,6 +417,7 @@ app.post("/save-worker-salary", async (req, res) => {
           transAllow: item.transAllow,
           special: item.special,
           distance: item.distance,
+          totalSalary: item.totalSalary,
           deameSlance: item.deameSlance,
           mobileBill: item.mobileBill,
           commission: item.commission,
@@ -427,11 +426,14 @@ app.post("/save-worker-salary", async (req, res) => {
           advance: item.advance,
           loan: item.loan,
           fsf: item.fsf,
+          netPay: item.netPay,
           healthFund: item.healthFund,
           other: item.other,
           offGrt: item.offGrt,
           earned: item.earned,
           offPf: item.offPf,
+          totalPF: item.totalPF,
+          totalSalAndAllowances: item.totalSalAndAllowances,
           comment: item.comment,
         },
         $addToSet: { salaryDates: salaryDate },
@@ -447,6 +449,135 @@ app.post("/save-worker-salary", async (req, res) => {
     res
       .status(500)
       .json({ message: "Error saving salary data", error: error.message });
+  }
+});
+
+// Salary Callback For Selected Month
+
+app.get("/get-salary-data", async (req, res) => {
+  const { month } = req.query;
+
+  if (!month) {
+    return res.status(400).json({ message: "Month is required" });
+  }
+
+  try {
+    const salaryData = await WorkerSalary.find({
+      month: month,
+    });
+
+    res.status(200).json(salaryData);
+  } catch (error) {
+    console.error("Error fetching salary data:", error);
+    res.status(500).json({ message: "Error fetching salary data" });
+  }
+});
+
+// Salary Callback For Selected Worker and Selected Month ----------------------------------------------------------------
+app.get("/worker-salary/:workerID/:month", async (req, res) => {
+  const { workerID, month } = req.params;
+
+  if (!workerID || !month) {
+    return res.status(400).json({ message: "WorkerID and month are required" });
+  }
+
+  try {
+    const workerSalary = await WorkerSalary.findOne({ workerID: workerID });
+
+    if (workerSalary) {
+      const monthIndex = workerSalary.month.indexOf(month);
+
+      if (monthIndex !== -1) {
+        const salaryData = {
+          workerID: workerSalary.workerID,
+          workerName: workerSalary.workerName,
+          designation: workerSalary.designation,
+          advance: workerSalary.advance[monthIndex],
+          basic: workerSalary.basic[monthIndex],
+          bonus: workerSalary.bonus[monthIndex],
+          totalSalary: workerSalary.totalSalary[monthIndex],
+          netPay: workerSalary.netPay[monthIndex],
+          comment: workerSalary.comment[monthIndex],
+          commission: workerSalary.commission[monthIndex],
+          deameSlance: workerSalary.deameSlance[monthIndex],
+          distance: workerSalary.distance[monthIndex],
+          earned: workerSalary.earned[monthIndex],
+          fsf: workerSalary.fsf[monthIndex],
+          healthFund: workerSalary.healthFund[monthIndex],
+          houseRent: workerSalary.houseRent[monthIndex],
+          loan: workerSalary.loan[monthIndex],
+          medAllow: workerSalary.medAllow[monthIndex],
+          mobileBill: workerSalary.mobileBill[monthIndex],
+          offGrt: workerSalary.offGrt[monthIndex],
+          offPf: workerSalary.offPf[monthIndex],
+          other: workerSalary.other[monthIndex],
+          pf: workerSalary.pf[monthIndex],
+          special: workerSalary.special[monthIndex],
+          totalPF: workerSalary.totalPF[monthIndex],
+          totalSalAndAllowances: workerSalary.totalSalAndAllowances[monthIndex],
+          transAllow: workerSalary.transAllow[monthIndex],
+          month: workerSalary.month, // Include the month array in the response
+        };
+
+        res.status(200).json(salaryData);
+      } else {
+        res
+          .status(404)
+          .json({ message: "No data found for the selected worker and month" });
+      }
+    } else {
+      res
+        .status(404)
+        .json({ message: "No data found for the selected worker" });
+    }
+  } catch (error) {
+    console.error("Error fetching salary data:", error);
+    res.status(500).json({ message: "Error fetching salary data" });
+  }
+});
+
+// For Saalry Update ----------------------------------------------------------------
+
+app.put("/update-worker-salary", async (req, res) => {
+  const { workerID, month, monthIndex, data } = req.body;
+
+  if (!workerID || monthIndex === undefined || !data) {
+    return res
+      .status(400)
+      .json({ message: "WorkerID, monthIndex, and data are required" });
+  }
+
+  try {
+    const filter = { workerID: workerID };
+    const update = {};
+
+    // Create update operations for each field, specifically for the given month index
+    Object.keys(data).forEach((field) => {
+      const updateField = `${field}.${monthIndex}`;
+      update[updateField] = data[field];
+    });
+
+    const updatedWorkerSalary = await WorkerSalary.findOneAndUpdate(
+      filter,
+      {
+        $set: update,
+      },
+      { new: true }
+    ); // Return the updated document
+
+    if (!updatedWorkerSalary) {
+      return res.status(404).json({ message: "Worker salary data not found" });
+    }
+
+    res.status(200).json({
+      message: "Salary data updated successfully",
+      updatedWorkerSalary,
+    });
+  } catch (error) {
+    console.error("Error updating salary data:", error);
+    res
+      .status(500)
+      .json({ message: "Error updating salary data", error: error.message });
   }
 });
 
@@ -1315,7 +1446,17 @@ app.get("/loan-collection-date/:loanID", async (req, res) => {
 
 //-------------------------------------------------------------------
 
-// For Generate ID
+// Function to generate unique Saving ID
+// const generateSavingID = async (memberID) => {
+//   try {
+//     const count = await OpenSaving.countDocuments({ memberID });
+//     const paddedCount = (count + 1).toString().padStart(2, "0");
+//     return `${memberID}S${paddedCount}`;
+//   } catch (error) {
+//     console.error("Error generating saving ID:", error.message);
+//     throw error;
+//   }
+// };
 
 const generateSavingID = async (memberID) => {
   try {
@@ -1323,44 +1464,57 @@ const generateSavingID = async (memberID) => {
     const paddedCount = (count + 1).toString().padStart(2, "0");
     return `${memberID}S${paddedCount}`;
   } catch (error) {
-    console.error("Error generating saving ID:", error.message);
+    console.error("Error generating Saving ID:", error.message);
     throw error; // Rethrow the error to propagate it up
   }
 };
 
-//Saving ID Count
-
+// Saving ID Count
 app.get("/opensaving/count", async (req, res) => {
   try {
     const count = await OpenSaving.countDocuments();
     res.json({ count });
   } catch (error) {
-    console.error("Error fetching branch count:", error.message);
+    console.error("Error fetching saving count:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 app.post("/opensaving", async (req, res) => {
-  try {
-    const {
-      memberID,
-      SavingName,
-      fathername,
-      SavingBranch,
-      SavingCenter,
-      SavingMobile,
-      SavingType,
-      SavingTime,
-      SavingAmount,
-      CenterDay,
-      installmentStart,
-      nextDates,
-    } = req.body;
+  const {
+    memberID,
+    SavingName,
+    fathername,
+    SavingBranch,
+    SavingCenter,
+    SavingMobile,
+    SavingType,
+    SavingTime,
+    SavingAmount,
+    CenterDay,
+    installmentStart,
+    nextDates,
+  } = req.body;
 
-    // Generate a unique SavingID
+  if (
+    !memberID ||
+    !SavingName ||
+    !fathername ||
+    !SavingBranch ||
+    !SavingCenter ||
+    !SavingMobile ||
+    !SavingType ||
+    !SavingAmount ||
+    !CenterDay ||
+    !installmentStart ||
+    !nextDates
+  ) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
     const SavingID = await generateSavingID(memberID);
 
-    // Create a new document using the DateModel
     const dateDocument = new OpenSaving({
       memberID,
       SavingID,
@@ -1377,13 +1531,9 @@ app.post("/opensaving", async (req, res) => {
       nextDates,
     });
 
-    // Save the document to the database
     await dateDocument.save();
-
-    // Send a success response
     res.status(200).json({ message: "Dates saved successfully" });
   } catch (error) {
-    // If an error occurs during the save operation, send an error response
     console.error("Error saving dates:", error.message);
     res.status(500).json({ error: "Failed to save dates" });
   }

@@ -53,6 +53,8 @@ import SavingDetails from "./component/page/center/SavingsDetails.jsx";
 import SavingsDetailsFroBranch from "./component/page/branch/SavingsDetailsFroBranch.jsx";
 import PrivateRoute from "./component/page/LoginSignup/PrivateRoute.jsx";
 import WorkerView from "./component/page/office/WorkerView.jsx";
+import SalaryList from "./component/page/office/SalaryList.jsx";
+import SalaryEdit from "./component/page/office/SalaryEdit.jsx";
 
 const isAuthenticated = () => {
   return !!localStorage.getItem("authToken");
@@ -224,6 +226,14 @@ const AppRouter = () => {
         {
           path: "Salary",
           element: <PrivateRoute element={<Salary />} />,
+        },
+        {
+          path: "SalaryList",
+          element: <PrivateRoute element={<SalaryList />} />,
+        },
+        {
+          path: "SalaryEdit",
+          element: <PrivateRoute element={<SalaryEdit />} />,
         },
         {
           path: "LoanPortfolioStatement",
