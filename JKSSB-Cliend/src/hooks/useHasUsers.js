@@ -9,7 +9,7 @@ const useHasUsers = () => {
     const fetchHasUsers = async () => {
       try {
         const response = await axios.get(
-          "https://ashalota.gandhipoka.com/has-users"
+          "http://localhost:5000/has-users"
         );
         setHasUsers(response.data.hasUsers);
       } catch (error) {

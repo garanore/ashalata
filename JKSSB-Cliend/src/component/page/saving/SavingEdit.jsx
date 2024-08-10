@@ -34,7 +34,7 @@ const SavingEdit = () => {
     const fetchLoanData = async () => {
       try {
         const response = await fetch(
-          `https://ashalota.gandhipoka.com/get-saving-savingid/${SavingID}`
+          `http://localhost:5000/get-saving-savingid/${SavingID}`
         );
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -53,7 +53,7 @@ const SavingEdit = () => {
     }
 
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -79,7 +79,7 @@ const SavingEdit = () => {
     updatedData.SavingType = SavingEdit.SavingType;
 
     // Send updated data to server
-    fetch(`https://ashalota.gandhipoka.com/saving-callback/${SavingID}`, {
+    fetch(`http://localhost:5000/saving-callback/${SavingID}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",

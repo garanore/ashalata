@@ -1,11 +1,14 @@
 const mongoose = require("mongoose");
 
 // Define a schema for the date document
-const DesignationSchema = new mongoose.Schema({
-  DesignationID: { type: String, unique: true },
+const DesignationSchema = new mongoose.Schema(
+  {
+    DesignationID: { type: String, unique: true },
 
-  DesignationName: { type: String },
-});
+    DesignationName: { type: String },
+  },
+  { timestamps: true }
+);
 
 // Create a model using the schema
 const Designation = mongoose.model("Designation", DesignationSchema);

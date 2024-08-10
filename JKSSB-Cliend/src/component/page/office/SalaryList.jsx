@@ -14,7 +14,7 @@ const SalaryList = () => {
   const fetchSalaryData = async (selectedMonth) => {
     try {
       const response = await axios.get(
-        "https://ashalota.gandhipoka.com/get-salary-data",
+        "http://localhost:5000/get-salary-data",
         {
           params: { month: selectedMonth },
         }

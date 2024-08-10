@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://ashalota.gandhipoka.com/designation";
+const API_URL = "http://localhost:5000/designation";
 // const Managers = ["আব্দুল ছাত্তার", "সুমন সরকার", "আকলিমা বেগম "];
 
 function Designation() {

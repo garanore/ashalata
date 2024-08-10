@@ -5,9 +5,9 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import axios from "axios";
 import DatePickers from "./../../datepicker/DatePicker";
-const API_URL = "https://ashalota.gandhipoka.com/workeradmission";
+const API_URL = "http://localhost:5000/workeradmission";
 const DESIGNATION_CALLBACK_API =
-  "https://ashalota.gandhipoka.com/designation-callback";
+  "http://localhost:5000/designation-callback";
 
 const WorkerAdmission = () => {
   const [WorkerCount, setWorkerCount] = useState(0);
@@ -86,7 +86,7 @@ const WorkerAdmission = () => {
   useEffect(() => {
     // Fetch branches data
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranchs(response.data);
       })
@@ -114,7 +114,7 @@ const WorkerAdmission = () => {
     if (branch) {
       axios
         .get(
-          `https://ashalota.gandhipoka.com/center-callback?selectedBranch=${encodeURIComponent(
+          `http://localhost:5000/center-callback?selectedBranch=${encodeURIComponent(
             branch
           )}`
         )

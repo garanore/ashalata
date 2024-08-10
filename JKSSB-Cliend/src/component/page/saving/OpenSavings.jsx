@@ -41,7 +41,7 @@ function OpenSavings() {
     const fetchMemberData = async () => {
       try {
         const response = await axios.get(
-          "https://ashalota.gandhipoka.com/member-callback"
+          "http://localhost:5000/member-callback"
         );
         setMemberData(response.data.members);
       } catch (error) {
@@ -56,7 +56,7 @@ function OpenSavings() {
   const fetchCenterDetails = async (centerID) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/center-callback-id/${centerID}`
+        `http://localhost:5000/center-callback-id/${centerID}`
       );
       if (response.data && response.data.length > 0) {
         setCenterDay(response.data[0].CenterDay); // Assuming CenterDay is available in the first item of the response array
@@ -73,7 +73,7 @@ function OpenSavings() {
   const fetchSavingCount = async () => {
     try {
       const response = await axios.get(
-        "https://ashalota.gandhipoka.com/opensaving/count"
+        "http://localhost:5000/opensaving/count"
       );
       const count = response.data.count;
       setSavingCount(count);
@@ -127,7 +127,7 @@ function OpenSavings() {
     try {
       // Fetch member data
       const response = await axios.get(
-        "https://ashalota.gandhipoka.com/member-callback"
+        "http://localhost:5000/member-callback"
       );
 
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -256,7 +256,7 @@ function OpenSavings() {
     try {
       // Send request to backend API to save the next dates
       const response = await fetch(
-        "https://ashalota.gandhipoka.com/opensaving",
+        "http://localhost:5000/opensaving",
         {
           method: "POST",
           headers: {

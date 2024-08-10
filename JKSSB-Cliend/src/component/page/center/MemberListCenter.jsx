@@ -12,7 +12,7 @@ function MemberListCenter() {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -28,7 +28,7 @@ function MemberListCenter() {
     if (center) {
       axios
         .get(
-          `https://ashalota.gandhipoka.com/member-callback?selectedCenter=${encodeURIComponent(
+          `http://localhost:5000/member-callback?selectedCenter=${encodeURIComponent(
             center
           )}`
         )
@@ -40,7 +40,7 @@ function MemberListCenter() {
         });
 
       axios
-        .get(`https://ashalota.gandhipoka.com/center-callback-id/${center}`)
+        .get(`http://localhost:5000/center-callback-id/${center}`)
         .then((response) => {
           const workerData = response.data;
           setSelectedWorker(

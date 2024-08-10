@@ -8,6 +8,7 @@ const InstallmentCollectionSchema = new mongoose.Schema(
     OLmobile: { type: String, required: true },
     loanType: { type: String, required: true },
     installment: { type: Number, required: true },
+    onlyInterest: { type: Number, required: true },
     centerName: { type: String, required: true },
     installmentDate: { type: [String], required: true }, // Array of strings
     // Add other fields as necessary

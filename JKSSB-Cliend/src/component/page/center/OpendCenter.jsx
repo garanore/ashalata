@@ -1,7 +1,8 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-const API_URL = "https://ashalota.gandhipoka.com/opencenter";
+
+const API_URL = "http://localhost:5000/opencenter";
 
 function OpenCenter() {
   const [centerCount, setCenterCount] = useState(0);
@@ -22,11 +23,8 @@ function OpenCenter() {
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        const response = await fetch(
-          "https://ashalota.gandhipoka.com/branch-callback"
-        );
+        const response = await fetch("http://localhost:5000/branch-callback");
         const data = await response.json();
-
         setBranchs(data);
       } catch (error) {
         console.error("Error fetching branch options:", error.message);
@@ -39,11 +37,8 @@ function OpenCenter() {
   useEffect(() => {
     const fetchCenters = async () => {
       try {
-        const response = await fetch(
-          "https://ashalota.gandhipoka.com/worker-callback"
-        );
+        const response = await fetch("http://localhost:5000/worker-callback");
         const data = await response.json();
-
         setWorkers(data);
       } catch (error) {
         console.error("Error fetching worker options:", error.message);
@@ -55,8 +50,7 @@ function OpenCenter() {
 
   // For Center ID-----------------------------------
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchCenterCount = async () => {
+  const fetchCenterCount = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/count`);
       const count = response.data.count;
@@ -66,7 +60,7 @@ function OpenCenter() {
       console.error("Error fetching branch count:", error.message);
       setSubmitMessage("Error fetching branch count");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCenterCount();
@@ -81,7 +75,7 @@ function OpenCenter() {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: value.trimStart(),
     }));
   };
 
@@ -96,23 +90,33 @@ function OpenCenter() {
         return;
       }
 
+      const trimmedFormData = {
+        ...formData,
+        centerID: formData.centerID.trim(),
+        CenterName: formData.CenterName.trim(),
+        CenterAddress: formData.CenterAddress.trim(),
+        CenterMnumber: formData.CenterMnumber.trim(),
+        centerBranch: formData.centerBranch.trim(),
+        centerWorker: formData.centerWorker.trim(),
+        CenterDay: formData.CenterDay.trim(),
+      };
+
       // eslint-disable-next-line no-unused-vars
       const response = await axios.post(API_URL, {
-        centerID: formData.centerID, // Include centerID in the payload
-        ...formData,
+        ...trimmedFormData,
       });
 
       setSubmitMessage("Successfully submitted!");
 
       setCenterCount(centerCount + 1);
-      setCenterID(generateCenterID());
+      setCenterID(generateCenterID(centerCount + 1));
       setFormData({
         centerID: "",
         CenterName: "",
         CenterAddress: "",
         CenterMnumber: "",
         centerBranch: "",
-        centerdWorker: "",
+        centerWorker: "",
         CenterDay: "",
       });
     } catch (error) {

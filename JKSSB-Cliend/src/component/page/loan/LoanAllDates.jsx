@@ -16,7 +16,7 @@ const LoanAllDates = () => {
   useEffect(() => {
     if (loanID) {
       // Fetch loan data
-      fetch(`https://ashalota.gandhipoka.com/get-loan-loanid/${loanID}`)
+      fetch(`http://localhost:5000/get-loan-loanid/${loanID}`)
         .then((res) => res.json())
         .then((data) => {
           const loanData =
@@ -26,7 +26,7 @@ const LoanAllDates = () => {
         .catch((error) => console.error("Error fetching loan data:", error));
 
       // Fetch loan collection details
-      fetch(`https://ashalota.gandhipoka.com/loan-collection-date/${loanID}`)
+      fetch(`http://localhost:5000/loan-collection-date/${loanID}`)
         .then((res) => res.json())
         .then((data) => {
           setLoanDetails(data.LoanDetails || {});
@@ -36,7 +36,7 @@ const LoanAllDates = () => {
         );
 
       // Fetch installment dates count
-      fetch(`https://ashalota.gandhipoka.com/installment-dates-count/${loanID}`)
+      fetch(`http://localhost:5000/installment-dates-count/${loanID}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.length > 0) {

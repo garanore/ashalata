@@ -13,7 +13,7 @@ function LoanDetails() {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -25,7 +25,7 @@ function LoanDetails() {
   const fetchInstallmentDateCount = async (loanID) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/installment-dates-count/${loanID}`
+        `http://localhost:5000/installment-dates-count/${loanID}`
       );
       return response.data[0]?.installmentDateCount || 0;
     } catch (error) {
@@ -40,7 +40,7 @@ function LoanDetails() {
 
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/loan-callback?center=${encodeURIComponent(
+        `http://localhost:5000/loan-callback?center=${encodeURIComponent(
           center
         )}`
       );
@@ -62,7 +62,7 @@ function LoanDetails() {
       }));
 
       axios
-        .get(`https://ashalota.gandhipoka.com/center-callback-id/${center}`)
+        .get(`http://localhost:5000/center-callback-id/${center}`)
         .then((response) => {
           const workerData = response.data;
           setSelectedWorker(

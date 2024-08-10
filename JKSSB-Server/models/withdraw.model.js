@@ -15,6 +15,7 @@ const WithdrawalSchema = new mongoose.Schema(
     withdrawDate: { type: [String], required: true },
     totalSavingAmount: { type: [Number], required: true },
     withDrawAmount: { type: [Number], required: true },
+    calculatedInterest: { type: [Number], required: true },
   },
   { timestamps: true }
 );

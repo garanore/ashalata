@@ -11,7 +11,7 @@ const MonthlyServiceChargeStatement = () => {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranches(response.data);
       })
@@ -39,7 +39,7 @@ const MonthlyServiceChargeStatement = () => {
     if (branch && startDate && endDate) {
       axios
         .get(
-          `https://ashalota.gandhipoka.com/monthly-service-charge?branch=${branch}&startDate=${startDate}&endDate=${endDate}`
+          `http://localhost:5000/monthly-service-charge?branch=${branch}&startDate=${startDate}&endDate=${endDate}`
         )
         .then((response) => {
           setTableData(response.data);

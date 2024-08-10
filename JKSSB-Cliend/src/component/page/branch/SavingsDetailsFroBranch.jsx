@@ -13,7 +13,7 @@ function SavingsDetailsForBranch() {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranches(response.data);
       })
@@ -25,7 +25,7 @@ function SavingsDetailsForBranch() {
   const fetchTotalSaving = async (savingID) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/saving-collection-total/${savingID}`
+        `http://localhost:5000/saving-collection-total/${savingID}`
       );
       return response.data.total;
     } catch (error) {
@@ -44,7 +44,7 @@ function SavingsDetailsForBranch() {
 
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/saving-callback-by-branch/${encodeURIComponent(
+        `http://localhost:5000/saving-callback-by-branch/${encodeURIComponent(
           branch
         )}`
       );

@@ -16,6 +16,8 @@ const dateSchema = new mongoose.Schema(
     installment: { type: Number },
     withoutInterst: { type: Number },
     onlyInterest: { type: Number },
+    macroloan: { type: Number, required: true },
+    fromFee: { type: Number, required: true },
     CenterDay: { type: String },
     totalInstallment: { type: String },
 

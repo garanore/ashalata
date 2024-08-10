@@ -36,7 +36,7 @@ const Salary = () => {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/worker-callback-salary")
+      .get("http://localhost:5000/worker-callback-salary")
       .then((response) => {
         if (Array.isArray(response.data)) {
           setWorkers(response.data);
@@ -211,7 +211,7 @@ const Salary = () => {
     try {
       // eslint-disable-next-line no-unused-vars
       const response = await axios.post(
-        "https://ashalota.gandhipoka.com/save-worker-salary",
+        "http://localhost:5000/save-worker-salary",
         { salaryDate: month, data }
       );
       setSubmitMessage("Data saved successfully!");

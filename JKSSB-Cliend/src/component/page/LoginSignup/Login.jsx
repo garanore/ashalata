@@ -28,7 +28,7 @@ const Login = () => {
     event.preventDefault();
     try {
       const response = await axios.post(
-        "https://ashalota.gandhipoka.com/login",
+        "http://localhost:5000/login",
         {
           loginInfo,
           password,

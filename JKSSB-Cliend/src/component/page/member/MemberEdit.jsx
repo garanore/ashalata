@@ -1,4 +1,3 @@
-// MemberEdit.jsx
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
@@ -19,14 +18,14 @@ const MemberEdit = () => {
 
   useEffect(() => {
     // Fetch member data
-    fetch(`https://ashalota.gandhipoka.com/member-callback/${memberID}`)
+    fetch(`http://localhost:5000/member-callback/${memberID}`)
       .then((res) => res.json())
       .then((data) => setMemberEdits(data))
       .catch((error) => console.error("Error fetching member data:", error));
 
     // Fetch centers
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -41,26 +40,25 @@ const MemberEdit = () => {
     const formData = new FormData(form);
     const updatedData = Object.fromEntries(formData);
     setSubmitMessage("Successfully Updated!");
-
-    // Add updated AdmissionDate
-
+  
+    // Add updated AdmissionDate and CenterMember
     updatedData.AdmissionDate = MemberEdits.AdmissionDate;
-    // Add updated AdmissionDate
-    updatedData.CenterMember = MemberEdits.CenterMember;
-
-    // Send updated data to server
-    fetch(`https://ashalota.gandhipoka.com/member-callback/${memberID}`, {
+    updatedData.CenterIDMember = MemberEdits.CenterIDMember; // Ensure this is included
+  
+    console.log("Updated Data before sending:", updatedData); // Debug log
+  
+    fetch(`http://localhost:5000/member-callback/${memberID}`, {
       method: "PUT",
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(updatedData),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          // Update allBrands state with the updated data from the server
           setMemberEdits(data.updatedMember);
+          console.log("Member Updated Successfully");
         } else {
           console.error("Member Update Failed");
         }
@@ -69,6 +67,8 @@ const MemberEdit = () => {
         console.error("Error updating member:", error);
       });
   };
+  
+  
 
   const handleCancel = () => {
     navigate(MEMBER_LIST_CENTER_ROUTE);
@@ -82,18 +82,18 @@ const MemberEdit = () => {
 
   const handleCenterChange = (e) => {
     const selectedCenter = e.target.value;
-    setMemberEdits({ ...MemberEdits, CenterMember: selectedCenter });
+    setMemberEdits({ ...MemberEdits, CenterIDMember: selectedCenter });
   };
+  
+
   return (
     <div className="form-row bg-light container-fluid p-2">
       <form onSubmit={handleUpdateMember}>
-        <div className=" ">
-          <div className=" border-bottom mb-3 ">
-            <h2 className="text-center   mb-4 pt-3">সদস্য সম্পাদনা </h2>
-          </div>
+        <div className="border-bottom mb-3">
+          <h2 className="text-center mb-4 pt-3">সদস্য সম্পাদনা </h2>
         </div>
 
-        <div className="row  g-4  mt-5">
+        <div className="row g-4 mt-5">
           <div className="col-md-4">
             <label htmlFor="memberID" className="form-label">
               ID
@@ -133,7 +133,7 @@ const MemberEdit = () => {
             <select
               className="form-select"
               id="CenterMember"
-              value={MemberEdits.CenterIDMember} // Set the value to the state
+              value={MemberEdits.CenterIDMember || ""}
               onChange={handleCenterChange}
             >
               <option value="">Choose...</option>
@@ -306,13 +306,13 @@ const MemberEdit = () => {
           </div>
 
           <div className="d-flex justify-content-between mt-5">
-            <button type="submit" className=" btn btn-primary">
+            <button type="submit" className="btn btn-primary">
               Update
             </button>
             <button
               type="button"
               onClick={handleCancel}
-              className=" btn btn-primary btn-md"
+              className="btn btn-primary btn-md"
             >
               Cancel
             </button>

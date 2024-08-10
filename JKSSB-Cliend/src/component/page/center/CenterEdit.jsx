@@ -23,7 +23,7 @@ function CenterEdit() {
   const fetchCenterDetails = async () => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/center-callback/${centerID}`
+        `http://localhost:5000/center-callback/${centerID}`
       );
       setAllCenter(response.data);
     } catch (error) {
@@ -34,7 +34,7 @@ function CenterEdit() {
   const fetchWorkerNames = async () => {
     try {
       const response = await axios.get(
-        "https://ashalota.gandhipoka.com/worker-callback-center"
+        "http://localhost:5000/worker-callback-center"
       );
       setWorkerNames(response.data.map((worker) => worker.WorkerName));
     } catch (error) {
@@ -62,7 +62,7 @@ function CenterEdit() {
       CenterDay,
     };
 
-    fetch(`https://ashalota.gandhipoka.com/center-callback/${centerID}`, {
+    fetch(`http://localhost:5000/center-callback/${centerID}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",

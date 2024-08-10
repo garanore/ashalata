@@ -15,7 +15,7 @@ function SavingDetails() {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -27,7 +27,7 @@ function SavingDetails() {
   const fetchTotalSaving = async (savingID) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/saving-collection-total/${savingID}`
+        `http://localhost:5000/saving-collection-total/${savingID}`
       );
       return response.data.total;
     } catch (error) {
@@ -49,7 +49,7 @@ function SavingDetails() {
     // Fetch loan data for the selected center
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/saving-callback?center=${encodeURIComponent(
+        `http://localhost:5000/saving-callback?center=${encodeURIComponent(
           center
         )}`
       );
@@ -74,7 +74,7 @@ function SavingDetails() {
 
       // Fetch worker data for the selected center
       axios
-        .get(`https://ashalota.gandhipoka.com/center-callback-id/${center}`)
+        .get(`http://localhost:5000/center-callback-id/${center}`)
         .then((response) => {
           const workerData = response.data;
           setSelectedWorker(

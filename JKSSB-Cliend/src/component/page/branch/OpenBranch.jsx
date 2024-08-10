@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-const API_URL = "https://ashalota.gandhipoka.com/openbranch";
+const API_URL = "http://localhost:5000/openbranch";
 
 function OpenBranch() {
   const [branchCount, setBranchCount] = useState(0);
@@ -15,9 +15,7 @@ function OpenBranch() {
   });
   const [submitMessage, setSubmitMessage] = useState("");
 
-  //For Generate ID---------------------------------------------------
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchBranchCount = async () => {
+  const fetchBranchCount = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/count`);
       const count = response.data.count;
@@ -27,7 +25,8 @@ function OpenBranch() {
       console.error("Error fetching branch count:", error.message);
       setSubmitMessage("Error fetching branch count");
     }
-  };
+  }, []);
+
   useEffect(() => {
     fetchBranchCount();
   }, [fetchBranchCount]);
@@ -39,20 +38,28 @@ function OpenBranch() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setBranchData((prevData) => ({ ...prevData, [name]: value }));
+    setBranchData((prevData) => ({
+      ...prevData,
+      [name]: value.trimStart(),
+    }));
   };
 
   const handleSubmit = async () => {
     try {
-      // Submit branch data
+      const trimmedBranchData = {
+        BranchName: branchData.BranchName.trim(),
+        BranchAddress: branchData.BranchAddress.trim(),
+        selectedManager: branchData.selectedManager.trim(),
+        BranchMobile: branchData.BranchMobile.trim(),
+      };
+
       await axios.post(API_URL, {
         BranchID: branchID,
-        ...branchData,
+        ...trimmedBranchData,
       });
 
       setSubmitMessage("Branch created successfully");
 
-      // Reset form values
       setBranchData({
         BranchName: "",
         BranchAddress: "",
@@ -60,7 +67,6 @@ function OpenBranch() {
         BranchMobile: "",
       });
 
-      // Increment branch count and update branch ID
       setBranchCount((prevCount) => prevCount + 1);
       setBranchID(generateBranchID(branchCount + 1));
     } catch (error) {
@@ -70,7 +76,7 @@ function OpenBranch() {
   };
 
   return (
-    <div className=" container-fluid">
+    <div className="container-fluid">
       <div className="bg-light">
         <div className="p-2">
           <div className="border-bottom mb-5">

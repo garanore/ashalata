@@ -10,7 +10,7 @@ const LoanPortfolioStatement = () => {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranches(response.data);
       })
@@ -23,7 +23,7 @@ const LoanPortfolioStatement = () => {
     if (selectedBranch && selectedMonth) {
       axios
         .get(
-          `https://ashalota.gandhipoka.com/branch-data?branch=${selectedBranch}&month=${selectedMonth}`
+          `http://localhost:5000/branch-data?branch=${selectedBranch}&month=${selectedMonth}`
         )
         .then((response) => {
           setTableData(response.data);

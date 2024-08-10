@@ -12,7 +12,7 @@ function BranchEditModal() {
   const [submitMessage, setSubmitMessage] = useState("");
 
   useEffect(() => {
-    fetch(`https://ashalota.gandhipoka.com/branch-callback/${BranchID}`)
+    fetch(`http://localhost:5000/branch-callback/${BranchID}`)
       .then((res) => res.json())
       .then((data) => setAllBranch(data));
   }, [BranchID]);
@@ -35,7 +35,7 @@ function BranchEditModal() {
       selectedManager,
     };
 
-    fetch(`https://ashalota.gandhipoka.com/branch-callback/${BranchID}`, {
+    fetch(`http://localhost:5000/branch-callback/${BranchID}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",

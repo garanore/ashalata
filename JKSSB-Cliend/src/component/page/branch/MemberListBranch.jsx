@@ -11,7 +11,7 @@ function MemberListBranch() {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranches(response.data);
       })
@@ -27,7 +27,7 @@ function MemberListBranch() {
     if (branch) {
       axios
         .get(
-          `https://ashalota.gandhipoka.com/member-callback-by-branch/${encodeURIComponent(
+          `http://localhost:5000/member-callback-by-branch/${encodeURIComponent(
             branch
           )}`
         )

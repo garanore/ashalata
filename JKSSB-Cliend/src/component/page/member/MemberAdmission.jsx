@@ -7,7 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 
 import axios from "axios";
-const API_URL = "https://ashalota.gandhipoka.com/memberdmission";
+const API_URL = "http://localhost:5000/memberdmission";
 
 const MemberAdmission = () => {
   const [showInputs, setShowInputs] = useState(false);
@@ -106,9 +106,7 @@ const MemberAdmission = () => {
     const selectedCenterID = e.target.value;
 
     axios
-      .get(
-        `https://ashalota.gandhipoka.com/center-callback-id/${selectedCenterID}`
-      )
+      .get(`http://localhost:5000/center-callback-id/${selectedCenterID}`)
       .then((response) => {
         const center = response.data;
 
@@ -127,7 +125,7 @@ const MemberAdmission = () => {
   //For Branch Callbacks----------------------------------------------------------------
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranches(response.data);
       })
@@ -145,7 +143,7 @@ const MemberAdmission = () => {
     if (branch) {
       axios
         .get(
-          `https://ashalota.gandhipoka.com/center-callback?selectedBranch=${encodeURIComponent(
+          `http://localhost:5000/center-callback?selectedBranch=${encodeURIComponent(
             branch
           )}`
         )
@@ -290,6 +288,7 @@ const MemberAdmission = () => {
                   value={selectedBranch.BranchMember}
                   onChange={handleBranchChange}
                   name="BranchMember"
+                  required
                 >
                   <option value="">Choose...</option>
                   {Array.isArray(branches) &&
@@ -312,6 +311,7 @@ const MemberAdmission = () => {
                   name="CenterIDMember"
                   className="form-select"
                   value={memberData.CenterMember}
+                  required
                   onChange={handleCenterChange} // Update to use handleCenterChange
                 >
                   <option value="">Choose...</option>
@@ -333,6 +333,7 @@ const MemberAdmission = () => {
                 className="form-control"
                 id="CenterNameMember"
                 value={selectedCenter.CenterName || ""}
+                required
                 readOnly
               />
             </div>
@@ -350,6 +351,7 @@ const MemberAdmission = () => {
                       className="form-control"
                       value={memberID}
                       disabled
+                      required
                     />
                   </div>
                 </div>
@@ -376,6 +378,7 @@ const MemberAdmission = () => {
                   }
                   onChange={handleAdmissionDateChange}
                   dateFormat="dd/MM/yyyy"
+                  required
                 />
               </div>
             </div>

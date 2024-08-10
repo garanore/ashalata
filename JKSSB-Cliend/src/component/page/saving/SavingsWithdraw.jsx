@@ -7,23 +7,34 @@ const SavingsWithdraw = () => {
   const [totalSavingAmount, setTotalSavingAmount] = useState(null);
   const [withDrawAmount, setWithDrawAmount] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
-  const [savingCurrentBlance, setSavingCurrentBlance] = useState(null);
+  const [SavingCurrentBlance, setSavingCurrentBlance] = useState(null);
   const [calculatedInterest, setCalculatedInterest] = useState("");
   const [withdrawDate, setWithdrawDate] = useState(""); // New state for the withdraw date
   const [lastOldWithdraw, setLastOldWithdraw] = useState(0); // State for last old withdraw amount
 
   useEffect(() => {
     if (totalSavingAmount !== null && withDrawAmount !== "") {
-      setSavingCurrentBlance(totalSavingAmount - parseFloat(withDrawAmount));
+      // Ensure we have valid amounts before proceeding
+      const parsedWithdrawAmount = parseFloat(withDrawAmount) || 0;
+      const calculatedRemainingBalance =
+        totalSavingAmount - lastOldWithdraw - parsedWithdrawAmount;
+
+      // Handle potential floating-point issues
+      const remainingBalance = parseFloat(
+        calculatedRemainingBalance.toFixed(2)
+      );
+
+      setSavingCurrentBlance(remainingBalance);
     } else {
-      setSavingCurrentBlance(totalSavingAmount);
+      // Default to totalSavingAmount minus last old withdrawal if no withdraw amount is set
+      setSavingCurrentBlance(totalSavingAmount - lastOldWithdraw);
     }
-  }, [totalSavingAmount, withDrawAmount]);
+  }, [totalSavingAmount, withDrawAmount, lastOldWithdraw]);
 
   const fetchSavingDetails = async (id) => {
     try {
       const response = await fetch(
-        `https://ashalota.gandhipoka.com/get-saving-savingid/${id}`
+        `http://localhost:5000/get-saving-savingid/${id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -59,7 +70,7 @@ const SavingsWithdraw = () => {
   const fetchTotalSavingAmount = async (id) => {
     try {
       const response = await fetch(
-        `https://ashalota.gandhipoka.com/saving-collection-total/${id}`
+        `http://localhost:5000/saving-collection-total/${id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -84,7 +95,7 @@ const SavingsWithdraw = () => {
   const fetchLastOldWithdraw = async (id) => {
     try {
       const response = await fetch(
-        `https://ashalota.gandhipoka.com/get-withDrawAmount-savingid/${id}`
+        `http://localhost:5000/get-withDrawAmount-savingid/${id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -118,10 +129,12 @@ const SavingsWithdraw = () => {
     }
   };
 
+  // Updated handleWithdrawAmountChange to consider edge cases
   const handleWithdrawAmountChange = (event) => {
-    let amount = parseFloat(event.target.value);
+    let amount = parseFloat(event.target.value) || 0;
     const maxWithdrawAmount = totalSavingAmount - 20;
 
+    // Ensure that the amount doesn't exceed the max
     if (amount > maxWithdrawAmount) {
       amount = maxWithdrawAmount;
     }
@@ -131,10 +144,10 @@ const SavingsWithdraw = () => {
     let calculatedAmount = 0;
     if (savingDetails) {
       const { SavingType, SavingTime } = savingDetails;
-      if (SavingType === "সাধারণ") {
-        if (totalSavingAmount >= 200) {
-          calculatedAmount = Math.round(amount * 0.06);
-        }
+
+      // Ensure totalSavingAmount is valid before performing calculations
+      if (SavingType === "সাধারণ" && totalSavingAmount >= 200) {
+        calculatedAmount = Math.round(amount * 0.06);
       } else if (SavingType === "মেয়াদি") {
         if (SavingTime === "৩ বছর") {
           calculatedAmount = Math.round(amount * 0.07);
@@ -145,6 +158,7 @@ const SavingsWithdraw = () => {
         }
       }
     }
+
     setCalculatedInterest(calculatedAmount);
   };
 
@@ -165,7 +179,7 @@ const SavingsWithdraw = () => {
         SavingType: savingDetails.SavingType,
         SavingTime: savingDetails.SavingTime || null, // Handle empty value
         SavingCurrentBlance:
-          savingCurrentBlance !== null ? [savingCurrentBlance] : null,
+          SavingCurrentBlance !== null ? [SavingCurrentBlance] : null,
         totalSavingAmount:
           totalSavingAmount !== null ? [totalSavingAmount] : null,
         withDrawAmount: withDrawAmount !== "" ? [withDrawAmount] : null,
@@ -175,16 +189,13 @@ const SavingsWithdraw = () => {
       };
 
       try {
-        const response = await fetch(
-          "https://ashalota.gandhipoka.com/saving-withdraw",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }
-        );
+        const response = await fetch("http://localhost:5000/saving-withdraw", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
 
         const result = await response.json();
         if (response.ok) {
@@ -241,7 +252,6 @@ const SavingsWithdraw = () => {
                     readOnly
                   />
                 </div>
-
                 <div className="col-2">
                   <label htmlFor="SavingName" className="form-label">
                     নাম
@@ -254,7 +264,6 @@ const SavingsWithdraw = () => {
                     readOnly
                   />
                 </div>
-
                 <div className="col-2">
                   <label htmlFor="fathername" className="form-label">
                     পিতা/স্বামী
@@ -267,7 +276,6 @@ const SavingsWithdraw = () => {
                     readOnly
                   />
                 </div>
-
                 <div className="col-2">
                   <label htmlFor="SavingBranch" className="form-label">
                     শাঁখা
@@ -280,7 +288,6 @@ const SavingsWithdraw = () => {
                     readOnly
                   />
                 </div>
-
                 <div className="col-3">
                   <label htmlFor="SavingCenter" className="form-label">
                     কেন্দ্র
@@ -293,7 +300,6 @@ const SavingsWithdraw = () => {
                     readOnly
                   />
                 </div>
-
                 <div className="col-3 mt-3">
                   <label htmlFor="SavingMobile" className="form-label">
                     মোবাইল:
@@ -319,7 +325,6 @@ const SavingsWithdraw = () => {
                     readOnly
                   />
                 </div>
-
                 <div className="col-md-4  mt-3">
                   <label htmlFor="SavingTime" className="form-label">
                     সঞ্চয়ের সময়কাল
@@ -348,7 +353,7 @@ const SavingsWithdraw = () => {
                   />
                 </div>
 
-                <div className="col-md-4  mt-3 d-none">
+                <div className="col-md-4  mt-3">
                   <label htmlFor="LastOldWithdraw" className="form-label">
                     আগের সঞ্চয় উত্তোলন
                   </label>
@@ -356,8 +361,21 @@ const SavingsWithdraw = () => {
                     id="LastOldWithdraw"
                     className="form-control"
                     type="text"
-                    name="totalSavings"
+                    name="LastOldWithdraw"
                     value={lastOldWithdraw}
+                    readOnly
+                  />
+                </div>
+                <div className="col-md-4  mt-3">
+                  <label htmlFor="LastOldWithdraw" className="form-label">
+                    অবশিষ্ট সঞ্চয়ের পরিমাণ
+                  </label>
+                  <input
+                    id="LastOldWithdraw"
+                    className="form-control"
+                    type="text"
+                    name="LastOldWithdraw"
+                    value={SavingCurrentBlance || ""}
                     readOnly
                   />
                 </div>
@@ -376,7 +394,6 @@ const SavingsWithdraw = () => {
                     max={totalSavingAmount - 20 || 0}
                   />
                 </div>
-
                 <div className="col-md-4  mt-3">
                   <label htmlFor="SavingInterest" className="form-label">
                     মোট উত্তোলনের পরিমাণ
@@ -390,20 +407,6 @@ const SavingsWithdraw = () => {
                       parseFloat(withDrawAmount) +
                         parseFloat(calculatedInterest) || ""
                     }
-                    readOnly
-                  />
-                </div>
-
-                <div className="col-md-4 mt-3">
-                  <label htmlFor="SavingCurrentBlance" className="form-label">
-                    অবশিষ্ট সঞ্চয়ের পরিমাণ
-                  </label>
-                  <input
-                    id="SavingCurrentBlance"
-                    className="form-control"
-                    type="text"
-                    name="SavingCurrentBlance"
-                    value={savingCurrentBlance || ""}
                     readOnly
                   />
                 </div>

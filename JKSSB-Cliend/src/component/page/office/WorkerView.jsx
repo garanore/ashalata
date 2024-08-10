@@ -20,7 +20,7 @@ const WorkerView = () => {
 
   useEffect(() => {
     // Fetch worker data
-    fetch(`https://ashalota.gandhipoka.com/worker-callback/${workerID}`)
+    fetch(`http://localhost:5000/worker-callback/${workerID}`)
       .then((res) => res.json())
       .then((data) => {
         setAllWorker(data);
@@ -32,7 +32,7 @@ const WorkerView = () => {
 
     // Fetch designations
     axios
-      .get("https://ashalota.gandhipoka.com/designation-callback")
+      .get("http://localhost:5000/designation-callback")
       .then((response) => setDesignations(response.data))
       .catch((error) =>
         console.error("Error fetching designation data:", error)
@@ -40,13 +40,13 @@ const WorkerView = () => {
 
     // Fetch centers
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => setCenters(response.data))
       .catch((error) => console.error("Error fetching center data:", error));
 
     // Fetch branches
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => setBranches(response.data))
       .catch((error) => console.error("Error fetching branch data:", error));
   }, [workerID, setBranches, setCenters, setDesignations]);
@@ -71,7 +71,7 @@ const WorkerView = () => {
       Designation: designation,
     };
 
-    fetch(`https://ashalota.gandhipoka.com/worker-callback/${workerID}`, {
+    fetch(`http://localhost:5000/worker-callback/${workerID}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedData),

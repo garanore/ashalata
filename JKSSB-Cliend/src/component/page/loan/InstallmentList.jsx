@@ -18,7 +18,7 @@ const InstallmentList = () => {
   useEffect(() => {
     // Fetch centers
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -33,7 +33,7 @@ const InstallmentList = () => {
       const searchDate = moment(selectedDate).format("DD-MM-YY"); // Format selectedDate as "DD-MM-YY"
       axios
         .get(
-          `https://ashalota.gandhipoka.com/get-installmentDate/${selectedCenter}`
+          `http://localhost:5000/get-installmentDate/${selectedCenter}`
         )
         .then((response) => {
           const filteredData = response.data.filter((item) =>
@@ -53,7 +53,7 @@ const InstallmentList = () => {
     const center = e.target.value;
     setSelectedCenter(e.target.value);
     axios
-      .get(`https://ashalota.gandhipoka.com/center-callback-id/${center}`)
+      .get(`http://localhost:5000/center-callback-id/${center}`)
       .then((response) => {
         const workerData = response.data;
         setSelectedWorker(

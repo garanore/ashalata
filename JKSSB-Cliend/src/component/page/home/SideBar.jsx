@@ -455,8 +455,18 @@ const SideBar = () => {
                             : ""
                         }`}
                       >
-                        <Link to="OfficeCollection" className="sidebar-link">
+                        <Link to="Voucher" className="sidebar-link">
                           অফিস জমা
+                        </Link>
+                      </li>
+
+                      <li
+                        className={`sidebar-item ${
+                          location.pathname === "/Voucher" ? "active" : ""
+                        }`}
+                      >
+                        <Link to="Voucher" className="sidebar-link">
+                          ভাউচার
                         </Link>
                       </li>
                     </ul>

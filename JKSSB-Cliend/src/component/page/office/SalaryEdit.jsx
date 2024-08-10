@@ -140,7 +140,7 @@ const SalaryEdit = () => {
   const fetchSalaryData = async (workerID, selectedMonth) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/worker-salary/${workerID}/${selectedMonth}`
+        `http://localhost:5000/worker-salary/${workerID}/${selectedMonth}`
       );
       // console.log("API Response:", response.data);
       if (response.data) {
@@ -245,7 +245,7 @@ const SalaryEdit = () => {
 
     try {
       const response = await axios.put(
-        `https://ashalota.gandhipoka.com/update-worker-salary`,
+        `http://localhost:5000/update-worker-salary`,
         { workerID, month, monthIndex, data },
         {
           headers: {

@@ -20,7 +20,7 @@ import MemberListCenter from "./component/page/center/MemberListCenter.jsx";
 import OpenBranch from "./component/page/branch/OpenBranch.jsx";
 import BranchList from "./component/page/branch/BranchList.jsx";
 import MemberListBranch from "./component/page/branch/MemberListBranch.jsx";
-import OfficeCollection from "./component/page/branch/OfficeCollection.jsx";
+
 import OpenLoan from "./component/page/loan/OpenLoan.jsx";
 import OpenSavings from "./component/page/saving/OpenSavings.jsx";
 import SavingsCollection from "./component/page/saving/SavingsCollection.jsx";
@@ -55,6 +55,9 @@ import PrivateRoute from "./component/page/LoginSignup/PrivateRoute.jsx";
 import WorkerView from "./component/page/office/WorkerView.jsx";
 import SalaryList from "./component/page/office/SalaryList.jsx";
 import SalaryEdit from "./component/page/office/SalaryEdit.jsx";
+import OfficeCollection from "./component/page/office/OfficeCollection.jsx";
+import Voucher from "./component/page/office/Voucher.jsx";
+import VoucherEdit from "./component/page/office/VoucheEdit.jsx";
 
 const isAuthenticated = () => {
   return !!localStorage.getItem("authToken");
@@ -254,6 +257,14 @@ const AppRouter = () => {
         {
           path: "WorkerView",
           element: <PrivateRoute element={<WorkerView />} />,
+        },
+        {
+          path: "Voucher",
+          element: <PrivateRoute element={<Voucher />} />,
+        },
+        {
+          path: "VoucherEdit",
+          element: <PrivateRoute element={<VoucherEdit />} />,
         },
       ],
     },

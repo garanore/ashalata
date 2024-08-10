@@ -12,7 +12,7 @@ function AllMemberList() {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "https://ashalota.gandhipoka.com/member-callback"
+          "http://localhost:5000/member-callback"
         );
         setMemberData(response.data);
       } catch (error) {

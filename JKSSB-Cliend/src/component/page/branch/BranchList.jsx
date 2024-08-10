@@ -13,7 +13,7 @@ function BranchList() {
     const fetchBranchData = async () => {
       try {
         const response = await axios.get(
-          "https://ashalota.gandhipoka.com/branch-callback"
+          "http://localhost:5000/branch-callback"
         );
         const branches = response.data;
 
@@ -25,7 +25,7 @@ function BranchList() {
           for (const branch of branches) {
             try {
               const centerResponse = await axios.get(
-                `https://ashalota.gandhipoka.com/center-callback-by-branch/${branch.BranchName}`
+                `http://localhost:5000/center-callback-by-branch/${branch.BranchName}`
               );
               counts[branch.BranchName] = centerResponse.data.length;
             } catch (error) {

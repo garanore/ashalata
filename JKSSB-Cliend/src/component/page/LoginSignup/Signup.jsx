@@ -18,9 +18,9 @@ const Signup = () => {
   const [formError, setFormError] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
 
-  const API_URL = "https://ashalota.gandhipoka.com/signup";
+  const API_URL = "http://localhost:5000/signup";
   const DESIGNATION_API_URL =
-    "https://ashalota.gandhipoka.com/designation-callback";
+    "http://localhost:5000/designation-callback";
 
   useEffect(() => {
     const fetchDesignations = async () => {

@@ -17,7 +17,7 @@ const LoanView = () => {
 
   useEffect(() => {
     if (loanID) {
-      fetch(`https://ashalota.gandhipoka.com/get-loan-loanid/${loanID}`)
+      fetch(`http://localhost:5000/get-loan-loanid/${loanID}`)
         .then((res) => res.json())
         .then((data) => {
           // If data is an array, access the first item

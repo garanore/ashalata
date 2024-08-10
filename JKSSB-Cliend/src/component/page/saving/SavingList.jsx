@@ -24,7 +24,7 @@ const SavingList = () => {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -43,7 +43,7 @@ const SavingList = () => {
     const center = e.target.value;
     setSelectedCenter(center);
     axios
-      .get(`https://ashalota.gandhipoka.com/center-callback-id/${center}`)
+      .get(`http://localhost:5000/center-callback-id/${center}`)
       .then((response) => {
         const workerData = response.data;
         setSelectedWorker(
@@ -67,8 +67,8 @@ const SavingList = () => {
           const translatedSavingType = SavingTypeTranslations[SavingType];
           const endpoint =
             SavingType === "General"
-              ? `https://ashalota.gandhipoka.com/savingtype-callback/${translatedSavingType}`
-              : `https://ashalota.gandhipoka.com/saving-callback-center/${selectedCenter}`;
+              ? `http://localhost:5000/savingtype-callback/${translatedSavingType}`
+              : `http://localhost:5000/saving-callback-center/${selectedCenter}`;
 
           const response = await axios.get(endpoint);
 

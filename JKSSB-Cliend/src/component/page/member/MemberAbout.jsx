@@ -15,7 +15,7 @@ const MemberAbout = () => {
 
   useEffect(() => {
     // Fetch member data
-    fetch(`https://ashalota.gandhipoka.com/member-callback/${memberID}`)
+    fetch(`http://localhost:5000/member-callback/${memberID}`)
       .then((res) => res.json())
       .then((data) => setAllBrands(data))
       .catch((error) => console.error("Error fetching member data:", error));

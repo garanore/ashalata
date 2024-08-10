@@ -18,14 +18,14 @@ const WorkerEdit = () => {
 
   useEffect(() => {
     // Fetch worker data
-    fetch(`https://ashalota.gandhipoka.com/worker-callback/${workerID}`)
+    fetch(`http://localhost:5000/worker-callback/${workerID}`)
       .then((res) => res.json())
       .then((data) => setAllWorker(data))
       .catch((error) => console.error("Error fetching worker data:", error));
 
     // Fetch designations
     axios
-      .get("https://ashalota.gandhipoka.com/designation-callback")
+      .get("http://localhost:5000/designation-callback")
       .then((response) => {
         setDesignations(response.data);
       })
@@ -35,7 +35,7 @@ const WorkerEdit = () => {
 
     // Fetch centers
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -45,7 +45,7 @@ const WorkerEdit = () => {
 
     // Fetch branches
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranchs(response.data);
       })
@@ -90,7 +90,7 @@ const WorkerEdit = () => {
       Designation,
     };
 
-    fetch(`https://ashalota.gandhipoka.com/worker-callback/${workerID}`, {
+    fetch(`http://localhost:5000/worker-callback/${workerID}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",

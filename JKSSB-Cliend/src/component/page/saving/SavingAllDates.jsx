@@ -16,7 +16,7 @@ const SavingAllDates = () => {
   useEffect(() => {
     if (SavingID) {
       // Fetch saving data
-      fetch(`https://ashalota.gandhipoka.com/get-saving-savingid/${SavingID}`)
+      fetch(`http://localhost:5000/get-saving-savingid/${SavingID}`)
         .then((res) => res.json())
         .then((data) => {
           const savingData =
@@ -27,7 +27,7 @@ const SavingAllDates = () => {
 
       // Fetch total saving amount
       fetch(
-        `https://ashalota.gandhipoka.com/saving-collection-total/${SavingID}`
+        `http://localhost:5000/saving-collection-total/${SavingID}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -41,7 +41,7 @@ const SavingAllDates = () => {
 
       // Fetch saving collection details
       fetch(
-        `https://ashalota.gandhipoka.com/saving-collection-date-amount/${SavingID}`
+        `http://localhost:5000/saving-collection-date-amount/${SavingID}`
       )
         .then((res) => res.json())
         .then((data) => {

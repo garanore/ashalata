@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 
 const memberSchema = new mongoose.Schema(
   {
-    BranchMember: { type: String },
-    CenterIDMember: { type: String },
-    CenterNameMember: { type: String },
+    BranchMember: { type: String, required: true },
+    CenterIDMember: { type: String, required: true },
+    CenterNameMember: { type: String, required: true },
     memberID: { type: String, unique: true, required: true },
     AdmissionDate: { type: String, default: null },
     memberName: { type: String, required: true },

@@ -30,7 +30,7 @@ const LoanEdit = () => {
     const fetchLoanData = async () => {
       try {
         const response = await fetch(
-          `https://ashalota.gandhipoka.com/get-loan-loanid/${loanID}`
+          `http://localhost:5000/get-loan-loanid/${loanID}`
         );
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -48,7 +48,7 @@ const LoanEdit = () => {
     }
 
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -74,7 +74,7 @@ const LoanEdit = () => {
     updatedData.loanType = LoanEdits.loanType;
 
     // Send updated data to server
-    fetch(`https://ashalota.gandhipoka.com/loan-callback/${loanID}`, {
+    fetch(`http://localhost:5000/loan-callback/${loanID}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",

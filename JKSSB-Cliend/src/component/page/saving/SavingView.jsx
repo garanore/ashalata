@@ -17,7 +17,7 @@ const SavingView = () => {
   useEffect(() => {
     if (SavingID) {
       // Fetch saving data
-      fetch(`https://ashalota.gandhipoka.com/get-saving-savingid/${SavingID}`)
+      fetch(`http://localhost:5000/get-saving-savingid/${SavingID}`)
         .then((res) => res.json())
         .then((data) => {
           // If data is an array, access the first item
@@ -29,7 +29,7 @@ const SavingView = () => {
 
       // Fetch total saving amount
       fetch(
-        `https://ashalota.gandhipoka.com/saving-collection-total/${SavingID}`
+        `http://localhost:5000/saving-collection-total/${SavingID}`
       )
         .then((res) => res.json())
         .then((data) => {

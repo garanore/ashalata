@@ -40,7 +40,7 @@ function OpenLoan() {
     const fetchMemberData = async () => {
       try {
         const response = await axios.get(
-          "https://ashalota.gandhipoka.com/member-callback"
+          "http://localhost:5000/member-callback"
         );
         setMemberData(response.data.members);
       } catch (error) {
@@ -55,7 +55,7 @@ function OpenLoan() {
   const fetchCenterDetails = async (centerID) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/center-callback-id/${centerID}`
+        `http://localhost:5000/center-callback-id/${centerID}`
       );
       if (response.data && response.data.length > 0) {
         setCenterDay(response.data[0].CenterDay); // Assuming CenterDay is available in the first item of the response array
@@ -72,7 +72,7 @@ function OpenLoan() {
   const fetchLoanCount = async () => {
     try {
       const response = await axios.get(
-        "https://ashalota.gandhipoka.com/openloan/save-dates/count"
+        "http://localhost:5000/openloan/save-dates/count"
       );
       const count = response.data.count;
       setLoanCount(count);
@@ -125,9 +125,7 @@ function OpenLoan() {
 
     try {
       // Fetch member data
-      const response = await axios.get(
-        "https://ashalota.gandhipoka.com/member-callback"
-      );
+      const response = await axios.get("http://localhost:5000/member-callback");
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         const fetchedMember = response.data.find(
@@ -217,13 +215,20 @@ function OpenLoan() {
     setOLTotal(calculatedTotal.toFixed(2)); // Assuming total is calculated with two decimal places
   };
 
-  // Handle form submission
+  // Calculate macroloan
+
+  const calculateMacroloan = (amount) => {
+    return amount <= 50000 ? amount * 0.005 : amount * 0.01;
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (installmentStart && OLamount) {
       const formattedDate = moment(installmentStart).format("DD-MM-YY");
+      const macroloan = calculateMacroloan(OLamount);
+      const fromFee = 15; // Define the FromFee value here
 
       const nextDates = [];
       let currentDate = moment(installmentStart);
@@ -290,7 +295,7 @@ function OpenLoan() {
       try {
         // Send request to backend API to save the next dates
         const response = await fetch(
-          "https://ashalota.gandhipoka.com/openloan/save-dates",
+          "http://localhost:5000/openloan/save-dates",
           {
             method: "POST",
             headers: {
@@ -314,6 +319,8 @@ function OpenLoan() {
               loanType: loanTypeTranslations[loanType],
               CenterDay: centerDay,
               totalInstallment: totalInstallment, // Include totalInstallment in the request body
+              macroloan, // Include macroloan value in the data sent to the backend
+              fromFee, // Include FromFee value in the data sent to the backend
             }),
           }
         );
@@ -356,11 +363,11 @@ function OpenLoan() {
   };
 
   return (
-    <div className="bg-light mt-2">
+    <div className="bg-light mt-2 ">
       <div className="mt-2 p-2">
         <form onSubmit={handleSubmit}>
           <div>
-            <div className="">
+            <div>
               <div className="border-bottom mb-3">
                 <h2 className="text-center mb-4 pt-3">ঋণ বিতরণ</h2>
               </div>

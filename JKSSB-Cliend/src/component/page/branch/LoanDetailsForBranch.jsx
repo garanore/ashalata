@@ -11,7 +11,7 @@ function LoanDetailsForBranch() {
 
   useEffect(() => {
     axios
-      .get("https://ashalota.gandhipoka.com/branch-callback")
+      .get("http://localhost:5000/branch-callback")
       .then((response) => {
         setBranches(response.data);
       })
@@ -23,7 +23,7 @@ function LoanDetailsForBranch() {
   const fetchInstallmentDateCount = async (loanID) => {
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/installment-dates-count/${loanID}`
+        `http://localhost:5000/installment-dates-count/${loanID}`
       );
       return response.data[0]?.installmentDateCount || 0;
     } catch (error) {
@@ -38,7 +38,7 @@ function LoanDetailsForBranch() {
 
     try {
       const response = await axios.get(
-        `https://ashalota.gandhipoka.com/loan-callback-by-branch/${encodeURIComponent(
+        `http://localhost:5000/loan-callback-by-branch/${encodeURIComponent(
           branch
         )}`
       );

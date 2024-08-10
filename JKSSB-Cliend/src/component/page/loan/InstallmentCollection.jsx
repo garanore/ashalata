@@ -17,7 +17,7 @@ const InstallmentCollection = () => {
   useEffect(() => {
     // Fetch centers
     axios
-      .get("https://ashalota.gandhipoka.com/center-callback")
+      .get("http://localhost:5000/center-callback")
       .then((response) => {
         setCenters(response.data);
       })
@@ -30,9 +30,7 @@ const InstallmentCollection = () => {
     // Fetch center day when selectedCenter changes
     if (selectedCenter) {
       axios
-        .get(
-          `https://ashalota.gandhipoka.com/center-callback-id/${selectedCenter}`
-        )
+        .get(`http://localhost:5000/center-callback-id/${selectedCenter}`)
         .then((response) => {
           if (response.data && response.data.length > 0) {
             setCenterDay(response.data[0].CenterDay); // Assuming CenterDay is available in the first item of the response array
@@ -53,9 +51,7 @@ const InstallmentCollection = () => {
     if (selectedCenter && selectedDate) {
       const searchDate = moment(selectedDate).format("DD-MM-YY"); // Format selectedDate as "DD-MM-YY"
       axios
-        .get(
-          `https://ashalota.gandhipoka.com/get-installmentDate/${selectedCenter}`
-        )
+        .get(`http://localhost:5000/get-installmentDate/${selectedCenter}`)
         .then((response) => {
           const filteredData = response.data.filter((item) =>
             item.nextDates.includes(searchDate)
@@ -141,7 +137,7 @@ const InstallmentCollection = () => {
 
     // Send data to backend
     axios
-      .post("https://ashalota.gandhipoka.com/save-installments-collection", {
+      .post("http://localhost:5000/save-installments-collection", {
         centerName: selectedCenter,
         installmentDate: moment(selectedDate).format("DD-MM-YY"),
         data: dataWithInstallments,
@@ -240,6 +236,13 @@ const InstallmentCollection = () => {
                     <td>{center.OLmobile}</td>
                     <td>{center.loanType}</td>
                     <td>{center.installment}</td>
+
+                    <input
+                      type="hidden"
+                      value={center.onlyInterest}
+                      name={`onlyInterest-${center.loanID}`}
+                    />
+
                     <td>
                       <input
                         type="number"
