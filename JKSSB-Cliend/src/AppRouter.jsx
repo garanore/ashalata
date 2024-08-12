@@ -58,6 +58,8 @@ import SalaryEdit from "./component/page/office/SalaryEdit.jsx";
 import OfficeCollection from "./component/page/office/OfficeCollection.jsx";
 import Voucher from "./component/page/office/Voucher.jsx";
 import VoucherEdit from "./component/page/office/VoucheEdit.jsx";
+import IncomeExpenseReport from "./component/page/Account/IncomeExpensReport.jsx";
+import VoucherDownload from "./component/page/office/VoucherDownload.jsx";
 
 const isAuthenticated = () => {
   return !!localStorage.getItem("authToken");
@@ -265,6 +267,14 @@ const AppRouter = () => {
         {
           path: "VoucherEdit",
           element: <PrivateRoute element={<VoucherEdit />} />,
+        },
+        {
+          path: "IncomeExpenseReport",
+          element: <PrivateRoute element={<IncomeExpenseReport />} />,
+        },
+        {
+          path: "VoucherDownload",
+          element: <PrivateRoute element={<VoucherDownload />} />,
         },
       ],
     },

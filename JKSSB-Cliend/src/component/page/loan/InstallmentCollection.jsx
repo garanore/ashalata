@@ -13,6 +13,7 @@ const InstallmentCollection = () => {
   const [submitMessage, setSubmitMessage] = useState("");
   const [fields, setFields] = useState({ installmentCollecting: {} });
   const [centerDay, setCenterDay] = useState("");
+  const [centerBranch, setcenterBranch] = useState("");
 
   useEffect(() => {
     // Fetch centers
@@ -34,8 +35,10 @@ const InstallmentCollection = () => {
         .then((response) => {
           if (response.data && response.data.length > 0) {
             setCenterDay(response.data[0].CenterDay); // Assuming CenterDay is available in the first item of the response array
+            setcenterBranch(response.data[0].centerBranch); // Assuming CenterDay is available in the first item of the response array
           } else {
             setCenterDay(""); // If CenterDay is not available for the center, set it to an empty string or handle accordingly
+            setcenterBranch(""); // If CenterDay is not available for the center, set it to an empty string or handle accordingly
           }
         })
         .catch((error) => {
@@ -43,6 +46,7 @@ const InstallmentCollection = () => {
         });
     } else {
       setCenterDay(""); // Clear centerDay if no center is selected
+      setcenterBranch(""); // Clear centerDay if no center is selected
     }
   }, [selectedCenter]);
 
@@ -135,13 +139,17 @@ const InstallmentCollection = () => {
         member.InstallmentCollecting !== 0
     );
 
+    // Prepare data to send to the backend
+    const requestData = {
+      centerName: selectedCenter,
+      installmentDate: moment(selectedDate).format("DD-MM-YY"),
+      centerBranch: centerBranch, // Include the centerBranch information
+      data: dataWithInstallments,
+    };
+
     // Send data to backend
     axios
-      .post("http://localhost:5000/save-installments-collection", {
-        centerName: selectedCenter,
-        installmentDate: moment(selectedDate).format("DD-MM-YY"),
-        data: dataWithInstallments,
-      })
+      .post("http://localhost:5000/save-installments-collection", requestData)
       .then(() => {
         setSubmitMessage("Data saved successfully!");
 
@@ -193,6 +201,18 @@ const InstallmentCollection = () => {
                 className="form-control"
                 id="CenterDay"
                 value={centerDay}
+                readOnly
+              />
+            </div>
+            <div className="col-md-3 mb-3">
+              <label htmlFor="centerBranch" className="form-label">
+                শাখা
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="centerBranch"
+                value={centerBranch}
                 readOnly
               />
             </div>

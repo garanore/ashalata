@@ -546,6 +546,18 @@ const SideBar = () => {
                           Monthly Service Charge Statement
                         </Link>
                       </li>
+
+                      <li
+                        className={`sidebar-item ${
+                          location.pathname === "/IncomeExpenseReport"
+                            ? "active"
+                            : ""
+                        }`}
+                      >
+                        <Link to="IncomeExpenseReport" className="sidebar-link">
+                          Income Expense Report
+                        </Link>
+                      </li>
                     </ul>
                   </li>
 

@@ -1,9 +1,11 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid"; // Importing uuid
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const MEMBER_LIST_CENTER_ROUTE = "/home/Voucher";
 
@@ -48,6 +50,7 @@ const ProductTypeNameandCodeCredit = {
 };
 
 function VoucherEdit() {
+  const pdfRef = useRef();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
   const [branchs, setBranchs] = useState([]);
@@ -420,9 +423,33 @@ function VoucherEdit() {
     }
   }, [selectedDate, formData.centerBranch, fetchDataByDateAndBranch]);
 
+  const handleDownloadPDF = () => {
+    const input = pdfRef.current;
+    html2canvas(input).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4", true);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 30;
+      pdf.addImage(
+        imgData,
+        "PNG",
+        imgX,
+        imgY,
+        imgWidth * ratio,
+        imgHeight * ratio
+      );
+      pdf.save("daily_deposit_register.pdf");
+    });
+  };
+
   return (
     <div className="bg-light mt-2">
-      <div className="mt-2 p-2">
+      <div className="mt-2 p-2" ref={pdfRef}>
         <form onSubmit={handleSubmit}>
           <div className="border-bottom mb-3">
             <h2 className="text-center mb-4 pt-3">Edit Voucher</h2>
@@ -510,6 +537,11 @@ function VoucherEdit() {
             </div>
           )}
         </form>
+      </div>
+      <div className="row text-center mt-5">
+        <button className="btn btn-primary mt-4" onClick={handleDownloadPDF}>
+          Download
+        </button>
       </div>
     </div>
   );

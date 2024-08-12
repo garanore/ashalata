@@ -127,7 +127,7 @@ function OpenCenter() {
 
   return (
     <div>
-      <div className="bg-light">
+      <div className="bg-light container-fluid">
         <div className="p-2">
           <div className="border-bottom mb-5">
             <h2 className="text-center mb-4 pt-3">কেন্দ্র খুলুন</h2>

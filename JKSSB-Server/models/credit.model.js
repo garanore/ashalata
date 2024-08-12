@@ -7,7 +7,7 @@ const CreditSchema = new mongoose.Schema(
     sellCost: [{ type: Number }],
     comment: [{ type: String }],
     date: [{ type: String }],
-    branch: { type: String, required: true },
+    centerBranch: { type: String },
   },
   { timestamps: true }
 );

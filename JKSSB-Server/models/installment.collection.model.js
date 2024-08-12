@@ -10,6 +10,7 @@ const InstallmentCollectionSchema = new mongoose.Schema(
     installment: { type: Number, required: true },
     onlyInterest: { type: Number, required: true },
     centerName: { type: String, required: true },
+    centerBranch: { type: String, required: true },
     installmentDate: { type: [String], required: true }, // Array of strings
     // Add other fields as necessary
   },

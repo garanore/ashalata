@@ -1,8 +1,7 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
 import { useNavigate } from "react-router-dom";
 
 const ProductTypeNameandCodeDebit = {
@@ -32,22 +31,30 @@ const ProductTypeNameandCodeDebit = {
   1228: "Newspaper",
   1229: "Residence Rent",
 };
+
 const ProductTypeNameandCodeCredit = {
   1101: "Service Charge",
-  1102: "Sales of Forms",
-  1103: "Admission Fee",
-  1104: "Bank Interest",
-  1105: "Fine/Remittance Commission",
-  1106: "Interest on Head Office General A/C Fund",
-  1107: "Miscellaneous Income",
-  1108: "House Rent (Income)",
-  1109: "Salary and Allowances (Income)",
+  1102: "Principle Amount",
+  1103: "Sales of Forms",
+  1104: "Admission Fee",
+  1105: "Bank Interest",
+  1106: "Fine/Remittance Commission",
+  1107: "Interest on Head Office General A/C Fund",
+  1108: "Miscellaneous Income",
+  1109: "House Rent (Income)",
+  1110: "Salary and Allowances (Income)",
 };
 
 function Voucher() {
+  const [formData, setFormData] = useState({});
+  const [branchs, setBranchs] = useState([]);
   const [submitMessage, setSubmitMessage] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateWarning, setDateWarning] = useState(false);
+  const [branchWarning, setBranchWarning] = useState(false);
+
+  // const [totalInterestBranch, setTotalInterestBranch] = useState(null); // New state for totalInterestBranch
+  // const [totalPrincipleBranch, setTotalPrincipleBranch] = useState(null); // New state for totalPrincipleBranch
 
   const navigate = useNavigate();
 
@@ -60,18 +67,107 @@ function Voucher() {
       comment: "",
     },
   ]);
+
   const [creditSections, setCreditSections] = useState([
     {
       key: Date.now(),
       selectedProductCode: "",
       productName: "",
       sellCost: "",
+      fetchedValue: null, // Add this line
       comment: "",
     },
   ]);
 
+  useEffect(() => {
+    const fetchCenters = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/branch-callback");
+        const data = await response.json();
+        setBranchs(data);
+      } catch (error) {
+        console.error("Error fetching branch options:", error.message);
+      }
+    };
+
+    fetchCenters();
+  }, []);
+
+  // Generalized function to fetch data based on branch, date, and product code
+  const fetchDataByBranchAndDate = async (branch, dateInput, productCode) => {
+    try {
+      const encodedBranch = encodeURIComponent(branch);
+      let url1 = "";
+      let url2 = "";
+      let formattedDate = "";
+
+      if (dateInput instanceof Date) {
+        const day = String(dateInput.getDate()).padStart(2, "0");
+        const month = String(dateInput.getMonth() + 1).padStart(2, "0");
+        const year = String(dateInput.getFullYear());
+
+        formattedDate = `${year}-${month}-${day}`;
+
+        if (productCode === "1101" || productCode === "1102") {
+          const shortYear = year.slice(-2);
+          formattedDate = `${day}-${month}-${shortYear}`;
+          url1 = `http://localhost:5000/interest-collection-by-branch-date/${encodedBranch}/${formattedDate}`;
+        } else if (productCode === "1103") {
+          url1 = `http://localhost:5000/get-AdmissionFee-by-branch-and-date/${encodedBranch}/${formattedDate}`;
+          url2 = `http://localhost:5000/sum-macroloan-by-branch/${encodedBranch}/${formattedDate}`;
+        } else if (productCode === "1104") {
+          url1 = `http://localhost:5000/get-AdmissionFee-by-branch-and-date/${encodedBranch}/${formattedDate}`;
+        } else if (productCode === "1108") {
+          url1 = `http://localhost:5000/sum-macroloan-by-branch/${encodedBranch}/${formattedDate}`;
+        }
+      } else {
+        throw new Error("dateInput is not a valid Date object");
+      }
+
+      console.log(`Fetching data from URL: ${url1}`); // Log the first URL being called
+      const response1 = await fetch(url1);
+      const data1 = await response1.json();
+      console.log("Fetched data from URL 1:", data1); // Log the full response data from the first API
+
+      let data2 = {};
+      if (productCode === "1103") {
+        console.log(`Fetching data from URL: ${url2}`); // Log the second URL being called
+        const response2 = await fetch(url2);
+        data2 = await response2.json();
+        console.log("Fetched data from URL 2:", data2); // Log the full response data from the second API
+      }
+
+      // Handle specific product codes and process the data correctly
+      if (productCode === "1101") {
+        return { totalInterestBranch: data1.totalInterestBranch || 0 };
+      } else if (productCode === "1102") {
+        return { totalPrincipleBranch: data1.totalPrincipleBranch || 0 };
+      } else if (productCode === "1103") {
+        return {
+          sumFormFeeBranch: data1.sumFormFeeBranch || 0,
+          sumfromFeeBranchLoan: data2.sumfromFeeBranchLoan || 0,
+          combinedSum:
+            (data1.sumFormFeeBranch || 0) + (data2.sumfromFeeBranchLoan || 0),
+        };
+      } else if (productCode === "1104") {
+        return { sumAdmissionFeesBranch: data1.sumAdmissionFeesBranch || 0 };
+      } else if (productCode === "1108") {
+        return {
+          sumMacroloanBranch: data1.sumMacroloanBranch || 0,
+          sumfromFeeBranchLoan: data1.sumfromFeeBranchLoan || 0, // Include this if needed
+        };
+      }
+
+      return {};
+    } catch (error) {
+      console.error("Error fetching data:", error.message);
+      return {};
+    }
+  };
+
+  // Function to handle product code type change and fetch related data
   const handleProductCodeTypeChange =
-    (sections, setSections, productTypeData) => (index, event) => {
+    (sections, setSections, productTypeData) => async (index, event) => {
       const selectedKey = event.target.value;
       const updatedSections = sections.map((section, idx) =>
         idx === index
@@ -83,7 +179,64 @@ function Voucher() {
           : section
       );
       setSections(updatedSections);
+
+      if (
+        (selectedKey === "1101" ||
+          selectedKey === "1102" ||
+          selectedKey === "1103" ||
+          selectedKey === "1104" ||
+          selectedKey === "1108") &&
+        formData.centerBranch &&
+        selectedDate
+      ) {
+        const fetchedData = await fetchDataByBranchAndDate(
+          formData.centerBranch,
+          selectedDate,
+          selectedKey
+        );
+
+        // Log the entire fetched data object for inspection
+        console.log("Fetched Data for 1103:", fetchedData);
+
+        if (selectedKey === "1103") {
+          console.log("sumFormFeeBranch:", fetchedData.sumFormFeeBranch);
+          console.log(
+            "sumfromFeeBranchLoan:",
+            fetchedData.sumfromFeeBranchLoan
+          );
+        }
+
+        const updatedSectionsWithValue = updatedSections.map((section, idx) =>
+          idx === index
+            ? {
+                ...section,
+                fetchedValue:
+                  selectedKey === "1101"
+                    ? fetchedData.totalInterestBranch
+                    : selectedKey === "1102"
+                    ? fetchedData.totalPrincipleBranch
+                    : selectedKey === "1103"
+                    ? fetchedData.sumFormFeeBranch +
+                      fetchedData.sumfromFeeBranchLoan // Sum both values for 1103
+                    : selectedKey === "1104"
+                    ? fetchedData.sumAdmissionFeesBranch
+                    : selectedKey === "1108"
+                    ? fetchedData.sumMacroloanBranch
+                    : null,
+              }
+            : section
+        );
+        setSections(updatedSectionsWithValue);
+      }
     };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value.trimStart(),
+    }));
+  };
 
   const handleInputChange =
     (sections, setSections, field) => (index, event) => {
@@ -112,6 +265,7 @@ function Voucher() {
     setSections(updatedSections);
   };
 
+  // In the renderSections function, make sure to display the fetched values
   const renderSections = (sections, setSections, productTypeData) => {
     return sections.map((section, index) => (
       <div className="mb-5 row" key={section.key}>
@@ -162,9 +316,20 @@ function Voucher() {
             id={`ProductSellCost-${section.key}`}
             className="form-control"
             type="text"
-            value={section.sellCost}
+            value={
+              section.fetchedValue !== null
+                ? section.fetchedValue
+                : section.sellCost
+            }
             onChange={(event) =>
               handleInputChange(sections, setSections, "sellCost")(index, event)
+            }
+            readOnly={
+              section.selectedProductCode === "1101" ||
+              section.selectedProductCode === "1102" ||
+              section.selectedProductCode === "1103" ||
+              section.selectedProductCode === "1104" ||
+              section.selectedProductCode === "1108"
             }
           />
         </div>
@@ -212,26 +377,41 @@ function Voucher() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check for missing date or branch selection
     if (!selectedDate) {
       setDateWarning(true);
+    } else {
+      setDateWarning(false);
+    }
+
+    if (!formData.centerBranch) {
+      setBranchWarning(true);
+    } else {
+      setBranchWarning(false);
+    }
+
+    // If either date or branch is missing, don't proceed with submission
+    if (!selectedDate || !formData.centerBranch) {
       return;
     }
 
-    setDateWarning(false);
-
-    // Format the date to only include the local date part (YYYY-MM-DD)
     const localDate = new Date(
       selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
     );
     const formattedDate = localDate.toISOString().split("T")[0];
 
     const sectionsToSave = (sections) =>
-      sections.filter((section) => section.sellCost.trim() !== "");
+      sections.filter((section) => {
+        return section.sellCost.trim() !== "" || section.fetchedValue !== null;
+      });
 
     const emptySellCostSections = debitSections
       .concat(creditSections)
-      .filter((section) => section.sellCost.trim() === "");
+      .filter((section) => {
+        return section.sellCost.trim() === "" && section.fetchedValue === null;
+      });
 
+    // If there are empty fields, show a warning and ask for confirmation
     if (emptySellCostSections.length > 0) {
       const userConfirmed = window.confirm(
         "Some sections have empty Amount values. Do you want to proceed and save the non-empty sections?"
@@ -250,8 +430,12 @@ function Voucher() {
           body: JSON.stringify({
             productCode: section.selectedProductCode,
             productName: section.productName,
-            sellCost: section.sellCost,
+            sellCost:
+              section.fetchedValue !== null
+                ? section.fetchedValue
+                : section.sellCost,
             comment: section.comment,
+            centerBranch: formData.centerBranch,
             date: formattedDate,
           }),
         });
@@ -264,17 +448,43 @@ function Voucher() {
           body: JSON.stringify({
             productCode: section.selectedProductCode,
             productName: section.productName,
-            sellCost: section.sellCost,
+            sellCost:
+              section.fetchedValue !== null
+                ? section.fetchedValue
+                : section.sellCost,
             comment: section.comment,
+            centerBranch: formData.centerBranch,
             date: formattedDate,
           }),
         });
       }
 
-      setSubmitMessage("Data saved successfully");
+      setSubmitMessage("Submission successful!");
+      setFormData({});
+      setSelectedDate(null);
+      setDebitSections([
+        {
+          key: Date.now(),
+          selectedProductCode: "",
+          productName: "",
+          sellCost: "",
+          comment: "",
+        },
+      ]);
+      setCreditSections([
+        {
+          key: Date.now(),
+          selectedProductCode: "",
+          productName: "",
+          sellCost: "",
+          comment: "",
+        },
+      ]);
+
+      setTimeout(() => setSubmitMessage(""), 2000);
     } catch (error) {
-      console.error("Error:", error);
-      setSubmitMessage(`Error: ${error.message}`);
+      console.error("Error submitting data:", error.message);
+      setSubmitMessage("Error submitting data. Please try again.");
     }
   };
 
@@ -290,21 +500,46 @@ function Voucher() {
             <h2 className="text-center mb-4 pt-3">Create Voucher</h2>
           </div>
 
-          <div className="mb-3 col-3">
-            <label htmlFor="date" className="form-label">
-              তারিখ নির্বাচন করুণ
-            </label>
-            <div>
-              <DatePicker
-                id="date"
-                className="form-control"
-                dateFormat="dd/MM/yyyy"
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-              />
-              {dateWarning && (
-                <div className="text-danger mt-2">Please select a date.</div>
+          <div className="row mb-5">
+            <div className="mb-3 col-4 col-md-4">
+              <label htmlFor="centerBranch" className="form-label">
+                শাঁখা নির্বাচন করুণ
+              </label>
+              <select
+                id="centerBranch"
+                className="form-select"
+                value={formData.centerBranch}
+                onChange={handleChange}
+                name="centerBranch"
+              >
+                <option value="">Choose...</option>
+                {branchs.map((branch) => (
+                  <option key={branch._id} value={branch.BranchName}>
+                    {branch.BranchName}
+                  </option>
+                ))}
+              </select>
+              {branchWarning && (
+                <div className="text-danger mt-2">Please select a branch.</div>
               )}
+            </div>
+
+            <div className="mb-3 col-3">
+              <label htmlFor="date" className="form-label">
+                তারিখ নির্বাচন করুণ
+              </label>
+              <div>
+                <DatePicker
+                  id="date"
+                  className="form-control"
+                  dateFormat="dd/MM/yyyy"
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                />
+                {dateWarning && (
+                  <div className="text-danger mt-2">Please select a date.</div>
+                )}
+              </div>
             </div>
           </div>
 

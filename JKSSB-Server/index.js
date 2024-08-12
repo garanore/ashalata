@@ -19,6 +19,7 @@ const Loan = require("./models/loan.model.js");
 const User = require("./models/user.model.js");
 const Credit = require("./models/credit.model.js");
 const Debit = require("./models/debit.model.js");
+const IncomeExpense = require("./models/incomeExpense.model.js");
 
 const { ObjectId } = require("mongoose").Types;
 
@@ -1188,7 +1189,7 @@ app.get("/get-dates/:nextDate", async (req, res) => {
   }
 });
 
-//get microLoan Callback by center and date ---------------------------------------------------------------------
+//get microLoan  and form fee Callback by center and date ---------------------------------------------------------------------
 
 app.get("/sum-macroloan/:OLcenter/:createdAt", async (req, res) => {
   try {
@@ -1221,6 +1222,92 @@ app.get("/sum-macroloan/:OLcenter/:createdAt", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch macroloan data" });
   }
 });
+
+//get microLoan  and form fee Callback by branch and date ---------------------------------------------------------------------
+
+app.get("/sum-macroloan-by-branch/:OLbranch/:createdAt", async (req, res) => {
+  try {
+    const { OLbranch, createdAt } = req.params;
+
+    // Create a date range for the entire day
+    const startOfDay = new Date(createdAt);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(createdAt);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Find documents matching the provided OLcenter and createdAt within the day range
+    const loans = await Loan.find({
+      OLbranch: OLbranch,
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    });
+
+    // Calculate the sum of macroloan values
+    const sumMacroloanBranch = loans.reduce(
+      (sum, loan) => sum + loan.macroloan,
+      0
+    );
+    const sumfromFeeBranchLoan = loans.reduce(
+      (sum, loan) => sum + loan.fromFee,
+      0
+    );
+
+    // Send the result as a JSON response
+    res.status(200).json({ sumMacroloanBranch, sumfromFeeBranchLoan });
+  } catch (error) {
+    console.error("Error fetching macroloan data:", error.message);
+    res.status(500).json({ error: "Failed to fetch macroloan data" });
+  }
+});
+
+//get microLoan  and form fee Callback by branch and Month ---------------------------------------------------------------------
+
+app.get(
+  "/sum-macroloan-by-branch-month/:OLbranch/:monthYear",
+  async (req, res) => {
+    try {
+      const { OLbranch, monthYear } = req.params;
+
+      // Parse month and year from the parameter
+      const [month, year] = monthYear.split("-");
+
+      // Create a date range for the entire month
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      // Find documents matching the provided OLbranch and createdAt within the month range
+      const loans = await Loan.find({
+        OLbranch: OLbranch,
+        createdAt: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        },
+      });
+
+      // Calculate the sum of macroloan values and fromFee for the month
+      const sumMacroloanBranchMonth = loans.reduce(
+        (sum, loan) => sum + loan.macroloan,
+        0
+      );
+      const sumfromFeeBranchLoanMonth = loans.reduce(
+        (sum, loan) => sum + loan.fromFee,
+        0
+      );
+
+      // Send the result as a JSON response
+      res
+        .status(200)
+        .json({ sumMacroloanBranchMonth, sumfromFeeBranchLoanMonth });
+    } catch (error) {
+      console.error("Error fetching macroloan data:", error.message);
+      res.status(500).json({ error: "Failed to fetch macroloan data" });
+    }
+  }
+);
 
 //Loan Callback by LoanID------------------------------------------------
 
@@ -1354,7 +1441,7 @@ app.put("/loan-callback/:ID", async (req, res) => {
 
 //-------------------------------------------------------------------
 app.post("/save-installments-collection", async (req, res) => {
-  const { centerName, installmentDate, data } = req.body;
+  const { centerName, installmentDate, data, centerBranch } = req.body;
 
   try {
     const updatePromises = data.map(async (item) => {
@@ -1369,6 +1456,7 @@ app.post("/save-installments-collection", async (req, res) => {
           installment: item.installment,
           onlyInterest: item.onlyInterest,
           centerName: centerName,
+          centerBranch: centerBranch,
         },
         $addToSet: { installmentDate: installmentDate },
       };
@@ -1588,6 +1676,58 @@ app.get("/loan-collection-by-center/:centerName/:date", async (req, res) => {
   }
 });
 
+// onlyInterest Collection and Principle data by Branch and Month-------------------------------------
+
+app.get(
+  "/interest-collection-by-branch/:centerBranch/:monthYear",
+  async (req, res) => {
+    try {
+      const { centerBranch, monthYear } = req.params;
+
+      // Find all loan collections for the given branch
+      const loans = await InstallmentCollection.find({ centerBranch });
+
+      // Initialize the sum of onlyInterest and TotalMonthPrinciple for the current month
+      let totalInterest = 0;
+      let totalMonthPrinciple = 0;
+
+      // Extract current month and year
+      const [currentMonth, currentYear] = monthYear.split("-");
+
+      // Loop through each loan collection
+      for (const loan of loans) {
+        // Check if installmentDate exists and is an array
+        if (Array.isArray(loan.installmentDate)) {
+          // Loop through each installmentDate
+          for (const date of loan.installmentDate) {
+            // Extract the day, month, and year from the installmentDate
+            const [day, month, year] = date.split("-");
+
+            // Format the year to "YYYY" assuming the year is in the "YY" format
+            const formattedYear = `20${year}`;
+            const formattedDate = `${month}-${formattedYear}`;
+
+            // Check if the formattedDate matches the current monthYear
+            if (formattedDate === monthYear) {
+              const interest = parseFloat(loan.onlyInterest) || 0;
+              const installment = parseFloat(loan.installment) || 0;
+
+              totalInterest += interest;
+              totalMonthPrinciple += installment - interest;
+            }
+          }
+        }
+      }
+
+      // Send the total interest and total principle as a response
+      res.status(200).json({ totalInterest, totalMonthPrinciple });
+    } catch (error) {
+      console.error("Error fetching loans data:", error.message);
+      res.status(500).json({ error: "Failed to fetch loans data" });
+    }
+  }
+);
+
 // onlyInterest Collection data by Center and Date-------------------------------------
 
 app.get(
@@ -1615,6 +1755,49 @@ app.get(
 
       // Send the total interest as a response
       res.status(200).json({ totalInterest });
+    } catch (error) {
+      console.error("Error fetching loans data:", error.message);
+      res.status(500).json({ error: "Failed to fetch loans data" });
+    }
+  }
+);
+
+// onlyInterest Collection and Principle data by Branch and Date-------------------------------------
+
+app.get(
+  "/interest-collection-by-branch-date/:centerBranch/:date",
+  async (req, res) => {
+    try {
+      const { centerBranch, date } = req.params;
+
+      // Find all loan collections for the given centerBranch
+      const loans = await InstallmentCollection.find({ centerBranch });
+
+      // Initialize the sum of onlyInterest and Principle
+      let totalInterestBranch = 0;
+      let totalPrincipleBranch = 0;
+
+      // Loop through each loan collection
+      for (const loan of loans) {
+        // Find the index of the specified date in the installmentDate array
+        const dateIndex = loan.installmentDate.indexOf(date);
+
+        // If the date is found, calculate interest and principle
+        if (dateIndex !== -1) {
+          const onlyInterest = parseFloat(loan.onlyInterest);
+          const installment = parseFloat(loan.installment);
+
+          // Calculate principle as: installment - onlyInterest
+          const principle = installment - onlyInterest;
+
+          // Add to the total sums
+          totalInterestBranch += onlyInterest;
+          totalPrincipleBranch += principle;
+        }
+      }
+
+      // Send the total interest and principle as a response
+      res.status(200).json({ totalInterestBranch, totalPrincipleBranch });
     } catch (error) {
       console.error("Error fetching loans data:", error.message);
       res.status(500).json({ error: "Failed to fetch loans data" });
@@ -2300,6 +2483,91 @@ app.get(
   }
 );
 
+//get AdmissionFee and Form Fee by branch and date
+
+app.get(
+  "/get-AdmissionFee-by-branch-and-date/:BranchMember/:AdmissionDate", // Change order here
+  async (req, res) => {
+    try {
+      const { BranchMember, AdmissionDate } = req.params;
+
+      console.log("BranchMember:", BranchMember); // Log to check BranchMember
+      console.log("AdmissionDate:", AdmissionDate); // Log to check AdmissionDate
+
+      // Query to find documents
+      const AdmissionFees = await Member.find({
+        BranchMember: BranchMember.trim(),
+        AdmissionDate: AdmissionDate.trim(),
+      });
+
+      console.log("Found Admission Fees:", AdmissionFees); // Log the found documents
+
+      // Calculate the sum of AdmissionFee values
+      const sumAdmissionFeesBranch = AdmissionFees.reduce(
+        (sum, member) => sum + (member.AdmissionFee || 0),
+        0
+      );
+
+      // Calculate the sum of FormFee values
+      const sumFormFeeBranch = AdmissionFees.reduce(
+        (sum, member) => sum + (member.FormFee || 0),
+        0
+      );
+
+      // Send the result as a JSON response
+      res.status(200).json({ sumAdmissionFeesBranch, sumFormFeeBranch });
+    } catch (error) {
+      console.error("Error fetching admission fee data:", error.message);
+      res.status(500).json({ error: "Failed to fetch admission fee data" });
+    }
+  }
+);
+
+//get AdmissionFee and Form Fee by Branch and Month
+
+app.get(
+  "/get-AdmissionFee-by-branch-and-month/:BranchMember/:monthYear",
+  async (req, res) => {
+    try {
+      const { BranchMember, monthYear } = req.params;
+
+      // Parse month and year from the parameter (MM-YYYY format)
+      const [month, year] = monthYear.split("-");
+
+      // Create a regex pattern to match the AdmissionDate for the entire month
+      const monthPattern = new RegExp(`^${year}-${month.padStart(2, "0")}`);
+
+      // Find documents matching the provided BranchMember and AdmissionDate within the month range
+      const AdmissionFees = await Member.find({
+        BranchMember: BranchMember.trim(),
+        AdmissionDate: {
+          $regex: monthPattern, // Match dates starting with the given year and month
+        },
+      });
+
+      // Calculate the sum of AdmissionFee values
+      const sumAdmissionFeesBranchMonth = AdmissionFees.reduce(
+        (sum, member) => sum + (member.AdmissionFee || 0),
+        0
+      );
+
+      // Calculate the sum of FormFee values
+      const sumFormFeeBranchMonth = AdmissionFees.reduce(
+        (sum, member) => sum + (member.FormFee || 0),
+        0
+      );
+
+      // Send the result as a JSON response
+      res
+        .status(200)
+        .json({ sumAdmissionFeesBranchMonth, sumFormFeeBranchMonth });
+    } catch (error) {
+      console.error("Error fetching admission fee data:", error.message);
+      res.status(500).json({ error: "Failed to fetch admission fee data" });
+    }
+  }
+);
+
 //Member Update-----------------------------------------
 
 app.put("/member-callback/:ID", async (req, res) => {
@@ -2348,7 +2616,8 @@ app.put("/member-callback/:ID", async (req, res) => {
 
 const saveData = async (Model, data) => {
   try {
-    const { productCode, productName, sellCost, comment, date, branch } = data; // Include branch in destructuring
+    const { productCode, productName, sellCost, comment, date, centerBranch } =
+      data;
 
     const existingDocument = await Model.findOne({ productCode });
 
@@ -2356,16 +2625,16 @@ const saveData = async (Model, data) => {
       existingDocument.sellCost.push(sellCost);
       existingDocument.comment.push(comment);
       existingDocument.date.push(date);
-      existingDocument.branch = branch; // Update the branch field if necessary
+      existingDocument.centerBranch = centerBranch; // Update the branch field if necessary
       await existingDocument.save();
     } else {
       const newDocument = new Model({
         productCode,
+        centerBranch,
         productName,
         sellCost: [sellCost],
         comment: [comment],
         date: [date],
-        branch, // Include branch in the new document
       });
       await newDocument.save();
     }
@@ -2373,26 +2642,38 @@ const saveData = async (Model, data) => {
     return { status: 200, message: "Data saved successfully" };
   } catch (error) {
     console.error("Error saving data:", error);
+    // Log the error with more details
+    console.error("Detailed error:", error.stack || error);
     return { status: 500, message: "Internal Server Error" };
   }
 };
 
 app.post("/save-debit", async (req, res) => {
-  const result = await saveData(Debit, req.body);
-  res.status(result.status).json({ message: result.message });
+  try {
+    const result = await saveData(Debit, req.body);
+    res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    console.error("Error in /save-debit route:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 app.post("/save-credit", async (req, res) => {
-  const result = await saveData(Credit, req.body);
-  res.status(result.status).json({ message: result.message });
+  try {
+    const result = await saveData(Credit, req.body);
+    res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    console.error("Error in /save-credit route:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 // Find ALl data By Date----------------------------------------------------------------
 
-const findDataByDateAndBranch = async (Model, date, branch) => {
+const findDataByDateAndBranch = async (Model, date, centerBranch) => {
   try {
     // Find documents matching the branch
-    const documents = await Model.find({ branch });
+    const documents = await Model.find({ centerBranch });
 
     // Iterate over all documents to find matching date
     const results = documents
@@ -2402,9 +2683,9 @@ const findDataByDateAndBranch = async (Model, date, branch) => {
         // If the date is found, return the sellCost and comment at that index
         if (dateIndex !== -1) {
           return {
+            centerBranch: doc.centerBranch,
             productCode: doc.productCode,
             productName: doc.productName,
-            branch: doc.branch,
             sellCost: doc.sellCost[dateIndex],
             comment: doc.comment[dateIndex],
             date: doc.date[dateIndex],
@@ -2448,6 +2729,75 @@ app.get("/find-data-by-date-branch", async (req, res) => {
     });
   }
 });
+
+const sumSellCostByMonthAndBranch = async (
+  Model,
+  monthYear,
+  centerBranch,
+  prefix
+) => {
+  try {
+    // Find documents matching the branch
+    const documents = await Model.find({ centerBranch });
+
+    let productCodeSums = {};
+
+    // Iterate over all documents to sum sellCost for matching dates
+    documents.forEach((doc) => {
+      doc.date.forEach((date, index) => {
+        const [year, month] = date.split("-");
+
+        // Check if the date matches the selected month and year
+        if (`${month}-${year}` === monthYear) {
+          const productCode = doc.productCode;
+          if (!productCodeSums[productCode]) {
+            productCodeSums[productCode] = 0;
+          }
+          productCodeSums[productCode] += doc.sellCost[index];
+        }
+      });
+    });
+
+    // Add prefix to each productCode key
+    let resultsWithPrefix = {};
+    Object.keys(productCodeSums).forEach((productCode) => {
+      resultsWithPrefix[`${prefix}${productCode}`] =
+        productCodeSums[productCode];
+    });
+
+    return { status: 200, data: resultsWithPrefix };
+  } catch (error) {
+    console.error("Error retrieving data:", error);
+    return { status: 500, message: "Internal Server Error" };
+  }
+};
+
+app.get(
+  "/sum-sell-cost-by-month-branch/:branch/:monthYear",
+  async (req, res) => {
+    const { branch, monthYear } = req.params; // Use URL parameters
+
+    const debitResult = await sumSellCostByMonthAndBranch(
+      Debit,
+      monthYear,
+      branch,
+      "D" // Prefix for Debit
+    );
+    const creditResult = await sumSellCostByMonthAndBranch(
+      Credit,
+      monthYear,
+      branch,
+      "C" // Prefix for Credit
+    );
+
+    if (debitResult.status === 500 || creditResult.status === 500) {
+      res.status(500).json({ message: "Internal Server Error" });
+    } else {
+      const combinedData = { ...debitResult.data, ...creditResult.data };
+      res.status(200).json(combinedData);
+    }
+  }
+);
 
 // Update data by Date----------------------------------------------------------------
 
@@ -2528,6 +2878,116 @@ app.put("/update-data", async (req, res) => {
 //----------------------------------------------------------------
 
 // Voucher End
+
+//----------------------------------------------------------------
+
+//----------------------------------------------------------------
+
+// IncomeExpenseReport Start
+
+//----------------------------------------------------------------
+
+app.post("/save-income-expense", async (req, res) => {
+  try {
+    const payload = req.body;
+
+    for (const item of payload) {
+      // Check if a document already exists for the branch and productCode
+      const existingEntry = await IncomeExpense.findOne({
+        branch: item.branch,
+        productCode: item.productCode,
+      });
+
+      if (existingEntry) {
+        // Update the existing document
+        existingEntry.month.push(...item.month);
+        existingEntry.currentMonthAmount.push(...item.currentMonthAmount);
+        existingEntry.toDateAmount.push(...item.toDateAmount);
+        await existingEntry.save();
+      } else {
+        // Create a new document
+        const newEntry = new IncomeExpense(item);
+        await newEntry.save();
+      }
+    }
+
+    res.status(201).json({ message: "Data saved successfully!" });
+  } catch (error) {
+    console.error("Error saving data:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error saving data", error: error.message });
+  }
+});
+
+// get toDateAmoun for previous month with Branch and Month----------------------------------------------------------------
+
+app.get("/get-income-expense/:branch/:month", async (req, res) => {
+  try {
+    const { branch, month } = req.params;
+
+    // Convert the incoming MM-YYYY format to a Date object
+    const [monthPart, yearPart] = month.split("-");
+    let monthIndex = parseInt(monthPart, 10) - 1; // Convert month to zero-based index
+
+    // Adjust the Date object to the previous month
+    let previousMonthIndex = monthIndex - 1;
+    let previousYear = parseInt(yearPart, 10);
+
+    // If the previous month is negative (i.e., before January), adjust the year and set to December
+    if (previousMonthIndex < 0) {
+      previousMonthIndex = 11; // December
+      previousYear -= 1; // Subtract one year
+    }
+
+    // Format the previous month back to YYYY-MM
+    const formattedPreviousMonth = `${previousYear}-${String(
+      previousMonthIndex + 1
+    ).padStart(2, "0")}`;
+
+    // Find all documents matching the branch
+    const entries = await IncomeExpense.find({ branch });
+
+    // Initialize an object to store the sums by productCode
+    let totalsByProductCode = {};
+
+    // Iterate over the retrieved entries
+    for (const entry of entries) {
+      // Find the last index of the previous month in the 'month' array
+      const monthIndex = entry.month.lastIndexOf(formattedPreviousMonth);
+
+      // If the month is found, add the corresponding 'toDateAmount' to the total for that productCode
+      if (monthIndex !== -1) {
+        const productCode = `P${entry.productCode}`; // Prefix with "P"
+        const amount = parseFloat(entry.toDateAmount[monthIndex] || 0);
+
+        // Sum the amounts by productCode
+        if (totalsByProductCode[productCode]) {
+          totalsByProductCode[productCode] += amount;
+        } else {
+          totalsByProductCode[productCode] = amount;
+        }
+      }
+    }
+
+    // Format the totals to two decimal places
+    for (let productCode in totalsByProductCode) {
+      totalsByProductCode[productCode] =
+        totalsByProductCode[productCode].toFixed(2);
+    }
+
+    res.status(200).json(totalsByProductCode);
+  } catch (error) {
+    console.error("Error retrieving data:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error retrieving data", error: error.message });
+  }
+});
+
+//----------------------------------------------------------------
+
+// IncomeExpenseReport End
 
 //----------------------------------------------------------------
 
