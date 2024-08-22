@@ -2,10 +2,12 @@ const express = require("express");
 const router = express.Router();
 const Credit = require("../models/credit.model.js");
 const Debit = require("../models/debit.model.js");
+const { ObjectId } = require("mongoose").Types;
 
 const saveData = async (Model, data) => {
   try {
-    const { productCode, productName, sellCost, comment, date, branch } = data; // Include branch in destructuring
+    const { productCode, productName, sellCost, comment, date, centerBranch } =
+      data;
 
     const existingDocument = await Model.findOne({ productCode });
 
@@ -13,16 +15,16 @@ const saveData = async (Model, data) => {
       existingDocument.sellCost.push(sellCost);
       existingDocument.comment.push(comment);
       existingDocument.date.push(date);
-      existingDocument.branch = branch; // Update the branch field if necessary
+      existingDocument.centerBranch = centerBranch; // Update the branch field if necessary
       await existingDocument.save();
     } else {
       const newDocument = new Model({
         productCode,
+        centerBranch,
         productName,
         sellCost: [sellCost],
         comment: [comment],
         date: [date],
-        branch, // Include branch in the new document
       });
       await newDocument.save();
     }
@@ -30,26 +32,38 @@ const saveData = async (Model, data) => {
     return { status: 200, message: "Data saved successfully" };
   } catch (error) {
     console.error("Error saving data:", error);
+    // Log the error with more details
+    console.error("Detailed error:", error.stack || error);
     return { status: 500, message: "Internal Server Error" };
   }
 };
 
 router.post("/save-debit", async (req, res) => {
-  const result = await saveData(Debit, req.body);
-  res.status(result.status).json({ message: result.message });
+  try {
+    const result = await saveData(Debit, req.body);
+    res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    console.error("Error in /save-debit route:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 router.post("/save-credit", async (req, res) => {
-  const result = await saveData(Credit, req.body);
-  res.status(result.status).json({ message: result.message });
+  try {
+    const result = await saveData(Credit, req.body);
+    res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    console.error("Error in /save-credit route:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 // Find ALl data By Date----------------------------------------------------------------
 
-const findDataByDateAndBranch = async (Model, date, branch) => {
+const findDataByDateAndBranch = async (Model, date, centerBranch) => {
   try {
     // Find documents matching the branch
-    const documents = await Model.find({ branch });
+    const documents = await Model.find({ centerBranch });
 
     // Iterate over all documents to find matching date
     const results = documents
@@ -59,9 +73,9 @@ const findDataByDateAndBranch = async (Model, date, branch) => {
         // If the date is found, return the sellCost and comment at that index
         if (dateIndex !== -1) {
           return {
+            centerBranch: doc.centerBranch,
             productCode: doc.productCode,
             productName: doc.productName,
-            branch: doc.branch,
             sellCost: doc.sellCost[dateIndex],
             comment: doc.comment[dateIndex],
             date: doc.date[dateIndex],
@@ -106,6 +120,77 @@ router.get("/find-data-by-date-branch", async (req, res) => {
   }
 });
 
+const sumSellCostByMonthAndBranch = async (
+  Model,
+  monthYear,
+  centerBranch,
+  prefix
+) => {
+  try {
+    // Find documents matching the branch
+    const documents = await Model.find({ centerBranch });
+
+    let productCodeSums = {};
+
+    // Iterate over all documents to sum sellCost for matching dates
+    documents.forEach((doc) => {
+      doc.date.forEach((date, index) => {
+        const [year, month] = date.split("-");
+
+        // Check if the date matches the selected month and year
+        if (`${month}-${year}` === monthYear) {
+          const productCode = doc.productCode;
+          if (!productCodeSums[productCode]) {
+            productCodeSums[productCode] = 0;
+          }
+          productCodeSums[productCode] += doc.sellCost[index];
+        }
+      });
+    });
+
+    // Add prefix to each productCode key
+    let resultsWithPrefix = {};
+    Object.keys(productCodeSums).forEach((productCode) => {
+      resultsWithPrefix[`${prefix}${productCode}`] =
+        productCodeSums[productCode];
+    });
+
+    return { status: 200, data: resultsWithPrefix };
+  } catch (error) {
+    console.error("Error retrieving data:", error);
+    return { status: 500, message: "Internal Server Error" };
+  }
+};
+
+router.get(
+  "/sum-sell-cost-by-month-branch/:branch/:monthYear",
+  async (req, res) => {
+    const { branch, monthYear } = req.params; // Use URL parameters
+
+    const debitResult = await sumSellCostByMonthAndBranch(
+      Debit,
+      monthYear,
+      branch,
+      "D" // Prefix for Debit
+    );
+    const creditResult = await sumSellCostByMonthAndBranch(
+      Credit,
+      monthYear,
+      branch,
+      "C" // Prefix for Credit
+    );
+
+    if (debitResult.status === 500 || creditResult.status === 500) {
+      res.status(500).json({ message: "Internal Server Error" });
+    } else {
+      const combinedData = { ...debitResult.data, ...creditResult.data };
+      res.status(200).json(combinedData);
+    }
+  }
+);
+
+// Update data by Date----------------------------------------------------------------
+
 const updateData = async (Model, data) => {
   try {
     const { productCode, sellCost, comment, date } = data;
@@ -141,7 +226,35 @@ router.put("/update-data", async (req, res) => {
   const { productCode } = req.body;
   let Model;
 
-  if (["1205", "1206", "1207", "1213", "1220"].includes(productCode)) {
+  if (
+    [
+      "1205",
+      "1206",
+      "1207",
+      "1208",
+      "1209",
+      "1210",
+      "1211",
+      "1212",
+      "1213",
+      "1214",
+      "1215",
+      "1216",
+      "1217",
+      "1218",
+      "1219",
+      "1220",
+      "1221",
+      "1222",
+      "1223",
+      "1224",
+      "1225",
+      "1226",
+      "1227",
+      "1228",
+      "1229",
+    ].includes(productCode)
+  ) {
     Model = Debit;
   } else {
     Model = Credit;

@@ -15,7 +15,6 @@ const MemberEdit = () => {
   const [MemberEdits, setMemberEdits] = useState({});
   const [submitMessage, setSubmitMessage] = useState("");
   const [centers, setCenters] = useState([]);
-  const [branches, setBranches] = useState([]);
 
   useEffect(() => {
     // Fetch member data
@@ -33,15 +32,6 @@ const MemberEdit = () => {
       .catch((error) => {
         console.error("Error fetching center data:", error);
       });
-
-    axios
-      .get("http://localhost:5000/branch-callback")
-      .then((response) => {
-        setBranches(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching center data:", error);
-      });
   }, [memberID]);
 
   const handleUpdateMember = (e) => {
@@ -49,12 +39,13 @@ const MemberEdit = () => {
     const form = e.target;
     const formData = new FormData(form);
     const updatedData = Object.fromEntries(formData);
-    setSubmitMessage("Successfully Updated!");
 
-    // Add updated AdmissionDate and CenterMember
+    // Add or modify fields as needed
     updatedData.AdmissionDate = MemberEdits.AdmissionDate;
-    updatedData.CenterIDMember = MemberEdits.CenterIDMember; // Ensure this is included
-    updatedData.BranchMember = MemberEdits.BranchMember; // Ensure this is included
+    updatedData.CenterIDMember = MemberEdits.CenterIDMember;
+    updatedData.BranchMember = MemberEdits.BranchMember; // Ensure this matches backend expectations
+
+    console.log("Updated Data before sending:", updatedData);
 
     fetch(`http://localhost:5000/member-callback/${memberID}`, {
       method: "PUT",
@@ -67,9 +58,9 @@ const MemberEdit = () => {
       .then((data) => {
         if (data.success) {
           setMemberEdits(data.updatedMember);
-          console.log("Member Updated Successfully");
+          setSubmitMessage("Successfully Updated!");
         } else {
-          console.error("Member Update Failed");
+          console.error("Member Update Failed:", data.message);
         }
       })
       .catch((error) => {
@@ -90,10 +81,6 @@ const MemberEdit = () => {
   const handleCenterChange = (e) => {
     const selectedCenter = e.target.value;
     setMemberEdits({ ...MemberEdits, CenterIDMember: selectedCenter });
-  };
-  const handleBranchChange = (e) => {
-    const selectedBranch = e.target.value;
-    setMemberEdits({ ...MemberEdits, BranchMember: selectedBranch });
   };
 
   return (
@@ -134,25 +121,6 @@ const MemberEdit = () => {
                 dateFormat="dd/MM/yyyy"
               />
             </div>
-          </div>
-
-          <div className="col-md-3 mb-3">
-            <label htmlFor="BranchMember" className="form-label">
-              শাঁখা নির্বাচন করুণ
-            </label>
-            <select
-              className="form-select"
-              id="BranchMember"
-              value={MemberEdits.BranchMember || ""}
-              onChange={handleBranchChange}
-            >
-              <option value="">Choose...</option>
-              {branches.map((branch) => (
-                <option key={branch._id} value={branch.BranchName}>
-                  {branch.BranchName}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="col-md-3 mb-3">

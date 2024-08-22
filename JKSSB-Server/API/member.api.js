@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Member = require("../models/member.model.js");
 const { ObjectId } = require("mongoose").Types;
+
 // For Generate ID
 const generateMemberID = async () => {
   const count = await Member.countDocuments();
@@ -157,13 +158,19 @@ router.get(
 
 router.put("/member-callback/:ID", async (req, res) => {
   try {
-    const memberID = req.params.ID; // Retrieve memberID from route parameter
+    const memberID = req.params.ID;
+
+    // Validate memberID format
+    if (!ObjectId.isValid(memberID)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid ID format" });
+    }
+
     const query = { _id: new ObjectId(memberID) };
     const updatedData = req.body;
 
-    console.log("Update Query:", query);
-    console.log("Updated Data:", updatedData); // Check if CenterMember is present
-
+    // Perform update
     const updatedMember = await Member.findOneAndUpdate(
       query,
       { $set: updatedData },
