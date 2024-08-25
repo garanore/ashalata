@@ -20,6 +20,12 @@ const expenseData = {
   1207: "Interest on Bank Loan",
   1208: "Loan Loss Provision",
 };
+const InterestSavings = {
+  1201: "Interest on General Savings",
+  1202: "Interest on Contractual Savings",
+  1203: "Interest on Regular Voluntary Savings",
+  1204: "Interest on Time Deposit",
+};
 
 const IncomeExpenseReport = () => {
   const [formData, setFormData] = useState({});
@@ -59,6 +65,13 @@ const IncomeExpenseReport = () => {
   const [PreviousMonth1207, setPreviousMonth1207] = useState(0);
   const [PreviousMonth1208, setPreviousMonth1208] = useState(0);
 
+  // For Saving
+
+  const [PreviousMonth1201, setPreviousMonth1201] = useState(0);
+  const [PreviousMonth1202, setPreviousMonth1202] = useState(0);
+  const [PreviousMonth1203, setPreviousMonth1203] = useState(0);
+  const [PreviousMonth1204, setPreviousMonth1204] = useState(0);
+
   // For Current Month
 
   const [C1109, setC1109] = useState(0);
@@ -67,6 +80,12 @@ const IncomeExpenseReport = () => {
   const [D1206, setD1206] = useState(0);
   const [D1207, setD1207] = useState(0);
   const [D1208, setD1208] = useState(0);
+
+  // For Saving
+  const [D1201, setD1201] = useState(0);
+  const [D1202, setD1202] = useState(0);
+  const [D1203, setD1203] = useState(0);
+  const [D1204, setD1204] = useState(0);
 
   const handleMonthChange = (e) => {
     setSelectedMonth(e.target.value);
@@ -146,6 +165,11 @@ const IncomeExpenseReport = () => {
       setC1109(creditData.C1109);
       setC1110(creditData.C1110);
 
+      setD1201(creditData.D1201);
+      setD1202(creditData.D1202);
+      setD1203(creditData.D1203);
+      setD1204(creditData.D1204);
+
       setPreviousMonth1101(previousMonthData.P1101);
       setPreviousMonth1102(previousMonthData.P1102);
       setPreviousMonth1103(previousMonthData.P1103);
@@ -160,6 +184,11 @@ const IncomeExpenseReport = () => {
       setPreviousMonth1206(previousMonthData.P1206);
       setPreviousMonth1207(previousMonthData.P1207);
       setPreviousMonth1208(previousMonthData.P1208);
+
+      setPreviousMonth1201(previousMonthData.D1201);
+      setPreviousMonth1202(previousMonthData.D1202);
+      setPreviousMonth1203(previousMonthData.D1203);
+      setPreviousMonth1204(previousMonthData.D1204);
     } catch (error) {
       console.error("Error fetching branch data:", error.message);
     }
@@ -187,7 +216,8 @@ const IncomeExpenseReport = () => {
     return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
   };
 
-  // Calculate totals for Income
+  // Calculate totals for Income Previous Month
+
   const totalIncomePreviousMonth = Object.entries(incomeData).reduce(
     (acc, [code]) => {
       let previousMonth = 0;
@@ -207,6 +237,8 @@ const IncomeExpenseReport = () => {
     },
     0
   );
+
+  // Calculate totals for Income Current Month
 
   const totalIncomeCurrentMonth = Object.entries(incomeData).reduce(
     (acc, [code]) => {
@@ -232,7 +264,8 @@ const IncomeExpenseReport = () => {
 
   const totalIncomeToDate = totalIncomePreviousMonth + totalIncomeCurrentMonth;
 
-  // Calculate totals for Expense
+  // Calculate totals for Expense Previous Month
+
   const totalExpensePreviousMonth = Object.entries(expenseData).reduce(
     (acc, [code]) => {
       let previousMonth = 0;
@@ -246,6 +279,8 @@ const IncomeExpenseReport = () => {
     },
     0
   );
+
+  // Calculate totals for Expense Current  Month
 
   const totalExpenseCurrentMonth = Object.entries(expenseData).reduce(
     (acc, [code]) => {
@@ -262,6 +297,38 @@ const IncomeExpenseReport = () => {
 
   const totalExpenseToDate =
     totalExpensePreviousMonth + totalExpenseCurrentMonth;
+
+  // Calculate totals for Expense Previous Month
+
+  // const totalInterestSavingsPreviousMonth = Object.entries(
+  //   InterestSavings
+  // ).reduce((acc, [code]) => {
+  //   let previousMonth = 0;
+
+  //   if (code === "1201") previousMonth = parseFloat(PreviousMonth1201) || 0;
+  //   if (code === "1202") previousMonth = parseFloat(PreviousMonth1202) || 0;
+  //   if (code === "1203") previousMonth = parseFloat(PreviousMonth1203) || 0;
+  //   if (code === "1204") previousMonth = parseFloat(PreviousMonth1204) || 0;
+
+  //   return acc + previousMonth;
+  // }, 0);
+
+  // // Calculate totals for Expense Current  Month
+
+  // const totalInterestSavingsCurrentMonth = Object.entries(
+  //   InterestSavings
+  // ).reduce((acc, [code]) => {
+  //   let currentMonth = 0;
+  //   if (code === "1201") currentMonth = parseFloat(D1201) || 0;
+  //   if (code === "1202") currentMonth = parseFloat(D1202) || 0;
+  //   if (code === "1203") currentMonth = parseFloat(D1203) || 0;
+  //   if (code === "1204") currentMonth = parseFloat(D1204) || 0;
+
+  //   return acc + currentMonth;
+  // }, 0);
+
+  // const totalInterestSavingsToDate =
+  //   totalInterestSavingsPreviousMonth + totalInterestSavingsCurrentMonth;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -350,6 +417,37 @@ const IncomeExpenseReport = () => {
       });
     });
 
+    // Prepare InterestSavings data
+    Object.entries(InterestSavings).forEach(([code, productName]) => {
+      const currentMonthAmount = [];
+      const toDateAmount = [];
+      const months = [selectedMonth];
+
+      let currentMonth = 0;
+
+      // Calculating based on the product code
+      if (code === "1201")
+        currentMonth = processAmount(D1201) + processAmount(PreviousMonth1201);
+      if (code === "1202")
+        currentMonth = processAmount(D1202) + processAmount(PreviousMonth1202);
+      if (code === "1203")
+        currentMonth = processAmount(D1203) + processAmount(PreviousMonth1203);
+      if (code === "1204")
+        currentMonth = processAmount(D1204) + processAmount(PreviousMonth1204);
+
+      currentMonthAmount.push(currentMonth);
+      toDateAmount.push(currentMonth); // Process and ensure integer
+
+      payload.push({
+        branch: selectedBranch,
+        productCode: code,
+        productName,
+        month: months,
+        currentMonthAmount,
+        toDateAmount,
+      });
+    });
+
     try {
       const response = await fetch(
         "http://localhost:5000/save-income-expense",
@@ -374,9 +472,6 @@ const IncomeExpenseReport = () => {
     }
   };
 
-  const handleEditClick = () => {
-    navigate("/home/VoucherEdit");
-  };
   const handleDownloadClick = () => {
     navigate("/home/VoucherDownload");
   };
@@ -487,7 +582,7 @@ const IncomeExpenseReport = () => {
                 })}
                 <tr>
                   <td colSpan="2" className="text-center fw-bold">
-                    Total
+                    Total Incomes
                   </td>
 
                   <td>{totalIncomePreviousMonth}</td>
@@ -543,7 +638,7 @@ const IncomeExpenseReport = () => {
                 })}
                 <tr>
                   <td colSpan="2" className="text-center fw-bold">
-                    Total
+                    Total Expenses
                   </td>
                   <td>{totalExpensePreviousMonth}</td>
                   <td>{totalExpenseCurrentMonth}</td>
@@ -552,6 +647,61 @@ const IncomeExpenseReport = () => {
               </tbody>
             </table>
           </div>
+
+          {/* <div className="col-12 mt-4">
+            <h5>Interest on Savings</h5>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Description</th>
+                  <th>To Previous Month</th>
+                  <th>Current Month</th>
+                  <th>To Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(InterestSavings).map(([code, description]) => {
+                  let previousMonth = 0;
+                  let currentMonth = 0;
+
+                  // Assign values for previous month based on code
+                  if (code === "1201") previousMonth = PreviousMonth1201 || 0;
+                  if (code === "1202") previousMonth = PreviousMonth1202 || 0;
+                  if (code === "1203") previousMonth = PreviousMonth1203 || 0;
+                  if (code === "1204") previousMonth = PreviousMonth1204 || 0;
+
+                  // Assign values for current month based on code
+                  if (code === "1201") currentMonth = D1201 || 0;
+                  if (code === "1202") currentMonth = D1202 || 0;
+                  if (code === "1203") currentMonth = D1203 || 0;
+                  if (code === "1204") currentMonth = D1204 || 0;
+                  // Ensure they are numbers
+                  previousMonth = Number(previousMonth);
+                  currentMonth = Number(currentMonth);
+                  const toDate = previousMonth + currentMonth;
+
+                  return (
+                    <tr key={code}>
+                      <td>{code}</td>
+                      <td>{description}</td>
+                      <td>{previousMonth}</td>
+                      <td>{currentMonth}</td>
+                      <td>{toDate}</td>
+                    </tr>
+                  );
+                })}
+                <tr>
+                  <td colSpan="2" className="text-center fw-bold">
+                    Total Interest on Savings
+                  </td>
+                  <td>{totalInterestSavingsPreviousMonth}</td>
+                  <td>{totalInterestSavingsCurrentMonth}</td>
+                  <td>{totalInterestSavingsToDate}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div> */}
 
           <div className="col-12 mt-4">
             <div className="d-flex justify-content-between">
@@ -573,14 +723,6 @@ const IncomeExpenseReport = () => {
             onClick={() => handleDownloadClick()}
           >
             Download
-          </button>
-
-          <button
-            type="button"
-            className="ms-3 btn btn-primary btn-sm"
-            onClick={() => handleEditClick()}
-          >
-            Edit
           </button>
         </div>
         {submitMessage && (

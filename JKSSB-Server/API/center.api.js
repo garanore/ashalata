@@ -178,6 +178,7 @@ router.get("/center-callback-by-CenterDay/:CenterDay", async (req, res) => {
 
 //Center Update ----------------------------------------------------------------
 router.put("/center-callback/:ID", async (req, res) => {
+  console.log(req.body);
   try {
     const centerID = req.params.ID;
     const query = { _id: new ObjectId(centerID) };

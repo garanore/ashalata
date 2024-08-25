@@ -78,12 +78,8 @@ const ProductTypeNameandCodeCredit = {
   803: "Voluntary Savings",
   804: "Time Deposit",
   601: "ASHALATA Bangladesh",
-  // 602: "Stromme Foundation",
-  // 603: "Anukul Foundation",
-  // 605: "JICA (SMAP)",
-  // 606: "BB Refinance Scheme",
   100: "Cash in Hand",
-  200: "Cash at Bank",
+  200: "Cash at Bank Credit",
 };
 
 function Voucher() {

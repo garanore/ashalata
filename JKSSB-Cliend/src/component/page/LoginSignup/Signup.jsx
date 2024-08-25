@@ -19,8 +19,7 @@ const Signup = () => {
   const [submitMessage, setSubmitMessage] = useState("");
 
   const API_URL = "http://localhost:5000/signup";
-  const DESIGNATION_API_URL =
-    "http://localhost:5000/designation-callback";
+  const DESIGNATION_API_URL = "http://localhost:5000/designation-callback";
 
   useEffect(() => {
     const fetchDesignations = async () => {
@@ -61,6 +60,7 @@ const Signup = () => {
       return;
     }
     try {
+      // eslint-disable-next-line no-unused-vars
       const response = await axios.post(API_URL, {
         phoneNumber,
         username,
@@ -68,7 +68,6 @@ const Signup = () => {
         designation,
         accountName,
       });
-      console.log("Response:", response);
 
       // Reset form fields
       setPhoneNumber("");

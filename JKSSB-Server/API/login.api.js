@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const User = require("../models/user.model");
 const { ObjectId } = require("mongoose").Types;
 
 router.post("/login", async (req, res) => {

@@ -59,7 +59,7 @@ router.get("/member-callback", async (req, res) => {
     );
     res.json(members);
   } catch (error) {
-    console.error("Member Application Error:", error.message);
+    console.error("Member routerlication Error:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
@@ -84,7 +84,7 @@ router.get("/member-callback/:ID", async (req, res) => {
 
     res.json(member);
   } catch (error) {
-    console.error("Member Application Error:", error.message);
+    console.error("Member routerlication Error:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
@@ -154,6 +154,86 @@ router.get(
   }
 );
 
+//get AdmissionFee and Form Fee by branch and date
+
+router.get(
+  "/get-AdmissionFee-by-branch-and-date/:BranchMember/:AdmissionDate", // Change order here
+  async (req, res) => {
+    try {
+      const { BranchMember, AdmissionDate } = req.params;
+
+      // Query to find documents
+      const AdmissionFees = await Member.find({
+        BranchMember: BranchMember.trim(),
+        AdmissionDate: AdmissionDate.trim(),
+      });
+
+      // Calculate the sum of AdmissionFee values
+      const sumAdmissionFeesBranch = AdmissionFees.reduce(
+        (sum, member) => sum + (member.AdmissionFee || 0),
+        0
+      );
+
+      // Calculate the sum of FormFee values
+      const sumFormFeeBranch = AdmissionFees.reduce(
+        (sum, member) => sum + (member.FormFee || 0),
+        0
+      );
+
+      // Send the result as a JSON response
+      res.status(200).json({ sumAdmissionFeesBranch, sumFormFeeBranch });
+    } catch (error) {
+      console.error("Error fetching admission fee data:", error.message);
+      res.status(500).json({ error: "Failed to fetch admission fee data" });
+    }
+  }
+);
+
+//get AdmissionFee and Form Fee by Branch and Month
+
+router.get(
+  "/get-AdmissionFee-by-branch-and-month/:BranchMember/:monthYear",
+  async (req, res) => {
+    try {
+      const { BranchMember, monthYear } = req.params;
+
+      // Parse month and year from the parameter (MM-YYYY format)
+      const [month, year] = monthYear.split("-");
+
+      // Create a regex pattern to match the AdmissionDate for the entire month
+      const monthPattern = new RegExp(`^${year}-${month.padStart(2, "0")}`);
+
+      // Find documents matching the provided BranchMember and AdmissionDate within the month range
+      const AdmissionFees = await Member.find({
+        BranchMember: BranchMember.trim(),
+        AdmissionDate: {
+          $regex: monthPattern, // Match dates starting with the given year and month
+        },
+      });
+
+      // Calculate the sum of AdmissionFee values
+      const sumAdmissionFeesBranchMonth = AdmissionFees.reduce(
+        (sum, member) => sum + (member.AdmissionFee || 0),
+        0
+      );
+
+      // Calculate the sum of FormFee values
+      const sumFormFeeBranchMonth = AdmissionFees.reduce(
+        (sum, member) => sum + (member.FormFee || 0),
+        0
+      );
+
+      // Send the result as a JSON response
+      res
+        .status(200)
+        .json({ sumAdmissionFeesBranchMonth, sumFormFeeBranchMonth });
+    } catch (error) {
+      console.error("Error fetching admission fee data:", error.message);
+      res.status(500).json({ error: "Failed to fetch admission fee data" });
+    }
+  }
+);
+
 //Member Update-----------------------------------------
 
 router.put("/member-callback/:ID", async (req, res) => {
@@ -169,6 +249,10 @@ router.put("/member-callback/:ID", async (req, res) => {
 
     const query = { _id: new ObjectId(memberID) };
     const updatedData = req.body;
+
+    // Log incoming data for debugging
+    console.log("Received update request with ID:", memberID);
+    console.log("Update data:", updatedData);
 
     // Perform update
     const updatedMember = await Member.findOneAndUpdate(

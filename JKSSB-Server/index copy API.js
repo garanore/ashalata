@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const memberRoutes = require("./API/member.api.js");
 const SavingRouters = require("./API/saving.api.js");
 const SavingCollectionRoutes = require("./API/savingcollection.api.js");
-const SavingWithdrawRoutes = require("./API/withdraw.api");
+const SavingWithdrawRoutes = require("./API/withdraw.api.js");
 const VoucheRouters = require("./API/Voucher.api.js");
 const IncomeExpense = require("./API/incomeexpense.api.js");
 const InstallmentCollection = require("./API/installment.api.js");
@@ -19,7 +19,7 @@ const DesignationRouters = require("./API/designation.api.js");
 const SalaryRouters = require("./API/salary.api.js");
 const WorkerRouters = require("./API/worker.api.js");
 const LoginRouters = require("./API/login.api.js");
-const SingupRouters = require("./API/signup.api");
+const SingupRouters = require("./API/signup.api.js");
 
 require("dotenv").config();
 const app = express();

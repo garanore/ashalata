@@ -8,7 +8,7 @@ const SalaryList = () => {
   const [month, setMonth] = useState("");
   const [filteredWorkers, setFilteredWorkers] = useState([]);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   // Fetch salary data for the selected month
   const fetchSalaryData = async (selectedMonth) => {
@@ -69,7 +69,6 @@ const SalaryList = () => {
               offGrt: worker.offGrt[monthIndex],
               earned: worker.earned[monthIndex],
               offPf: worker.offPf[monthIndex],
-              totalPF: worker.totalPF[monthIndex],
               totalSalAndAllowances: worker.totalSalAndAllowances[monthIndex],
               comment: worker.comment[monthIndex],
             };
@@ -80,64 +79,6 @@ const SalaryList = () => {
       setFilteredWorkers(filteredData);
     }
   }, [month, workers]);
-
-  const calculateTotals = () => {
-    const totals = {
-      basic: 0,
-      houseRent: 0,
-      medAllow: 0,
-      transAllow: 0,
-      special: 0,
-      distance: 0,
-      deameSlance: 0,
-      mobileBill: 0,
-      commission: 0,
-      bonus: 0,
-      totalSalary: 0,
-      pf: 0,
-      advance: 0,
-      loan: 0,
-      fsf: 0,
-      healthFund: 0,
-      other: 0,
-      netPay: 0,
-      offGrt: 0,
-      earned: 0,
-      totalSalAndAllowances: 0,
-      offPf: 0,
-      totalPF: 0,
-    };
-
-    filteredWorkers.forEach((worker) => {
-      totals.basic += worker.basic || 0;
-      totals.houseRent += worker.houseRent || 0;
-      totals.medAllow += worker.medAllow || 0;
-      totals.transAllow += worker.transAllow || 0;
-      totals.special += worker.special || 0;
-      totals.distance += worker.distance || 0;
-      totals.deameSlance += worker.deameSlance || 0;
-      totals.mobileBill += worker.mobileBill || 0;
-      totals.commission += worker.commission || 0;
-      totals.bonus += worker.bonus || 0;
-      totals.totalSalary += worker.totalSalary || 0;
-      totals.pf += worker.pf || 0;
-      totals.advance += worker.advance || 0;
-      totals.loan += worker.loan || 0;
-      totals.fsf += worker.fsf || 0;
-      totals.healthFund += worker.healthFund || 0;
-      totals.other += worker.other || 0;
-      totals.netPay += worker.netPay || 0;
-      totals.offGrt += worker.offGrt || 0;
-      totals.earned += worker.earned || 0;
-      totals.offPf += worker.offPf || 0;
-      totals.totalPF += worker.totalPF || 0;
-      totals.totalSalAndAllowances += worker.totalSalAndAllowances || 0;
-    });
-
-    return totals;
-  };
-
-  const totals = calculateTotals();
 
   const handleMonthChange = (event) => {
     setMonth(event.target.value);
@@ -244,7 +185,7 @@ const SalaryList = () => {
                 <td>{worker.offGrt}</td>
                 <td>{worker.earned}</td>
                 <td>{worker.offPf}</td>
-                <td>{worker.totalPF}</td>
+                <td>{worker.offPf}</td>
                 <td>{worker.totalSalAndAllowances}</td>
                 <td>{worker.comment}</td>
                 <td>
@@ -258,37 +199,6 @@ const SalaryList = () => {
                 </td>
               </tr>
             ))}
-            <tr className="fw-bold">
-              <td>Total</td>
-              <td></td>{" "}
-              {/* Empty cell for non-numeric columns like Employee Name */}
-              <td></td> {/* Empty cell for Designation */}
-              <td>{totals.basic}</td>
-              <td>{totals.houseRent}</td>
-              <td>{totals.medAllow}</td>
-              <td>{totals.transAllow}</td>
-              <td>{totals.special}</td>
-              <td>{totals.distance}</td>
-              <td>{totals.deameSlance}</td>
-              <td>{totals.mobileBill}</td>
-              <td>{totals.commission}</td>
-              <td>{totals.bonus}</td>
-              <td>{totals.totalSalary}</td>
-              <td>{totals.pf}</td>
-              <td>{totals.advance}</td>
-              <td>{totals.loan}</td>
-              <td>{totals.fsf}</td>
-              <td>{totals.healthFund}</td>
-              <td>{totals.other}</td>
-              <td>{totals.netPay}</td>
-              <td>{totals.offGrt}</td>
-              <td>{totals.earned}</td>
-              <td>{totals.offPf}</td>
-              <td>{totals.totalPF}</td>
-              <td>{totals.totalSalAndAllowances}</td>
-              <td></td> {/* Empty cell for Comment */}
-              <td></td> {/* Empty cell for Action */}
-            </tr>
           </tbody>
         </table>
       </div>
