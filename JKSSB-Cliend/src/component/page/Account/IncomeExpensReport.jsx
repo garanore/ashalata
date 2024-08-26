@@ -1,5 +1,7 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect, navigate } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const incomeData = {
   1101: "Service Charge",
@@ -67,6 +69,7 @@ const IncomeExpenseReport = () => {
   const [sumAdmissionFeesBranchMonth, setsumAdmissionFeesBranchMonth] =
     useState(0);
 
+  const pdfRef = useRef();
   // Fro Previous Month
 
   const [PreviousMonth1101, setPreviousMonth1101] = useState(0);
@@ -598,16 +601,6 @@ const IncomeExpenseReport = () => {
 
       let currentMonth = 0;
 
-      // // Calculating based on the product code
-      // if (code === "1201")
-      //   currentMonth = processAmount(D1201) + processAmount(PreviousMonth1201);
-      // if (code === "1202")
-      //   currentMonth = processAmount(D1202) + processAmount(PreviousMonth1202);
-      // if (code === "1203")
-      //   currentMonth = processAmount(D1203) + processAmount(PreviousMonth1203);
-      // if (code === "1204")
-      //   currentMonth = processAmount(D1204) + processAmount(PreviousMonth1204);
-
       currentMonthAmount.push(currentMonth);
       toDateAmount.push(currentMonth); // Process and ensure integer
 
@@ -645,13 +638,51 @@ const IncomeExpenseReport = () => {
     }
   };
 
-  const handleDownloadClick = () => {
-    navigate("/home/VoucherDownload");
+  const handleDownloadPDF = () => {
+    // Hide the sections you don't want in the PDF
+    const sectionsToHide = document.querySelectorAll(".HideforPDF");
+    sectionsToHide.forEach((section) => {
+      section.style.display = "none";
+    });
+
+    const input = pdfRef.current;
+    html2canvas(input).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4", true);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      // Calculate the scaling ratio based on the available width and height, minus margins
+      const ratio = Math.min(
+        (pdfWidth - 10) / imgWidth,
+        (pdfHeight - 10) / imgHeight
+      );
+
+      // Position the image with a 5px margin on all sides
+      const imgX = 5; // 5px margin from the left
+      const imgY = 5; // 5px margin from the top
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        imgX,
+        imgY,
+        imgWidth * ratio,
+        imgHeight * ratio
+      );
+      pdf.save("income_Expense-report.pdf");
+      // Restore the hidden sections
+      sectionsToHide.forEach((section) => {
+        section.style.display = "";
+      });
+    });
   };
 
   return (
     <div className="container-fluid mt-5">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} ref={pdfRef}>
         <div className="text-center mb-4">
           <h2>Ashalata</h2>
           <h4>Branch Name: {selectedBranch}</h4>
@@ -660,7 +691,7 @@ const IncomeExpenseReport = () => {
         </div>
 
         <div className="row mb-5 mt-5">
-          <div className="col-6 text-center">
+          <div className="col-6 text-center HideforPDF">
             <label htmlFor="monthInput" className="form-label">
               মাস নির্বাচন করুণ
             </label>
@@ -672,7 +703,7 @@ const IncomeExpenseReport = () => {
               onChange={handleMonthChange}
             />
           </div>
-          <div className="mb-3 col-6 col-md-6">
+          <div className="mb-3 col-6 col-md-6 HideforPDF">
             <label htmlFor="centerBranch" className="form-label">
               শাঁখা নির্বাচন করুণ
             </label>
@@ -699,11 +730,11 @@ const IncomeExpenseReport = () => {
             <table className="table table-bordered">
               <thead>
                 <tr>
-                  <th>Code</th>
-                  <th>Description</th>
-                  <th>To Previous Month</th>
-                  <th>Current Month</th>
-                  <th>To Date</th>
+                  <th style={{ width: "10%" }}>Code</th>
+                  <th style={{ width: "45%" }}>Description</th>
+                  <th style={{ width: "15%" }}>To Previous Month</th>
+                  <th style={{ width: "15%" }}>Current Month</th>
+                  <th style={{ width: "15%" }}>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -774,11 +805,11 @@ const IncomeExpenseReport = () => {
             <table className="table table-bordered">
               <thead>
                 <tr>
-                  <th>Code</th>
-                  <th>Description</th>
-                  <th>To Previous Month</th>
-                  <th>Current Month</th>
-                  <th>To Date</th>
+                  <th style={{ width: "10%" }}>Code</th>
+                  <th style={{ width: "45%" }}>Description</th>
+                  <th style={{ width: "15%" }}>To Previous Month</th>
+                  <th style={{ width: "15%" }}>Current Month</th>
+                  <th style={{ width: "15%" }}>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -894,18 +925,15 @@ const IncomeExpenseReport = () => {
             </table>
           </div>
         </div>
-
-        <div className="d-flex justify-content-between mt-5">
-          <button className="btn btn-primary">Submit</button>
-
-          <button
-            type="button"
-            className="ms-3 btn btn-primary btn-sm"
-            onClick={() => handleDownloadClick()}
-          >
-            Download
-          </button>
-        </div>
+      </form>
+      <div className="d-flex justify-content-between mt-5">
+        <button className="btn btn-primary mt-2 mb-4">Submit</button>
+        <button
+          className="btn btn-primary mt-2 mb-4"
+          onClick={handleDownloadPDF}
+        >
+          Download
+        </button>
         {submitMessage && (
           <div
             className={`alert ${
@@ -916,7 +944,7 @@ const IncomeExpenseReport = () => {
             {submitMessage}
           </div>
         )}
-      </form>
+      </div>
     </div>
   );
 };

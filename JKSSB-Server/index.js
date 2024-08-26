@@ -19,7 +19,8 @@ const DesignationRouters = require("./API/designation.api.js");
 const SalaryRouters = require("./API/salary.api.js");
 const WorkerRouters = require("./API/worker.api.js");
 const LoginRouters = require("./API/login.api.js");
-const SingupRouters = require("./API/signup.api");
+const SingupRouters = require("./API/signup.api.js");
+const BalanceSheet = require("./API/balancesheet.api.js");
 
 require("dotenv").config();
 const app = express();
@@ -132,6 +133,10 @@ app.use("/", VoucheRouters);
 // IncomeExpenseReport Start
 
 app.use("/", IncomeExpense);
+
+// Balance Sheet Start
+
+app.use("/", BalanceSheet);
 
 //----------------------------------------------------------------
 

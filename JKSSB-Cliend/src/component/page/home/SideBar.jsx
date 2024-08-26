@@ -504,6 +504,7 @@ const SideBar = () => {
                           সকল সদস্য তালিকা
                         </Link>
                       </li>
+
                       <li
                         className={`sidebar-item ${
                           location.pathname === "/LoanPortfolioStatement"
@@ -518,6 +519,17 @@ const SideBar = () => {
                           Loan Portfolio Statement
                         </Link>
                       </li>
+
+                      <li
+                        className={`sidebar-item ${
+                          location.pathname === "/BalanceSheet" ? "active" : ""
+                        }`}
+                      >
+                        <Link to="BalanceSheet" className="sidebar-link">
+                          Blance Sheet
+                        </Link>
+                      </li>
+
                       <li
                         className={`sidebar-item ${
                           location.pathname === "/DailyDepositRegister"

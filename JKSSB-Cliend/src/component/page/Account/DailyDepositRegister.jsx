@@ -5,18 +5,18 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 const formatDate = (date) => {
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
+  const Date = new Date(date);
+  const day = String(Date.getDate()).padStart(2, "0");
+  const month = String(Date.getMonth() + 1).padStart(2, "0");
+  const year = Date.getFullYear();
   return `${day}-${month}-${String(year).slice(-2)}`;
 };
 
 const formatDateAdmissionFee = (date) => {
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
+  const Date = new Date(date);
+  const day = String(Date.getDate()).padStart(2, "0");
+  const month = String(Date.getMonth() + 1).padStart(2, "0");
+  const year = Date.getFullYear();
   return `${year}-${month}-${day}`;
 };
 
@@ -240,6 +240,12 @@ const DailyDepositRegister = () => {
   };
 
   const handleDownloadPDF = () => {
+    // Hide the sections you don't want in the PDF
+    const sectionsToHide = document.querySelectorAll(".HideforPDF");
+    sectionsToHide.forEach((section) => {
+      section.style.display = "none";
+    });
+
     const input = pdfRef.current;
     html2canvas(input).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
@@ -248,9 +254,17 @@ const DailyDepositRegister = () => {
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 30;
+
+      // Calculate the scaling ratio based on the available width and height, minus margins
+      const ratio = Math.min(
+        (pdfWidth - 10) / imgWidth,
+        (pdfHeight - 10) / imgHeight
+      );
+
+      // Position the image with a 5px margin on all sides
+      const imgX = 5; // 5px margin from the left
+      const imgY = 5; // 5px margin from the top
+
       pdf.addImage(
         imgData,
         "PNG",
@@ -260,6 +274,10 @@ const DailyDepositRegister = () => {
         imgHeight * ratio
       );
       pdf.save("daily_deposit_register.pdf");
+      // Restore the hidden sections
+      sectionsToHide.forEach((section) => {
+        section.style.display = "";
+      });
     });
   };
   return (
@@ -280,7 +298,7 @@ const DailyDepositRegister = () => {
         </h5>
 
         <div className="row mb-5">
-          <div className="col-md-3">
+          <div className="col-md-3 HideforPDF">
             <label htmlFor="branchSelect" className="form-label">
               শাঁখা নির্বাচন করুণ
             </label>
@@ -298,7 +316,7 @@ const DailyDepositRegister = () => {
               ))}
             </select>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-3 HideforPDF">
             <label htmlFor="dateSelect" className="form-label">
               তারিখ নির্বাচন করুণ
             </label>
