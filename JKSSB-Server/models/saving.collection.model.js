@@ -13,6 +13,8 @@ const SavingCollectionSchema = new mongoose.Schema(
     savingAmount: { type: Number, required: true },
     savingCollecting: { type: [String] }, // Array of strings
     savingCollectionDate: { type: [String], required: true }, // Array of strings
+    submittedBy: { type: [String], required: true },
+    SavingCount: { type: [String], required: true },
   },
   { timestamps: true } // Add timestamps option here
 );

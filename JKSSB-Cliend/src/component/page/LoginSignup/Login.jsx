@@ -1,6 +1,6 @@
 // /src/components/auth/Login.jsx
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -27,23 +27,52 @@ const Login = () => {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5000/login",
-        {
-          loginInfo,
-          password,
-        }
-      );
+      // Step 1: Authenticate the user
+      const response = await axios.post("http://localhost:5000/login", {
+        loginInfo,
+        password,
+      });
 
-      setError("");
+      const username = response.data.username; // Now this should be correct
       localStorage.setItem("authToken", response.data.token);
       localStorage.setItem("accountName", response.data.accountName);
-      navigate("/home"); // Redirect to Home upon successful login
+      localStorage.setItem("username", username); // Store the username
+
+      // Step 2: Fetch user data using the correct username
+      const userResponse = await axios.get(
+        `http://localhost:5000/get-branch-center/${username}`
+      );
+      localStorage.setItem("userBranchData", JSON.stringify(userResponse.data));
+
+      // Clear any previous error
+      setError("");
+
+      // Step 3: Redirect to the home page immediately after successful login
+
+      window.location.reload();
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
       setError(error.response?.data?.message || "Invalid email or password");
     }
   };
+
+  // Check if the user is already logged in on page load
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (authToken) {
+      navigate("/home", { replace: true });
+    }
+    // // Add event listener for when the browser is closed or refreshed
+    // const handleBrowserClose = () => {
+    //   localStorage.clear();
+    // };
+
+    // window.addEventListener("beforeunload", handleBrowserClose);
+
+    // return () => {
+    //   window.removeEventListener("beforeunload", handleBrowserClose);
+    // };
+  }, [navigate]);
 
   return (
     <div className="container mt-5">

@@ -213,8 +213,8 @@ const SavingsWithdraw = () => {
   };
 
   return (
-    <div className="bg-light mt-2">
-      <div className="mt-2 p-2">
+    <div className="bg-light container-fluid">
+      <div className="p-2">
         <form>
           <div>
             <div className="">

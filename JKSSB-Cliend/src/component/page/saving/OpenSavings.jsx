@@ -126,9 +126,7 @@ function OpenSavings() {
 
     try {
       // Fetch member data
-      const response = await axios.get(
-        "http://localhost:5000/member-callback"
-      );
+      const response = await axios.get("http://localhost:5000/member-callback");
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         const fetchedMember = response.data.find(
@@ -253,35 +251,91 @@ function OpenSavings() {
     const formattedDate = moment(installmentStart).format("DD-MM-YY");
     const nextDates = generateNextDates(installmentStart);
 
-    try {
-      // Send request to backend API to save the next dates
-      const response = await fetch(
-        "http://localhost:5000/opensaving",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            SavingID: SavingID,
-            memberID: memberID,
-            SavingName: selectedMember?.memberName || "", // Use optional chaining and provide a default value
-            fathername: selectedMember?.MfhName || "", // Use optional chaining and provide a default value
-            SavingBranch: selectedMember?.BranchMember || "", // Use optional chaining and provide a default value
-            SavingCenter: selectedMember?.CenterIDMember || "", // Use optional chaining and provide a default value
-            SavingMobile: selectedMember?.MemberMobile || "", // Use optional chaining and provide a default value
-            installmentStart: formattedDate,
-            nextDates: nextDates,
-            SavingAmount: SavingAmount,
-            installment: installment,
-            SavingType: SavingTypeTranslations[SavingType],
-            SavingTime: SavingTimeTranslations[SavingTime],
-            CenterDay: centerDay,
-          }),
+    // Step 2: Retrieve user branch data and username from localStorage
+    const storedUserData = localStorage.getItem("userBranchData");
+    let submittedBy = "Unknown"; // Default to 'Unknown' if not found
+
+    if (storedUserData) {
+      try {
+        const parsedData = JSON.parse(storedUserData);
+
+        // Extract the username from localStorage
+        const userNames = Object.keys(parsedData)
+          .filter((key) => key.startsWith("username"))
+          .map((key) => parsedData[key]);
+
+        // Use the first username if available
+        if (userNames.length > 0) {
+          submittedBy = userNames[0];
         }
-      );
+      } catch (error) {
+        console.error(
+          "Error parsing userBranchData from localStorage:",
+          error.message
+        );
+      }
+    }
+
+    // If the submittedBy is still 'Unknown', stop submission
+    if (submittedBy === "Unknown") {
+      setSubmitMessage("Error: Submitted by field is missing or invalid.");
+      return;
+    }
+
+    try {
+      // Log the values being sent to the server to verify submission
+      console.log("Submitting form data:", {
+        SavingID,
+        memberID,
+        SavingName: selectedMember?.memberName || "",
+        fathername: selectedMember?.MfhName || "",
+        SavingBranch: selectedMember?.BranchMember || "",
+        SavingCenter: selectedMember?.CenterIDMember || "",
+        SavingMobile: selectedMember?.MemberMobile || "",
+        installmentStart: formattedDate,
+        nextDates: nextDates,
+        SavingAmount: SavingAmount,
+        installment: installment,
+        SavingType: SavingTypeTranslations[SavingType],
+        SavingTime: SavingTimeTranslations[SavingTime],
+        CenterDay: centerDay,
+        approvalStatus: "Pending",
+        ActiveStatus: "True",
+        submittedBy: submittedBy, // Use the retrieved username from localStorage
+        GrantedBy: "Null",
+        DeletedStatus: "Null",
+      });
+
+      const response = await fetch("http://localhost:5000/opensaving", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          SavingID: SavingID,
+          memberID: memberID,
+          SavingName: selectedMember?.memberName || "",
+          fathername: selectedMember?.MfhName || "",
+          SavingBranch: selectedMember?.BranchMember || "",
+          SavingCenter: selectedMember?.CenterIDMember || "",
+          SavingMobile: selectedMember?.MemberMobile || "",
+          installmentStart: formattedDate,
+          nextDates: nextDates,
+          SavingAmount: SavingAmount,
+          installment: installment,
+          SavingType: SavingTypeTranslations[SavingType],
+          SavingTime: SavingTimeTranslations[SavingTime],
+          CenterDay: centerDay,
+          approvalStatus: "Pending",
+          ActiveStatus: "True",
+          submittedBy: submittedBy, // Send the correct submittedBy value
+          GrantedBy: "Null",
+          DeletedStatus: "Null",
+        }),
+      });
 
       if (response.ok) {
+        // Clear form and show success message
         setSavingCount(SavingCount + 1);
         setSelectedMember("");
         setInstallmentStart(null);
@@ -308,14 +362,12 @@ function OpenSavings() {
   };
 
   return (
-    <div className="bg-light mt-2">
-      <div className="mt-2 p-2">
+    <div className="bg-light container-fluid">
+      <div className=" p-2">
         <form onSubmit={handleSubmit}>
           <div>
-            <div className="">
-              <div className="border-bottom mb-3">
-                <h2 className="text-center mb-4 pt-3">সঞ্চয় খুলুন</h2>
-              </div>
+            <div className="border-bottom mb-3">
+              <h2 className="text-center mb-4 pt-3">সঞ্চয় খুলুন</h2>
             </div>
             <div className="mb-3 row">
               <div className="col-3">

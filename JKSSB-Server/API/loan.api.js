@@ -46,6 +46,11 @@ router.post("/openloan/save-dates", async (req, res) => {
       installmentStart,
       nextDates,
       totalInstallment,
+      approvalStatus,
+      ActiveStatus,
+      submittedBy,
+      GrantedBy,
+      DeletedBy,
     } = req.body;
 
     const loanID = await generateLoanID(memberID);
@@ -71,6 +76,11 @@ router.post("/openloan/save-dates", async (req, res) => {
       installmentStart,
       nextDates,
       totalInstallment,
+      approvalStatus,
+      ActiveStatus,
+      submittedBy,
+      GrantedBy,
+      DeletedBy,
     });
 
     // Save the document to the database
@@ -85,25 +95,135 @@ router.post("/openloan/save-dates", async (req, res) => {
   }
 });
 
-// For installemt ----------------------------------------------------------------
-router.get("/get-installmentDate", async (req, res) => {
-  try {
-    const dates = await Loan.find();
+// For Permission
 
-    // Send the retrieved dates as a response
-    res.status(200).json(dates);
+router.post("/openloan/approve/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const Loans = await Loan.findByIdAndUpdate(
+      id,
+      { approvalStatus: "Approved" },
+      { new: true }
+    );
+
+    if (!Loans) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    res.json({ message: "Loans approved", Loans });
   } catch (error) {
-    console.error("Error fetching dates:", error.message);
-    res.status(500).json({ error: "Failed to fetch dates" });
+    console.error("Error approving Loans:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+// For Pending
+
+router.get("/openloan/approved", async (req, res) => {
+  try {
+    const pendingLoans = await Loan.find({ approvalStatus: "Pending" });
+    res.json(pendingLoans);
+  } catch (error) {
+    console.error("Error fetching pending Loans:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/openloan/grant/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username } = req.body;
+
+    const Loans = await Loan.findByIdAndUpdate(
+      id,
+      { approvalStatus: "Granted", GrantedBy: username },
+      { new: true }
+    );
+
+    if (!Loans) {
+      return res.status(404).json({ message: "Loans not found" });
+    }
+
+    res.json({ message: "Loans granted", Loans });
+  } catch (error) {
+    console.error("Error granting Loans:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/openloan/grant", async (req, res) => {
+  try {
+    const grantLoans = await Loan.find({ approvalStatus: "Approved" });
+    res.json(grantLoans);
+  } catch (error) {
+    console.error("Error fetching pending Loans:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/openloan/cancel/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const Loans = await Loan.findByIdAndDelete(id);
+
+    if (!Loans) {
+      return res.status(404).json({ message: "Loans not found" });
+    }
+
+    res.json({ message: "Loans canceled" });
+  } catch (error) {
+    console.error("Error canceling Loans:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/openloan/review", async (req, res) => {
+  try {
+    const { submittedBy } = req.query;
+
+    const query = { approvalStatus: "Needs Correction" };
+    if (submittedBy) {
+      query.submittedBy = submittedBy;
+    }
+
+    const Loans = await Loan.find(query);
+    res.json(Loans);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching Loans needing correction" });
+  }
+});
+
+// Update Loans approval status to Needs Correction
+router.post("/openloan/review/:id", async (req, res) => {
+  try {
+    const Loans = await Loan.findByIdAndUpdate(
+      req.params.id,
+      { approvalStatus: "Needs Correction" },
+      { new: true }
+    );
+    res.json({ message: "Loans sent back for correction", Loans });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error sending Loans back for correction" });
+  }
+});
+
+// For installemt ----------------------------------------------------------------
 
 router.get("/get-installmentDate/:center", async (req, res) => {
   try {
     const selectedCenter = req.params.center; // Use req.params.center to get the center from URL path
 
     // Filter documents based on the selected center
-    const dates = await Loan.find({ OLcenter: selectedCenter });
+    const dates = await Loan.find({
+      OLcenter: selectedCenter,
+      approvalStatus: "Granted",
+    });
 
     // Send the retrieved dates as a response
     res.status(200).json(dates);
@@ -304,6 +424,7 @@ router.get("/get-loan-loanid/:loanID", async (req, res) => {
     // Filter documents based on the selected center
     const LoanIDs = await Loan.find({
       loanID: selectedLoan,
+      approvalStatus: "Granted",
     });
 
     // Send the retrieved dates as a response
@@ -323,6 +444,7 @@ router.get("/get-loan-MemberID/:memberID", async (req, res) => {
     // Filter documents based on the selected MemberID
     const memberIDs = await Loan.find({
       memberID: selectedmemberID,
+      approvalStatus: "Granted",
     });
 
     // Send the retrieved dates as a response
@@ -338,49 +460,42 @@ router.get("/loan-callback", async (req, res) => {
   try {
     const { center } = req.query;
 
-    // If center parameter is provided, filter loans by center
-    const query = center ? { OLcenter: center } : {};
+    // Filter loans by center if provided and also by approvalStatus = 'Granted'
+    const query = {
+      ...(center ? { OLcenter: center } : {}), // Add center filter if specified
+      approvalStatus: "Granted", // Only include loans with 'Granted' approval status
+    };
 
+    // Select only the necessary fields
     const loans = await Loan.find(
       query,
-      "memberID loanID OLname fathername OLbranch OLcenter OLmobile loanType installmentStart OLamount  CenterDay OLtotal totalInstallment macroloan"
+      "DeleteDate DeletedBy GrantedBy submittedBy approvalStatus ActiveStatus memberID loanID OLname fathername OLbranch OLcenter OLmobile loanType installmentStart OLamount CenterDay OLtotal totalInstallment macroloan"
     );
 
     res.json(loans);
   } catch (error) {
-    console.error("Center routerlication Error:", error.message);
+    console.error("Loan Callback Error:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 
 // Loan Calback by Branch----------------------------------------------------
 
-router.get("/loan-callback-by-branch", async (req, res) => {
-  try {
-    const OLbranchs = await Loan.find();
-
-    // Send the retrieved dates as a response
-    res.status(200).json(OLbranchs);
-  } catch (error) {
-    console.error("Error fetching dates:", error.message);
-    res.status(500).json({ error: "Failed to fetch dates" });
-  }
-});
-
 router.get("/loan-callback-by-branch/:OLbranch", async (req, res) => {
   try {
-    const selectedID = req.params.OLbranch; //
+    const selectedID = req.params.OLbranch; // Retrieve OLbranch from route parameter
 
-    // Filter documents based on the selected ID
+    // Filter documents based on the selected branch and approvalStatus = 'Granted'
     const OLbranchs = await Loan.find({
-      OLbranch: selectedID,
+      OLbranch: selectedID, // Match the specific branch
+      approvalStatus: "Granted", // Only include loans with 'Granted' approval status
     });
 
-    // Send the retrieved dates as a response
+    // Send the retrieved data as a response
     res.status(200).json(OLbranchs);
   } catch (error) {
-    console.error("Error fetching dates:", error.message);
-    res.status(500).json({ error: "Failed to fetch dates" });
+    console.error("Error fetching loans by branch:", error.message);
+    res.status(500).json({ error: "Failed to fetch loans by branch" });
   }
 });
 
@@ -388,12 +503,12 @@ router.get("/loan-callback-by-branch/:OLbranch", async (req, res) => {
 
 router.put("/loan-callback/:ID", async (req, res) => {
   try {
-    const loanID = req.params.ID; // Retrieve loanID from route parameter
-    const query = { _id: new ObjectId(loanID) };
+    const _id = req.params.ID; // Retrieve _id from route parameter
+    const query = { _id: new ObjectId(_id) };
     const updatedData = req.body;
 
     const updatedLoan = await Loan.findOneAndUpdate(
-      { _id: query },
+      query, // Correctly use the query with _id
       { $set: updatedData },
       { new: true }
     );
@@ -414,4 +529,31 @@ router.put("/loan-callback/:ID", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
+router.put("/openloan/ActiveStatus/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, deleteDate } = req.body; // Get the username and deleteDate from the request body
+
+    const Loans = await Loan.findByIdAndUpdate(
+      id,
+      {
+        ActiveStatus: "False",
+        DeletedBy: username, // Save the username in the DeletedStatus field
+        DeleteDate: deleteDate, // Save the current date in the DeleteDate field
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!Loans) {
+      return res.status(404).json({ message: "Loans not found" });
+    }
+
+    res.json({ message: "Loans status updated", Loans });
+  } catch (error) {
+    console.error("Error updating Loans status:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 module.exports = router;

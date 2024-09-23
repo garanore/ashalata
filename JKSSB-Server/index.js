@@ -31,7 +31,7 @@ app.use(cors());
 app.use(cors());
 app.use(bodyParser.json());
 
-// for loaclhost ---------------------------------------------------------
+// // for loaclhost ---------------------------------------------------------
 
 app.use(cors({ origin: "http://localhost:5173" }));
 

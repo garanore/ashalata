@@ -1,0 +1,31 @@
+/* Add this to your CSS file, e.g., App.css */
+.btn-toggle {
+  padding: 0;
+  border: none;
+  height: 34px;
+  min-width: 50px;
+  border-radius: 50px;
+  position: relative;
+  margin: 0.5rem;
+  background-color: #696666;
+  transition: all 0.3s;
+}
+
+.btn-toggle.active {
+  background-color: #31af36;
+}
+
+.btn-toggle .handle {
+  height: 34px;
+  width: 34px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: all 0.3s;
+}
+
+.btn-toggle.active .handle {
+  left: calc(100% - 34px);
+}

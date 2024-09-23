@@ -1,10 +1,8 @@
-/* eslint-disable no-unused-vars */
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import DatePickers from "../../datepicker/DatePicker";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import moment from "moment";
 
 import axios from "axios";
 const API_URL = "http://localhost:5000/memberdmission";
@@ -18,6 +16,7 @@ const MemberAdmission = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedCenter, setSelectedCenter] = useState({});
+  const [userBranches, setUserBranches] = useState([]);
 
   const [memberData, setmemberData] = useState({
     BranchMember: "",
@@ -55,6 +54,10 @@ const MemberAdmission = () => {
     AdmissionFee: "20",
     FormFee: "30",
     agreementChecked: false,
+    submittedBy: "", // Make sure this is part of the form state
+    GrantedBy: "Null", // Ensure it's set correctly
+    ApprovedBy: "Null", // Ensure it's set correctly
+    DeletedStatus: "Null", // Ensure it's set correctly
   });
 
   // For Date Of Birth Change----------------------------------------------------------------
@@ -124,6 +127,7 @@ const MemberAdmission = () => {
 
   //For Branch Callbacks----------------------------------------------------------------
   useEffect(() => {
+    // Step 1: Fetch all branches
     axios
       .get("http://localhost:5000/branch-callback")
       .then((response) => {
@@ -132,6 +136,29 @@ const MemberAdmission = () => {
       .catch((error) => {
         console.error("Error fetching branch data:", error);
       });
+
+    // Step 2: Retrieve user branch data and designation from localStorage
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+
+      const branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+      setUserBranches(branches);
+
+      const userNames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+
+      // Assume there is only one username and take the first one
+      const username = userNames.length > 0 ? userNames[0] : "Unknown";
+      // Store the username in the formData to use it later in handleSubmit
+      setmemberData((prevData) => ({
+        ...prevData,
+        submittedBy: username, // Set the username correctly here
+      }));
+    }
   }, []);
 
   const handleBranchChange = (e) => {
@@ -148,12 +175,17 @@ const MemberAdmission = () => {
           )}`
         )
         .then((response) => {
-          setCenters(response.data);
+          // Filter out centers with ActiveStatus "False"
+          const activeCenters = response.data.filter(
+            (center) => center.ActiveStatus !== "False"
+          );
+          setCenters(activeCenters);
         })
         .catch((error) => {
           console.error("Error fetching worker data:", error);
         });
     }
+
     if (name === "BranchMember") {
       setSelectedBranch(value);
       setmemberData((prevData) => ({
@@ -209,6 +241,7 @@ const MemberAdmission = () => {
   // For Submit method --------------------------------------------------------
   const handleSubmit = async () => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const response = await axios.post(API_URL, {
         memberID: memberData.memberID,
         loanamount: memberData.loanamount,
@@ -220,7 +253,7 @@ const MemberAdmission = () => {
 
       setMemberCount(memberCount + 1);
       setMemberID(generateMemberID());
-      setmemberData(() => ({
+      setmemberData((prevData) => ({
         BranchMember: "",
         CenterIDMember: "", // Reset CenterIDMember
         CenterNameMember: "", // Reset CenterNameMember
@@ -255,6 +288,12 @@ const MemberAdmission = () => {
         MemberNominiRelation: "",
         AdmissionFee: "20",
         FormFee: "30",
+        approvalStatus: "Pending",
+        ActiveStatus: "True", // Ensure it's set correctly
+        submittedBy: prevData.submittedBy,
+        GrantedBy: "Null", // Ensure it's set correctly
+        ApprovedBy: "Null", // Ensure it's set correctly
+        DeletedStatus: "Null", // Ensure it's set correctly
       }));
 
       setTimeout(() => {
@@ -267,7 +306,7 @@ const MemberAdmission = () => {
   };
 
   return (
-    <div className=" bg-light mt-2 ">
+    <div className=" bg-light container-fluid">
       <div className="mb-5 ">
         <h2 className="text-center  border-bottom mb-4 pt-3">
           সদস্য ভর্তি ফর্ম{" "}
@@ -291,16 +330,27 @@ const MemberAdmission = () => {
                   required
                 >
                   <option value="">Choose...</option>
-                  {Array.isArray(branches) &&
-                    branches.length > 0 &&
-                    branches.map((branch) => (
-                      <option key={branch._id} value={branch.BranchName}>
-                        {branch.BranchName}
-                      </option>
-                    ))}
+                  {/* Step 3: Filter branches based on userBranches */}
+                  {userBranches.includes("AllBranch") ||
+                  userBranches.includes("AllCenter")
+                    ? branches.map((branch) => (
+                        <option key={branch._id} value={branch.BranchName}>
+                          {branch.BranchName}
+                        </option>
+                      ))
+                    : branches
+                        .filter((branch) =>
+                          userBranches.includes(branch.BranchName)
+                        )
+                        .map((branch) => (
+                          <option key={branch._id} value={branch.BranchName}>
+                            {branch.BranchName}
+                          </option>
+                        ))}
                 </select>
               </div>
             </div>
+
             <div className="col-3">
               <div className="col-md-6">
                 <label htmlFor="CenterIDMember" className="form-label">

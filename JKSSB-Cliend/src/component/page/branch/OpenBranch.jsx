@@ -7,11 +7,15 @@ const API_URL = "http://localhost:5000/openbranch";
 function OpenBranch() {
   const [branchCount, setBranchCount] = useState(0);
   const [branchID, setBranchID] = useState("");
+  const [hasAccess, setHasAccess] = useState(false);
   const [branchData, setBranchData] = useState({
     BranchName: "",
     BranchAddress: "",
     selectedManager: "",
     BranchMobile: "",
+    submittedBy: "", // Make sure this is part of the form state
+    GrantedBy: "Null", // Ensure it's set correctly
+    DeletedBy: "Null", // Ensure it's set correctly
   });
   const [submitMessage, setSubmitMessage] = useState("");
 
@@ -24,6 +28,32 @@ function OpenBranch() {
     } catch (error) {
       console.error("Error fetching branch count:", error.message);
       setSubmitMessage("Error fetching branch count");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Retrieve user branch data from localStorage
+    const storedUserBranchData = localStorage.getItem("userBranchData");
+    if (storedUserBranchData) {
+      const parsedData = JSON.parse(storedUserBranchData);
+      const userBranches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+
+      const userNames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+      // Assume there is only one username and take the first one
+      const username = userNames.length > 0 ? userNames[0] : "Unknown";
+
+      if (userBranches.includes("AllBranch")) {
+        setHasAccess(true);
+      }
+      // Store the username in the formData to use it later in handleSubmit
+      setBranchData((prevData) => ({
+        ...prevData,
+        submittedBy: username, // Set the username correctly here
+      }));
     }
   }, []);
 
@@ -51,6 +81,8 @@ function OpenBranch() {
         BranchAddress: branchData.BranchAddress.trim(),
         selectedManager: branchData.selectedManager.trim(),
         BranchMobile: branchData.BranchMobile.trim(),
+        ActiveStatus: "True", // Ensure it's set correctly
+        submittedBy: branchData.submittedBy,
       };
 
       await axios.post(API_URL, {
@@ -65,6 +97,8 @@ function OpenBranch() {
         BranchAddress: "",
         selectedManager: "",
         BranchMobile: "",
+        submittedBy: "", // Reset this as well
+        DeletedBy: "Null", // Ensure it's set correctly
       });
 
       setBranchCount((prevCount) => prevCount + 1);
@@ -74,6 +108,21 @@ function OpenBranch() {
       setSubmitMessage("Error creating branch");
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <div className="bg-light container-fluid">
+        <div className="p-2">
+          <div className="border-bottom mb-5">
+            <h2 className="text-center mb-4 pt-3">শাখা খুলুন</h2>
+          </div>
+        </div>
+        <div className="p-3">
+          <p className="text-center text-danger">এই পেইজে আপনার অনুমতি নেই।</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid">

@@ -1,19 +1,32 @@
-// ForgotPassword.js
-// eslint-disable-next-line no-unused-vars
 import React, { useState } from "react";
+import axios from "axios";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setError("");
 
-    // Reset the form field
-    setEmail("");
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/forgot-password",
+        { email }
+      );
+
+      setMessage(response.data.message);
+      setEmail(""); // Reset the form field after submission
+    } catch (error) {
+      // Provide better error handling
+      setError(error.response?.data?.message || "Error sending reset link");
+    }
   };
 
   return (
@@ -36,13 +49,15 @@ const ForgotPassword = () => {
                   required
                 />
               </div>
-
               <div className="mb-3">
                 <button type="submit" className="btn btn-primary w-100">
                   Submit
                 </button>
               </div>
             </form>
+
+            {message && <div className="alert alert-success">{message}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
           </div>
         </div>
       </div>

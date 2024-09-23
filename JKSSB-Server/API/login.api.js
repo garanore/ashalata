@@ -24,6 +24,7 @@ router.post("/login", async (req, res) => {
       message: "Login successful",
       token,
       accountName: user.accountName,
+      username: user.username, // Include the username here
     });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });

@@ -26,9 +26,7 @@ const SavingAllDates = () => {
         .catch((error) => console.error("Error fetching saving data:", error));
 
       // Fetch total saving amount
-      fetch(
-        `http://localhost:5000/saving-collection-total/${SavingID}`
-      )
+      fetch(`http://localhost:5000/saving-collection-total/${SavingID}`)
         .then((res) => res.json())
         .then((data) => {
           const totalAmount = data.total || 0; // Fallback to 0 if no total is found
@@ -40,9 +38,7 @@ const SavingAllDates = () => {
         });
 
       // Fetch saving collection details
-      fetch(
-        `http://localhost:5000/saving-collection-date-amount/${SavingID}`
-      )
+      fetch(`http://localhost:5000/saving-collection-date-amount/${SavingID}`)
         .then((res) => res.json())
         .then((data) => {
           setSavingDetails(data.savingDetails || []);

@@ -9,6 +9,8 @@ function OfficeCollection() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [submitMessage, setSubmitMessage] = useState("");
   const [savingCollecting, setSavingCollecting] = useState("");
+  const [installmentCount, setInstallmentCount] = useState("");
+  const [SavingCount, setSavingCount] = useState("");
   const [installmentCollecting, setInstallmentCollecting] = useState("");
   const [loanData, setLoanData] = useState({
     loanID: "",
@@ -24,6 +26,25 @@ function OfficeCollection() {
     SavingTime: "",
     SavingAmount: "",
   });
+
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    // Retrieve user data from localStorage
+    const storedUserBranchData = localStorage.getItem("userBranchData");
+    if (storedUserBranchData) {
+      const parsedData = JSON.parse(storedUserBranchData);
+
+      // Get username from localStorage data
+      const userNames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+
+      // Assume there is only one username and take the first one
+      const storedUsername = userNames.length > 0 ? userNames[0] : "Unknown";
+      setUsername(storedUsername); // Store the username in the state
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,9 +95,15 @@ function OfficeCollection() {
   const handleSavingCollectingChange = (e) => {
     setSavingCollecting(e.target.value);
   };
+  const handleSavingCountChange = (e) => {
+    setSavingCount(e.target.value);
+  };
 
   const handleInstallmentCollectingChange = (e) => {
     setInstallmentCollecting(e.target.value);
+  };
+  const handleInstallmentCountChange = (e) => {
+    setInstallmentCount(e.target.value);
   };
 
   const handleSubmit = async (e) => {
@@ -87,7 +114,7 @@ function OfficeCollection() {
       return;
     }
 
-    if (!installmentCollecting || !savingCollecting) {
+    if (!installmentCollecting && !savingCollecting) {
       const confirmProceed = window.confirm(
         "Some fields are empty. Do you want to proceed with the submission?"
       );
@@ -105,11 +132,14 @@ function OfficeCollection() {
 
     try {
       if (installmentCollecting) {
+        // Send `installment` instead of `installmentCollecting`
         await axios.patch(
           `http://localhost:5000/update-installments-collection/${loanData.loanID}`,
           {
-            installmentDate: formattedDate,
-            installmentCollecting: installmentCollecting,
+            installmentDate: [formattedDate],
+            installment: [installmentCollecting], // Corrected field name
+            submittedBy: [username], // Send submittedBy as an array
+            installmentCount: [installmentCount], // Send submittedBy as an array
           }
         );
       }
@@ -118,8 +148,10 @@ function OfficeCollection() {
         await axios.patch(
           `http://localhost:5000/update-savings-collection/${loanData.SavingID}`,
           {
-            savingCollectionDate: formattedDate,
-            savingCollecting: savingCollecting,
+            savingCollectionDate: [formattedDate],
+            savingCollecting: [savingCollecting],
+            submittedBy: [username], // Send submittedBy as an array
+            SavingCount: [SavingCount], // Send submittedBy as an array
           }
         );
       }
@@ -132,14 +164,14 @@ function OfficeCollection() {
   };
 
   return (
-    <div className="bg-light mt-2 container-fluid">
+    <div className="bg-light container-fluid">
       <div className="p-2">
         <div className="border-bottom mb-5">
           <h2 className="text-center mb-4 pt-3">অফিস জমা</h2>
         </div>
       </div>
 
-      <div className="bg-light">
+      <div>
         <form className="p-3" onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-3 mb-5">
@@ -289,6 +321,18 @@ function OfficeCollection() {
                   onChange={handleInstallmentCollectingChange}
                 />
               </div>
+              <div className="col-3">
+                <label htmlFor="installmentCount" className="form-label">
+                  কিস্তি সংখ্যা
+                </label>
+                <input
+                  type="text"
+                  id="installmentCount"
+                  className="form-control"
+                  value={installmentCount}
+                  onChange={handleInstallmentCountChange}
+                />
+              </div>
             </div>
 
             <div className="mt-5 row">
@@ -354,6 +398,18 @@ function OfficeCollection() {
                   className="form-control"
                   value={savingCollecting}
                   onChange={handleSavingCollectingChange}
+                />
+              </div>
+              <div className="col-3">
+                <label htmlFor="SavingCount" className="form-label">
+                  সঞ্চয় সংখ্যা
+                </label>
+                <input
+                  type="text"
+                  id="SavingCount"
+                  className="form-control"
+                  value={SavingCount}
+                  onChange={handleSavingCountChange}
                 />
               </div>
             </div>

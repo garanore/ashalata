@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
+// import "./style.css";
 import "./style.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
@@ -45,9 +46,9 @@ const NavBar = () => {
           </button>
 
           <div className="navbar-collapse navbar">
-            <h5 className="navbar-text mx-auto" aria-label="Site Name">
+            <h3 className=" mx-auto" aria-label="Site Name">
               আশা লতা সংস্থা
-            </h5>
+            </h3>
             <div className="d-flex align-items-center">
               <form
                 className={`d-flex ${
@@ -74,9 +75,41 @@ const NavBar = () => {
               >
                 <i className="fa fa-search"></i>
               </button>
+
               <div className="d-flex align-items-center">
+                {/* Notification Bell Icon */}
+                <div className="dropdown mx-2 notification-bell">
+                  <i
+                    className="fa fa-bell fa-lg dropdown-toggle"
+                    style={{ cursor: "pointer" }}
+                    id="notificationDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  ></i>
+                  <ul
+                    className="dropdown-menu notification-dropdown"
+                    aria-labelledby="notificationDropdown"
+                  >
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Notification 1
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Notification 2
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Notification 3
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+
                 <span className="navbar-text mx-2">{accountName}</span>
-                <button className="btn btn-secondary" onClick={handleLogout}>
+                <button className="btn  btn-danger" onClick={handleLogout}>
                   Log Out
                 </button>
               </div>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
+import axios from "axios"; // Import axios here
 
 const MEMBER_LIST_CENTER_ROUTE = "/home/LoanDetails";
 
@@ -12,6 +13,8 @@ const LoanAllDates = () => {
   const [AllLoan, setAllLoan] = useState({});
   const [LoanDetails, setLoanDetails] = useState([]);
   const [installmentDateCount, setInstallmentDateCount] = useState(0);
+
+  const [designations, setDesignations] = useState({});
 
   useEffect(() => {
     if (loanID) {
@@ -28,8 +31,39 @@ const LoanAllDates = () => {
       // Fetch loan collection details
       fetch(`http://localhost:5000/loan-collection-date/${loanID}`)
         .then((res) => res.json())
-        .then((data) => {
+        .then(async (data) => {
           setLoanDetails(data.LoanDetails || {});
+
+          // Fetch account names for each submittedBy user
+          const loanDetails = data.LoanDetails || {};
+          if (loanDetails.submittedBy) {
+            const updatedDesignations = {};
+            await Promise.all(
+              loanDetails.submittedBy.map(async (submittedBy) => {
+                try {
+                  const userResponse = await axios.get(
+                    `http://localhost:5000/get-user-username/${submittedBy}`
+                  );
+                  if (userResponse.data.length > 0) {
+                    const { accountName, designation } = userResponse.data[0];
+                    updatedDesignations[submittedBy] = {
+                      accountName,
+                      designation,
+                    };
+                  }
+                } catch (error) {
+                  console.error(
+                    "Error fetching user designation:",
+                    error.message
+                  );
+                }
+              })
+            );
+            setDesignations((prevDesignations) => ({
+              ...prevDesignations,
+              ...updatedDesignations,
+            }));
+          }
         })
         .catch((error) =>
           console.error("Error fetching loan collection details:", error)
@@ -181,6 +215,9 @@ const LoanAllDates = () => {
               <thead>
                 <tr>
                   <th>তারিখ</th>
+                  <th>কিস্তি (টাকা)</th>
+                  <th>উত্তোলনকারী</th>
+                  <th>পদবী</th>
                 </tr>
               </thead>
               <tbody>
@@ -188,6 +225,23 @@ const LoanAllDates = () => {
                   LoanDetails.installmentDate.map((date, index) => (
                     <tr key={index}>
                       <td>{date}</td>
+                      <td>{LoanDetails.installment[index]}</td>
+                      <td>
+                        {
+                          designations[LoanDetails.submittedBy[index]]
+                            ? designations[LoanDetails.submittedBy[index]]
+                                .accountName
+                            : LoanDetails.submittedBy[index] // Fallback to submittedBy if accountName isn't available yet
+                        }
+                      </td>
+                      <td>
+                        {
+                          designations[LoanDetails.submittedBy[index]]
+                            ? designations[LoanDetails.submittedBy[index]]
+                                .designation
+                            : LoanDetails.submittedBy[index] // Fallback to submittedBy if accountName isn't available yet
+                        }
+                      </td>
                     </tr>
                   ))}
               </tbody>

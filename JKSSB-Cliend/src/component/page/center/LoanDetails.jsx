@@ -2,6 +2,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../../css/center.css";
+
+const restrictedDesignations = [
+  "উর্দ্ধতন কর্মসূচী সংগঠক",
+  "কর্মসূচী সংগঠক",
+  "সহকারী কর্মসূচী সংগঠক",
+];
 
 function LoanDetails() {
   const [selectedCenter, setSelectedCenter] = useState("");
@@ -10,16 +17,124 @@ function LoanDetails() {
   const navigate = useNavigate();
   const [selectedWorker, setSelectedWorker] = useState("");
   const [centerDay, setCenterDay] = useState("");
+  const [userCenters, setuserCenters] = useState([]);
+
+  const [username, setUsername] = useState(""); // Add username state
+  const [hasAccess, setHasAccess] = useState(false); // Initially, set access to false
+  const [designation, setDesignation] = useState("");
+  const [deleteMode, setDeleteMode] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const membersPerPage = 25; // Members per page
+
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
+    // Fetch all active centers initially
     axios
       .get("http://localhost:5000/center-callback")
       .then((response) => {
-        setCenters(response.data);
+        // Filter out centers with ActiveStatus "False"
+        const activeCenters = response.data.filter(
+          (center) => center.ActiveStatus !== "False"
+        );
+
+        // Store all active centers initially
+        setCenters(activeCenters);
       })
       .catch((error) => {
         console.error("Error fetching center data:", error);
       });
+
+    // Function to fetch centers for branches
+    const fetchCentersForBranches = async (branches) => {
+      try {
+        // Fetch centers for each branch
+        const centerPromises = branches.map((branch) =>
+          axios.get(`http://localhost:5000/center-callback-by-branch/${branch}`)
+        );
+
+        const centerResponses = await Promise.all(centerPromises);
+
+        // Extract and merge center data from the responses
+        const allCenters = centerResponses
+          .map((response) => response.data)
+          .flat(); // Flatten the array of arrays
+
+        // Filter out inactive centers
+        const activeCenters = allCenters.filter(
+          (center) => center.ActiveStatus !== "False"
+        );
+
+        setCenters(activeCenters); // Set the merged active centers
+      } catch (error) {
+        console.error("Error fetching centers for branches:", error);
+      }
+    };
+
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+
+      const branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+
+      const centers = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserCenter"))
+        .map((key) => parsedData[key]);
+
+      const userNames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+
+      const userDesignation = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key])[0];
+
+      const username = userNames.length > 0 ? userNames[0] : "Unknown";
+      setUsername(username);
+      setDesignation(userDesignation); // Set the designation in the state
+
+      // First logic: check if the user has access to all branches
+      if (branches.includes("AllBranch")) {
+        setHasAccess(true); // Grant full access
+      }
+      // Second logic: check if the user has restricted designation
+      else if (restrictedDesignations.includes(userDesignation)) {
+        // Filter centers the user has access to based on UserCenter
+        const userAccessibleCenters = centers;
+
+        // Fetch only the centers the user has access to
+        axios
+          .get("http://localhost:5000/center-callback")
+          .then((response) => {
+            const activeCenters = response.data.filter(
+              (center) =>
+                center.ActiveStatus !== "False" &&
+                userAccessibleCenters.includes(center.centerID)
+            );
+            setCenters(activeCenters); // Set the filtered centers
+          })
+          .catch((error) => {
+            console.error("Error fetching center data:", error);
+          });
+
+        setuserCenters(userAccessibleCenters); // Store user's specific centers
+        setHasAccess(false); // Restrict access to specific centers
+      }
+      // Third logic: check if the user has specific branches
+      else if (branches.length > 0) {
+        // Call the fetchCentersForBranches function only if branches exist
+        fetchCentersForBranches(branches);
+        setHasAccess(false); // Restrict access to specific centers
+      }
+      // If no specific access is granted
+      else {
+        setuserCenters(centers); // Store the user's specific centers
+        setHasAccess(false); // Restrict access
+      }
+    }
   }, []);
 
   const fetchInstallmentDateCount = async (loanID) => {
@@ -56,11 +171,26 @@ function LoanDetails() {
         })
       );
 
+      // Filter members based on deleteMode
+      if (deleteMode) {
+        const inactiveCenters = loansWithInstallmentCount.filter(
+          (loan) => loan.ActiveStatus === "False"
+        );
+        setMembers(inactiveCenters); // Set the members to inactive centers
+      } else {
+        const activeCenters = loansWithInstallmentCount.filter(
+          (loan) => loan.ActiveStatus !== "False"
+        );
+        setMembers(activeCenters); // Set the members to active centers
+        setCurrentPage(1); // Reset to the first page after fetching new members
+      }
+
       setLoans((prevLoans) => ({
         ...prevLoans,
         [center]: loansWithInstallmentCount,
       }));
 
+      // Fetch center worker and center day
       axios
         .get(`http://localhost:5000/center-callback-id/${center}`)
         .then((response) => {
@@ -73,28 +203,84 @@ function LoanDetails() {
         .catch((error) => {
           console.error("Error fetching center worker data:", error);
         });
+
+      axios
+        .get(`http://localhost:5000/get-worker-name/${center}`)
+        .then((response) => {
+          const workerName = response.data.WorkerName;
+          setSelectedWorker(workerName ? workerName : "No worker found");
+        })
+        .catch((error) => {
+          console.error("Error fetching worker name:", error);
+          setSelectedWorker("No worker found");
+        });
     } catch (error) {
       console.error("Error fetching loan data:", error);
     }
   };
 
-  const totalAmount =
-    selectedCenter &&
-    loans[selectedCenter]?.reduce(
-      (total, loan) => total + (loan.OLamount || 0),
-      0
-    );
+  const filteredLoans =
+    loans[selectedCenter]?.filter(
+      (loan) => loan.ActiveStatus === (deleteMode ? "False" : "True")
+    ) || [];
 
-  const handleView = (loanItem) => {
-    navigate("/home/loanview", { state: { loanID: loanItem.loanID } });
+  const totalAmount = filteredLoans.reduce(
+    (total, loan) => total + (loan.OLamount || 0),
+    0
+  );
+
+  const handleViewForCenter = (loanItem) => {
+    navigate("/home/loanview", {
+      state: { loanID: loanItem.loanID, from: "LoanDetails" },
+    });
   };
 
-  const handleEdit = (loanItem) => {
-    navigate("/home/LoanEdit", { state: { loanID: loanItem.loanID } });
+  const handleEditForCenter = (loanItem) => {
+    navigate("/home/LoanEdit", {
+      state: { loanID: loanItem.loanID, from: "LoanDetails" },
+    });
   };
 
   const handleLoanAllDate = (loanItem) => {
     navigate("/home/LoanAllDates", { state: { loanID: loanItem.loanID } });
+  };
+
+  const handleDeleteClick = (center) => {
+    if (window.confirm("Delete the selected Center")) {
+      const deleteDate = new Date().toISOString(); // Get the current date
+
+      axios
+        .put(`http://localhost:5000/openloan/ActiveStatus/${center._id}`, {
+          username, // Pass username to the backend
+          deleteDate, // Pass the current date to the backend
+        })
+        // eslint-disable-next-line no-unused-vars
+        .then((response) => {
+          // After updating, refetch the centers for the selected branch
+          handleCenterChange({ target: { value: selectedCenter } });
+        })
+        .catch((error) => {
+          console.error("Error updating ActiveStatus:", error);
+        });
+    }
+  };
+
+  // Toggle button function remains the same
+  const handleToggleClick = () => {
+    setDeleteMode(!deleteMode);
+    // Refetch the centers based on the new delete mode
+    handleCenterChange({ target: { value: selectedCenter } });
+  };
+  // Pagination logic
+  const indexOfLastMember = currentPage * membersPerPage;
+  const indexOfFirstMember = indexOfLastMember - membersPerPage;
+  const currentMembers = members.slice(indexOfFirstMember, indexOfLastMember);
+  const totalPages = Math.ceil(members.length / membersPerPage);
+
+  const paginate = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
   };
 
   return (
@@ -115,11 +301,20 @@ function LoanDetails() {
             value={selectedCenter}
           >
             <option value="">Choose...</option>
-            {centers.map((center) => (
-              <option key={center._id} value={center.centerID}>
-                {center.centerID}
-              </option>
-            ))}
+
+            {hasAccess || !restrictedDesignations.includes(designation)
+              ? centers.map((center) => (
+                  <option key={center._id} value={center.centerID}>
+                    {center.centerID}
+                  </option>
+                ))
+              : centers
+                  .filter((center) => userCenters.includes(center.centerID))
+                  .map((center) => (
+                    <option key={center._id} value={center.centerID}>
+                      {center.centerID}
+                    </option>
+                  ))}
           </select>
         </div>
         <div className="col-md-3 mb-3">
@@ -146,10 +341,21 @@ function LoanDetails() {
             readOnly
           />
         </div>
+        <div className="col-md-3 mb-3  justify-content-end  mt-3">
+          <label className="form-label">Show Deleted Loan</label>
+          <button
+            type="button"
+            className={`btn btn-lg btn-toggle ${deleteMode ? "active" : ""}`}
+            onClick={handleToggleClick}
+            aria-pressed={deleteMode}
+          >
+            <div className="handle"></div>
+          </button>
+        </div>
       </div>
 
       <div className="table-responsive">
-        {selectedCenter && (
+        {selectedCenter && currentMembers.length > 0 && (
           <table className="table table-hover">
             <thead>
               <tr>
@@ -166,7 +372,7 @@ function LoanDetails() {
               </tr>
             </thead>
             <tbody>
-              {loans[selectedCenter]?.map((loanItem) => (
+              {currentMembers.map((loanItem) => (
                 <tr key={loanItem.loanID}>
                   <td>{loanItem.loanID}</td>
                   <td>{loanItem.OLname}</td>
@@ -181,16 +387,17 @@ function LoanDetails() {
                     <button
                       type="button"
                       className="ms-3 btn btn-primary btn-sm"
-                      onClick={() => handleView(loanItem)}
+                      onClick={() => handleViewForCenter(loanItem)}
                     >
-                      View
+                      <i className="fas fa-eye"></i>
                     </button>
+
                     <button
                       type="button"
                       className="ms-3 btn btn-primary btn-sm"
-                      onClick={() => handleEdit(loanItem)}
+                      onClick={() => handleEditForCenter(loanItem)}
                     >
-                      Edit
+                      <i className="fas fa-edit"></i>
                     </button>
 
                     <button
@@ -200,6 +407,13 @@ function LoanDetails() {
                     >
                       Date
                     </button>
+                    <button
+                      type="button"
+                      className="ms-3 btn btn-danger btn-sm"
+                      onClick={() => handleDeleteClick(loanItem)}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -208,10 +422,51 @@ function LoanDetails() {
         )}
 
         <div className="mt-4">
-          <p>মোট ঋণ সংখ্যা: {loans[selectedCenter]?.length || 0} টি</p>
+          <p>মোট ঋণ সংখ্যা: {filteredLoans.length} টি</p>
           <p>মোট ঋণের পরিমাণ: {totalAmount} টাকা</p>
         </div>
       </div>
+      {selectedCenter && (
+        <div className="row">
+          <div className="col-md-12">
+            <nav>
+              <ul className="pagination">
+                <li className="page-item">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    className="page-link"
+                  >
+                    Previous
+                  </button>
+                </li>
+                {[...Array(totalPages)].map((_, i) => (
+                  <li
+                    key={i + 1}
+                    className={`page-item ${
+                      i + 1 === currentPage ? "active" : ""
+                    }`}
+                  >
+                    <button
+                      onClick={() => paginate(i + 1)}
+                      className="page-link"
+                    >
+                      {i + 1}
+                    </button>
+                  </li>
+                ))}
+                <li className="page-item">
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    className="page-link"
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

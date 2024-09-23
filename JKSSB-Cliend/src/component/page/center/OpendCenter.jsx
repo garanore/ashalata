@@ -7,45 +7,74 @@ const API_URL = "http://localhost:5000/opencenter";
 function OpenCenter() {
   const [centerCount, setCenterCount] = useState(0);
   const [centerID, setCenterID] = useState("");
-  const [workers, setWorkers] = useState([]);
-  const [branchs, setBranchs] = useState([]);
+
+  const [branches, setBranches] = useState([]);
+  const [userBranches, setUserBranches] = useState([]);
   const [formData, setFormData] = useState({
     centerID: "",
     CenterName: "",
     CenterAddress: "",
     CenterMnumber: "",
     centerBranch: "",
-    centerWorker: "",
     CenterDay: "",
+    submittedBy: "", // Make sure this is part of the form state
+    GrantedBy: "Null", // Ensure it's set correctly
+    DeletedStatus: "Null", // Ensure it's set correctly
   });
   const [submitMessage, setSubmitMessage] = useState("");
+  const [hasAccess, setHasAccess] = useState(true);
 
   useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/branch-callback");
-        const data = await response.json();
-        setBranchs(data);
-      } catch (error) {
-        console.error("Error fetching branch options:", error.message);
-      }
-    };
+    // Step 1: Fetch all branches
+    axios
+      .get("http://localhost:5000/branch-callback")
+      .then((response) => {
+        setBranches(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching branch data:", error);
+      });
 
-    fetchCenters();
-  }, []);
+    // Step 2: Retrieve user branch data and designation from localStorage
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
 
-  useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/worker-callback");
-        const data = await response.json();
-        setWorkers(data);
-      } catch (error) {
-        console.error("Error fetching worker options:", error.message);
-      }
-    };
+      const branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+      setUserBranches(branches);
 
-    fetchCenters();
+      const designations = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key]);
+
+      const userNames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+
+      // Assume there is only one username and take the first one
+      const username = userNames.length > 0 ? userNames[0] : "Unknown";
+
+      // Check if the user has a restricted designation
+      const restrictedDesignations = [
+        "উর্দ্ধতন কর্মসূচী সংগঠক",
+        "কর্মসূচী সংগঠক",
+        "সহকারী কর্মসূচী সংগঠক",
+      ];
+      const userHasRestrictedDesignation = designations.some((designation) =>
+        restrictedDesignations.includes(designation)
+      );
+
+      // Restrict access if the user has a restricted designation
+      setHasAccess(!userHasRestrictedDesignation);
+
+      // Store the username in the formData to use it later in handleSubmit
+      setFormData((prevData) => ({
+        ...prevData,
+        submittedBy: username, // Set the username correctly here
+      }));
+    }
   }, []);
 
   // For Center ID-----------------------------------
@@ -97,8 +126,9 @@ function OpenCenter() {
         CenterAddress: formData.CenterAddress.trim(),
         CenterMnumber: formData.CenterMnumber.trim(),
         centerBranch: formData.centerBranch.trim(),
-        centerWorker: formData.centerWorker.trim(),
         CenterDay: formData.CenterDay.trim(),
+        approvalStatus: "Approved", // Ensure it's set correctly
+        ActiveStatus: "True", // Ensure it's set correctly
       };
 
       // eslint-disable-next-line no-unused-vars
@@ -106,7 +136,7 @@ function OpenCenter() {
         ...trimmedFormData,
       });
 
-      setSubmitMessage("Successfully submitted!");
+      setSubmitMessage("Pending for Approval");
 
       setCenterCount(centerCount + 1);
       setCenterID(generateCenterID(centerCount + 1));
@@ -116,8 +146,10 @@ function OpenCenter() {
         CenterAddress: "",
         CenterMnumber: "",
         centerBranch: "",
-        centerWorker: "",
         CenterDay: "",
+        submittedBy: "", // Reset this as well
+        GrantedBy: "Null", // Ensure it's set correctly
+        DeletedStatus: "Null", // Ensure it's set correctly
       });
     } catch (error) {
       console.error("Error submitting form:", error.message);
@@ -125,9 +157,24 @@ function OpenCenter() {
     }
   };
 
-  return (
-    <div>
+  if (!hasAccess) {
+    return (
       <div className="bg-light container-fluid">
+        <div className="p-2">
+          <div className="border-bottom mb-5">
+            <h2 className="text-center mb-4 pt-3">কেন্দ্র খুলুন</h2>
+          </div>
+        </div>
+        <div className="p-3">
+          <p className="text-center text-danger">এই পেইজে আপনার অনুমতি নেই।</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className=" bg-light  container-fluid ">
+      <div className=" ">
         <div className="p-2">
           <div className="border-bottom mb-5">
             <h2 className="text-center mb-4 pt-3">কেন্দ্র খুলুন</h2>
@@ -206,36 +253,24 @@ function OpenCenter() {
                   name="centerBranch"
                 >
                   <option value="">Choose...</option>
-                  {branchs.map((branch) => (
-                    <option key={branch._id} value={branch.BranchName}>
-                      {branch.BranchName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-4">
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label htmlFor="centerWorker" className="form-label">
-                      কর্মী নির্বাচন করুণ
-                    </label>
-                    <select
-                      id="centerWorker"
-                      className="form-select"
-                      value={formData.centerWorker}
-                      onChange={handleChange}
-                      name="centerWorker"
-                    >
-                      <option value="">Choose...</option>
-                      {workers.map((worker) => (
-                        <option key={worker._id} value={worker.WorkerName}>
-                          {worker.WorkerName}
+                  {/* Step 3: Filter branches based on userBranches */}
+                  {userBranches.includes("AllBranch") ||
+                  userBranches.includes("AllCenter")
+                    ? branches.map((branch) => (
+                        <option key={branch._id} value={branch.BranchName}>
+                          {branch.BranchName}
                         </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                      ))
+                    : branches
+                        .filter((branch) =>
+                          userBranches.includes(branch.BranchName)
+                        )
+                        .map((branch) => (
+                          <option key={branch._id} value={branch.BranchName}>
+                            {branch.BranchName}
+                          </option>
+                        ))}
+                </select>
               </div>
 
               <div className="col-md-3">
@@ -268,9 +303,10 @@ function OpenCenter() {
                   className="btn btn-primary"
                   onClick={handleSubmit}
                 >
-                  Submit
+                  Apply
                 </button>
               </div>
+
               {submitMessage && (
                 <div className="alert alert-success" role="alert">
                   {submitMessage}

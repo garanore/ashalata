@@ -52,7 +52,6 @@ import LoanDetailsForBranch from "./component/page/branch/LoanDetailsForBranch.j
 import SavingDetails from "./component/page/center/SavingsDetails.jsx";
 import SavingsDetailsFroBranch from "./component/page/branch/SavingsDetailsFroBranch.jsx";
 import PrivateRoute from "./component/page/LoginSignup/PrivateRoute.jsx";
-import WorkerView from "./component/page/office/WorkerView.jsx";
 import SalaryList from "./component/page/office/SalaryList.jsx";
 import SalaryEdit from "./component/page/office/SalaryEdit.jsx";
 import OfficeCollection from "./component/page/office/OfficeCollection.jsx";
@@ -61,6 +60,23 @@ import VoucherEdit from "./component/page/office/VoucheEdit.jsx";
 import IncomeExpenseReport from "./component/page/Account/IncomeExpensReport.jsx";
 import VoucherDownload from "./component/page/office/VoucherDownload.jsx";
 import BalanceSheet from "./component/page/Account/AISBalanceSheet.jsx";
+import UserEdit from "./component/page/LoginSignup/UserEdit.jsx";
+import GrantCenter from "./component/page/center/GrantCenter.jsx";
+import OfficeWorkerGranted from "./component/page/office/OfficeWorkerGranted.jsx";
+import ReviewCenter from "./component/page/center/ReviewCenter.jsx";
+import GrantMember from "./component/page/member/GrantMember.jsx";
+import MemberReview from "./component/page/member/MemberReview.jsx";
+import ApproveMember from "./component/page/member/ApproveMember.jsx";
+import UserList from "./component/page/LoginSignup/UserList.jsx";
+import ReviewWorker from "./component/page/office/ReviewWorker.jsx";
+import ApproveSavings from "./component/page/saving/ApproveSavings.jsx";
+import ReviewSaving from "./component/page/saving/ReviewSaving.jsx";
+import GrantSavings from "./component/page/saving/GrantSaving.jsx";
+import ReviewLoan from "./component/page/loan/ReviewLoan.jsx";
+import GrantLoan from "./component/page/loan/GrantLoan.jsx";
+import ApproveLoan from "./component/page/loan/ApproveLoan.jsx";
+import GrantUser from "./component/page/LoginSignup/GrantUser.jsx";
+// import ApproveCenter from "./component/page/center/ApproveCenter.jsx";
 
 const isAuthenticated = () => {
   return !!localStorage.getItem("authToken");
@@ -156,9 +172,23 @@ const AppRouter = () => {
           path: "SavingsDetailsFroBranch",
           element: <PrivateRoute element={<SavingsDetailsFroBranch />} />,
         },
+
         {
           path: "OpenLoan",
           element: <PrivateRoute element={<OpenLoan />} />,
+        },
+
+        {
+          path: "ApproveLoan",
+          element: <PrivateRoute element={<ApproveLoan />} />,
+        },
+        {
+          path: "GrantLoan",
+          element: <PrivateRoute element={<GrantLoan />} />,
+        },
+        {
+          path: "ReviewLoan",
+          element: <PrivateRoute element={<ReviewLoan />} />,
         },
         {
           path: "InstallmentList",
@@ -184,6 +214,18 @@ const AppRouter = () => {
         {
           path: "SavingView",
           element: <PrivateRoute element={<SavingView />} />, // Define the SavingView route
+        },
+        {
+          path: "ApproveSavings",
+          element: <PrivateRoute element={<ApproveSavings />} />, // Define the SavingView route
+        },
+        {
+          path: "GrantSavings",
+          element: <PrivateRoute element={<GrantSavings />} />, // Define the SavingView route
+        },
+        {
+          path: "ReviewSaving",
+          element: <PrivateRoute element={<ReviewSaving />} />, // Define the SavingView route
         },
         {
           path: "SavingEdit",
@@ -257,10 +299,7 @@ const AppRouter = () => {
           path: "MonthlyServiceChargeStatement",
           element: <PrivateRoute element={<MonthlyServiceChargeStatement />} />,
         },
-        {
-          path: "WorkerView",
-          element: <PrivateRoute element={<WorkerView />} />,
-        },
+
         {
           path: "Voucher",
           element: <PrivateRoute element={<Voucher />} />,
@@ -280,6 +319,46 @@ const AppRouter = () => {
         {
           path: "VoucherDownload",
           element: <PrivateRoute element={<VoucherDownload />} />,
+        },
+        {
+          path: "GrantCenter",
+          element: <PrivateRoute element={<GrantCenter />} />,
+        },
+        {
+          path: "ReviewCenter",
+          element: <PrivateRoute element={<ReviewCenter />} />,
+        },
+        {
+          path: "UserEdit",
+          element: <PrivateRoute element={<UserEdit />} />,
+        },
+        {
+          path: "OfficeWorkerGranted",
+          element: <PrivateRoute element={<OfficeWorkerGranted />} />,
+        },
+        {
+          path: "ReviewWorker",
+          element: <PrivateRoute element={<ReviewWorker />} />,
+        },
+        {
+          path: "GrantMember",
+          element: <PrivateRoute element={<GrantMember />} />,
+        },
+        {
+          path: "MemberReview",
+          element: <PrivateRoute element={<MemberReview />} />,
+        },
+        {
+          path: "ApproveMember",
+          element: <PrivateRoute element={<ApproveMember />} />,
+        },
+        {
+          path: "UserList",
+          element: <PrivateRoute element={<UserList />} />,
+        },
+        {
+          path: "GrantUser",
+          element: <PrivateRoute element={<GrantUser />} />,
         },
       ],
     },

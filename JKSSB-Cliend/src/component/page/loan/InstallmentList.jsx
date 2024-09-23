@@ -7,6 +7,12 @@ import axios from "axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
+const restrictedDesignations = [
+  "উর্দ্ধতন কর্মসূচী সংগঠক",
+  "কর্মসূচী সংগঠক",
+  "সহকারী কর্মসূচী সংগঠক",
+];
+
 const InstallmentList = () => {
   const [centers, setCenters] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
@@ -14,17 +20,109 @@ const InstallmentList = () => {
   const [centerMember, setCenterMember] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState("");
   const [centerDay, setCenterDay] = useState("");
+  const [userCenters, setuserCenters] = useState([]);
+
+  const [hasAccess, setHasAccess] = useState(false); // Initially, set access to false
+  const [designation, setDesignation] = useState("");
+  const [deleteMode, setDeleteMode] = useState(false);
 
   useEffect(() => {
-    // Fetch centers
     axios
       .get("http://localhost:5000/center-callback")
       .then((response) => {
-        setCenters(response.data);
+        // Filter out centers with ActiveStatus "False"
+        const activeCenters = response.data.filter(
+          (center) => center.ActiveStatus !== "False"
+        );
+        setCenters(activeCenters);
       })
       .catch((error) => {
         console.error("Error fetching center data:", error);
       });
+
+    // Function to fetch centers for branches
+    const fetchCentersForBranches = async (branches) => {
+      try {
+        // Fetch centers for each branch
+        const centerPromises = branches.map((branch) =>
+          axios.get(`http://localhost:5000/center-callback-by-branch/${branch}`)
+        );
+
+        const centerResponses = await Promise.all(centerPromises);
+
+        // Extract and merge center data from the responses
+        const allCenters = centerResponses
+          .map((response) => response.data)
+          .flat(); // Flatten the array of arrays
+
+        // Filter out inactive centers
+        const activeCenters = allCenters.filter(
+          (center) => center.ActiveStatus !== "False"
+        );
+
+        setCenters(activeCenters); // Set the merged active centers
+      } catch (error) {
+        console.error("Error fetching centers for branches:", error);
+      }
+    };
+
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+
+      const branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+
+      const centers = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserCenter"))
+        .map((key) => parsedData[key]);
+
+      const userDesignation = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key])[0];
+
+      setDesignation(userDesignation); // Set the designation in the state
+
+      // First logic: check if the user has access to all branches
+      if (branches.includes("AllBranch")) {
+        setHasAccess(true); // Grant full access
+      }
+      // Second logic: check if the user has restricted designation
+      else if (restrictedDesignations.includes(userDesignation)) {
+        // Filter centers the user has access to based on UserCenter
+        const userAccessibleCenters = centers;
+
+        // Fetch only the centers the user has access to
+        axios
+          .get("http://localhost:5000/center-callback")
+          .then((response) => {
+            const activeCenters = response.data.filter(
+              (center) =>
+                center.ActiveStatus !== "False" &&
+                userAccessibleCenters.includes(center.centerID)
+            );
+            setCenters(activeCenters); // Set the filtered centers
+          })
+          .catch((error) => {
+            console.error("Error fetching center data:", error);
+          });
+
+        setuserCenters(userAccessibleCenters); // Store user's specific centers
+        setHasAccess(false); // Restrict access to specific centers
+      }
+      // Third logic: check if the user has specific branches
+      else if (branches.length > 0) {
+        // Call the fetchCentersForBranches function only if branches exist
+        fetchCentersForBranches(branches);
+        setHasAccess(false); // Restrict access to specific centers
+      }
+      // If no specific access is granted
+      else {
+        setuserCenters(centers); // Store the user's specific centers
+        setHasAccess(false); // Restrict access
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -32,12 +130,12 @@ const InstallmentList = () => {
     if (selectedCenter && selectedDate) {
       const searchDate = moment(selectedDate).format("DD-MM-YY"); // Format selectedDate as "DD-MM-YY"
       axios
-        .get(
-          `http://localhost:5000/get-installmentDate/${selectedCenter}`
-        )
+        .get(`http://localhost:5000/get-installmentDate/${selectedCenter}`)
         .then((response) => {
-          const filteredData = response.data.filter((item) =>
-            item.nextDates.includes(searchDate)
+          const filteredData = response.data.filter(
+            (item) =>
+              item.nextDates.includes(searchDate) &&
+              item.ActiveStatus === (deleteMode ? "False" : "True")
           );
           setCenterMember(filteredData);
         })
@@ -47,7 +145,7 @@ const InstallmentList = () => {
     } else {
       setCenterMember([]);
     }
-  }, [selectedCenter, selectedDate]);
+  }, [selectedCenter, selectedDate, deleteMode]);
 
   const handleCenterChange = (e) => {
     const center = e.target.value;
@@ -60,6 +158,16 @@ const InstallmentList = () => {
           workerData.length > 0 ? workerData[0].centerWorker : ""
         );
         setCenterDay(workerData.length > 0 ? workerData[0].CenterDay : "");
+      });
+    axios
+      .get(`http://localhost:5000/get-worker-name/${center}`)
+      .then((response) => {
+        const workerName = response.data.WorkerName;
+        setSelectedWorker(workerName ? workerName : "No worker found");
+      })
+      .catch((error) => {
+        console.error("Error fetching worker name:", error);
+        setSelectedWorker("No worker found");
       })
       .catch((error) => {
         console.error("Error fetching center worker data:", error);
@@ -102,6 +210,11 @@ const InstallmentList = () => {
     saveAs(blob, "Installments.xlsx");
   };
 
+  // Toggle button function
+  const handleToggleClick = () => {
+    setDeleteMode(!deleteMode);
+  };
+
   return (
     <div className="bg-light container-fluid">
       <form>
@@ -122,11 +235,20 @@ const InstallmentList = () => {
                 value={selectedCenter}
               >
                 <option value="">Choose...</option>
-                {centers.map((center) => (
-                  <option key={center._id} value={center.centerID}>
-                    {center.centerID}
-                  </option>
-                ))}
+
+                {hasAccess || !restrictedDesignations.includes(designation)
+                  ? centers.map((center) => (
+                      <option key={center._id} value={center.centerID}>
+                        {center.centerID}
+                      </option>
+                    ))
+                  : centers
+                      .filter((center) => userCenters.includes(center.centerID))
+                      .map((center) => (
+                        <option key={center._id} value={center.centerID}>
+                          {center.centerID}
+                        </option>
+                      ))}
               </select>
             </div>
             <div className="col-md-3 mb-3">
@@ -166,6 +288,19 @@ const InstallmentList = () => {
                 value={centerDay}
                 readOnly
               />
+            </div>
+            <div className="col-md-3 mb-3  justify-content-end  mt-3">
+              <label className="form-label">Show Deleted Installment</label>
+              <button
+                type="button"
+                className={`btn btn-lg btn-toggle ${
+                  deleteMode ? "active" : ""
+                }`}
+                onClick={handleToggleClick}
+                aria-pressed={deleteMode}
+              >
+                <div className="handle"></div>
+              </button>
             </div>
           </div>
         </div>

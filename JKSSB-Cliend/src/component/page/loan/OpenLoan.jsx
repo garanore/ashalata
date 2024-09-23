@@ -233,6 +233,37 @@ function OpenLoan() {
       const nextDates = [];
       let currentDate = moment(installmentStart);
 
+      // Step 2: Retrieve user branch data and username from localStorage
+      const storedUserData = localStorage.getItem("userBranchData");
+      let submittedBy = "Unknown"; // Default to 'Unknown' if not found
+
+      if (storedUserData) {
+        try {
+          const parsedData = JSON.parse(storedUserData);
+
+          // Extract the username from localStorage
+          const userNames = Object.keys(parsedData)
+            .filter((key) => key.startsWith("username"))
+            .map((key) => parsedData[key]);
+
+          // Use the first username if available
+          if (userNames.length > 0) {
+            submittedBy = userNames[0];
+          }
+        } catch (error) {
+          console.error(
+            "Error parsing userBranchData from localStorage:",
+            error.message
+          );
+        }
+      }
+
+      // If the submittedBy is still 'Unknown', stop submission
+      if (submittedBy === "Unknown") {
+        setSubmitMessage("Error: Submitted by field is missing or invalid.");
+        return;
+      }
+
       // Check if the loan type is 'daily'
       if (loanType === "daily") {
         for (let i = 0; i < installmentCount; i++) {
@@ -321,6 +352,11 @@ function OpenLoan() {
               totalInstallment: totalInstallment, // Include totalInstallment in the request body
               macroloan, // Include macroloan value in the data sent to the backend
               fromFee, // Include FromFee value in the data sent to the backend
+              approvalStatus: "Pending",
+              ActiveStatus: "True",
+              submittedBy: submittedBy, // Use the retrieved username from localStorage
+              GrantedBy: "Null",
+              DeletedStatus: "Null",
             }),
           }
         );
@@ -363,8 +399,8 @@ function OpenLoan() {
   };
 
   return (
-    <div className="bg-light mt-2 ">
-      <div className="mt-2 p-2">
+    <div className="bg-light container-fluid ">
+      <div className="p-2">
         <form onSubmit={handleSubmit}>
           <div>
             <div>

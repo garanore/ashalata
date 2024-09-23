@@ -8,12 +8,12 @@ import "/src/component/css/SideBar.css";
 
 function App() {
   return (
-    <div className="">
-      <header className="">
+    <div>
+      <header className="behind">
         <NavBar />
       </header>
-      <div className=" d-flex flex-row">
-        <aside className="me-2 ">
+      <div className="d-flex flex-row">
+        <aside className="me-2">
           <SideBar />
         </aside>
 

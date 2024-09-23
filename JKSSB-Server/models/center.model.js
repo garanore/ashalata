@@ -1,5 +1,5 @@
-// OpenCenter.model.js
 const mongoose = require("mongoose");
+
 const openCenterSchema = new mongoose.Schema(
   {
     centerID: { type: String, unique: true },
@@ -7,8 +7,21 @@ const openCenterSchema = new mongoose.Schema(
     centerBranch: { type: String },
     CenterAddress: { type: String, required: true },
     CenterMnumber: { type: String, required: true },
-    centerWorker: { type: String },
     CenterDay: { type: String },
+    approvalStatus: {
+      type: String,
+      enum: ["Approved", "Needs Correction", "Granted"],
+      default: "Approved",
+    },
+    ActiveStatus: {
+      type: String,
+      enum: ["True", "False"],
+      default: "True",
+    },
+    submittedBy: { type: String, required: true },
+    GrantedBy: { type: String, default: "Null", required: true },
+    DeletedStatus: { type: String, default: "Null", required: true },
+    DeleteDate: { type: Date, default: null },
   },
   { timestamps: true }
 );

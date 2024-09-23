@@ -39,23 +39,147 @@ router.post("/memberdmission", async (req, res) => {
   }
 });
 
+// For Pending
+
+router.post("/memberdmission/approved/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const member = await Member.findByIdAndUpdate(
+      id,
+      { approvalStatus: "Approved" },
+      { new: true }
+    );
+
+    if (!member) {
+      return res.status(404).json({ message: "member not found" });
+    }
+
+    res.json({ message: "member pending", member });
+  } catch (error) {
+    console.error("Error approving member:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/memberdmission/approved", async (req, res) => {
+  try {
+    const pendingMembers = await Member.find({ approvalStatus: "Pending" });
+    res.json(pendingMembers);
+  } catch (error) {
+    console.error("Error fetching pending members:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// For Granted
+
+router.post("/memberdmission/granted/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username } = req.body;
+    const member = await Member.findByIdAndUpdate(
+      id,
+      { approvalStatus: "Granted", GrantedBy: username },
+      { new: true }
+    );
+
+    if (!member) {
+      return res.status(404).json({ message: "member not found" });
+    }
+
+    res.json({ message: "member pending", member });
+  } catch (error) {
+    console.error("Error approving member:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/memberdmission/granted", async (req, res) => {
+  try {
+    const pendingMembers = await Member.find({ approvalStatus: "Approved" });
+    res.json(pendingMembers);
+  } catch (error) {
+    console.error("Error fetching pending members:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// for Delete
+
+router.delete("/memberdmission/cancel/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const member = await Member.findByIdAndDelete(id);
+
+    if (!member) {
+      return res.status(404).json({ message: "member not found" });
+    }
+
+    res.json({ message: "member canceled" });
+  } catch (error) {
+    console.error("Error canceling member:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Update member approval status to Needs Correction
+router.get("/memberdmission/review", async (req, res) => {
+  try {
+    const { submittedBy } = req.query;
+
+    // If submittedBy is provided, filter centers by it, otherwise fetch all with Needs Correction
+    const query = { approvalStatus: "Needs Correction" };
+    if (submittedBy) {
+      query.submittedBy = submittedBy;
+    }
+
+    const centers = await Member.find(query);
+    res.json(centers);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching centers needing correction" });
+  }
+});
+
+// Update center approval status to Needs Correction
+router.post("/memberdmission/review/:id", async (req, res) => {
+  try {
+    const center = await Member.findByIdAndUpdate(
+      req.params.id,
+      { approvalStatus: "Needs Correction" },
+      { new: true }
+    );
+    res.json({ message: "Member sent back for Approve", center });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error sending center back for correction" });
+  }
+});
+
 //member callback-------------------------------
 
 router.get("/member-callback", async (req, res) => {
   try {
     const selectedCenter = req.query.selectedCenter;
     const selectedNID = req.query.selectedNID;
-    let query = {};
+    let query = { approvalStatus: "Granted" }; // Add approvalStatus to query
 
+    // Add CenterIDMember to query if selectedCenter is provided
     if (selectedCenter) {
-      query = { CenterIDMember: selectedCenter };
+      query.CenterIDMember = selectedCenter;
     }
+
+    // Add MemberNIDnumber to query if selectedNID is provided
     if (selectedNID) {
       query.MemberNIDnumber = selectedNID;
     }
+
     const members = await Member.find(
       query,
-      "BranchMember  CenterIDMember CenterNameMember memberID AdmissionDate memberName MfhName MdateOfBirth memberJob memberVillage memberUnion memberPost memberSubDic memberDic memberMarital memberStudy memberFhead memberfMM memberfMF memberfMTotal EarningMember FamilyMemberENO loanamount nonorganizaiotnloan YearlyIncome LandProperty TotalMoney MemberNIDnumber MemberMobile NominiName NominiFather MemberNominiRelation AdmissionFee FormFee "
+      "DeleteDate DeletedStatus GrantedBy submittedBy ActiveStatus approvalStatus BranchMember CenterIDMember CenterNameMember memberID AdmissionDate memberName MfhName MdateOfBirth memberJob memberVillage memberUnion memberPost memberSubDic memberDic memberMarital memberStudy memberFhead memberfMM memberfMF memberfMTotal EarningMember FamilyMemberENO loanamount nonorganizaiotnloan YearlyIncome LandProperty TotalMoney MemberNIDnumber MemberMobile NominiName NominiFather MemberNominiRelation AdmissionFee FormFee"
     );
     res.json(members);
   } catch (error) {
@@ -105,18 +229,19 @@ router.get("/member-callback-by-branch", async (req, res) => {
 
 router.get("/member-callback-by-branch/:BranchMember", async (req, res) => {
   try {
-    const selectedID = req.params.BranchMember; //
+    const selectedID = req.params.BranchMember;
 
-    // Filter documents based on the selected ID
+    // Filter documents based on the selected BranchMember and approvalStatus = "Granted"
     const BranchMembers = await Member.find({
       BranchMember: selectedID,
+      approvalStatus: "Granted", // Only select members with approvalStatus "Granted"
     });
 
-    // Send the retrieved dates as a response
+    // Send the retrieved members as a response
     res.status(200).json(BranchMembers);
   } catch (error) {
-    console.error("Error fetching dates:", error.message);
-    res.status(500).json({ error: "Failed to fetch dates" });
+    console.error("Error fetching members:", error.message);
+    res.status(500).json({ error: "Failed to fetch members" });
   }
 });
 
@@ -250,10 +375,6 @@ router.put("/member-callback/:ID", async (req, res) => {
     const query = { _id: new ObjectId(memberID) };
     const updatedData = req.body;
 
-    // Log incoming data for debugging
-    console.log("Received update request with ID:", memberID);
-    console.log("Update data:", updatedData);
-
     // Perform update
     const updatedMember = await Member.findOneAndUpdate(
       query,
@@ -274,6 +395,37 @@ router.put("/member-callback/:ID", async (req, res) => {
     });
   } catch (error) {
     console.error("Member Update Error:", error.message);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+router.put("/memberdmission/ActiveStatus/:id", async (req, res) => {
+  try {
+    const { username, deleteDate } = req.body; // Extract data from request body
+    const memberId = req.params.id; // Get the member ID from the route params
+
+    // Find the member by ID
+    const member = await Member.findById(memberId);
+
+    // If member not found, return a 404 response
+    if (!member) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Member not found" });
+    }
+
+    // Update the fields in the member document
+    member.ActiveStatus = "False";
+    member.DeletedBy = username;
+    member.DeleteDate = deleteDate; // Assuming you have a DeleteDate field in your schema
+
+    // Save the updated member document
+    await member.save();
+
+    // Return success response
+    res.status(200).json({ message: "Member updated successfully" });
+  } catch (error) {
+    console.error("Error updating ActiveStatus:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
