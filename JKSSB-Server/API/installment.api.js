@@ -4,11 +4,14 @@ const InstallmentCollection = require("../models/installment.collection.model.js
 const { ObjectId } = require("mongoose").Types;
 
 router.post("/save-installments-collection", async (req, res) => {
-  const { centerName, installmentDate, data, centerBranch } = req.body;
+  const { centerName, installmentDate, data, centerBranch, submittedBy } =
+    req.body;
 
   try {
     const updatePromises = data.map(async (item) => {
       const filter = { loanID: item.loanID, memberID: item.memberID };
+
+      // Prepare the update to save data every time, even if they are duplicates
       const update = {
         $set: {
           loanID: item.loanID,
@@ -16,20 +19,36 @@ router.post("/save-installments-collection", async (req, res) => {
           OLname: item.OLname,
           OLmobile: item.OLmobile,
           loanType: item.loanType,
-          installment: item.installment,
           onlyInterest: item.onlyInterest,
           centerName: centerName,
           centerBranch: centerBranch,
         },
-        $addToSet: { installmentDate: installmentDate },
+        $push: {
+          installmentDate: installmentDate, // Allow duplicate dates
+          submittedBy: { $each: submittedBy }, // Allow duplicate submitters
+          installment: { $each: item.installment }, // Allow duplicate installments
+          installmentCount: { $each: item.installmentCount }, // Allow duplicate installments
+        },
       };
-      const options = { upsert: true, new: true };
-      return InstallmentCollection.findOneAndUpdate(filter, update, options);
+
+      // Use upsert to insert a new document if no match is found, otherwise update the existing one
+      const result = await InstallmentCollection.findOneAndUpdate(
+        filter,
+        update,
+        {
+          new: true,
+          upsert: true, // Create a new document if no match is found
+        }
+      );
+
+      return result;
     });
 
+    // Execute all the promises for saving/updating the data
     const docs = await Promise.all(updatePromises);
     res.status(200).json({ message: "Data saved successfully", docs });
   } catch (error) {
+    console.error("Error saving data:", error);
     res.status(500).json({ message: "Error saving data", error });
   }
 });
@@ -38,19 +57,35 @@ router.post("/save-installments-collection", async (req, res) => {
 
 router.patch("/update-installments-collection/:loanID", async (req, res) => {
   const { loanID } = req.params;
-  const { installmentDate } = req.body;
+  const { installmentDate, installment, submittedBy, installmentCount } =
+    req.body; // added installment and submittedBy
 
-  if (!loanID || !installmentDate) {
+  if (
+    !loanID ||
+    !installmentDate ||
+    !installment ||
+    !submittedBy ||
+    !installmentCount
+  ) {
     return res
       .status(400)
-      .send("Bad Request: Missing loanID or installmentDate");
+      .send(
+        "Bad Request: Missing loanID, installmentDate, installment, or submittedBy"
+      );
   }
 
   try {
-    // Update the document by pushing the new date into the array
+    // Update the document by pushing the new data into their respective arrays
     const updatedDocument = await InstallmentCollection.findOneAndUpdate(
       { loanID: loanID },
-      { $addToSet: { installmentDate: installmentDate } }, // Add new date to the array if it doesn't exist
+      {
+        $addToSet: { installmentDate: installmentDate },
+        $push: {
+          installment: installment, // Push new installment to the array
+          submittedBy: submittedBy, // Push new submittedBy to the array
+          installmentCount: installmentCount, // Push new submittedBy to the array
+        },
+      },
       { new: true } // Return the updated document
     );
 
@@ -107,7 +142,16 @@ router.get("/installment-dates-count/:loanID", async (req, res) => {
           installment: 1,
           centerName: 1,
 
-          installmentDateCount: { $size: "$installmentDate" },
+          // Calculate the sum of the installmentCount array
+          installmentDateCount: {
+            $sum: {
+              $map: {
+                input: "$installmentCount",
+                as: "count",
+                in: { $toInt: "$$count" },
+              },
+            },
+          },
         },
       },
     ]);

@@ -1,9 +1,9 @@
-// member.model.js
 const mongoose = require("mongoose");
 
 const memberSchema = new mongoose.Schema(
   {
     BranchMember: { type: String, required: true },
+    BranchID: { type: String },
     CenterIDMember: { type: String, required: true },
     CenterNameMember: { type: String, required: true },
     memberID: { type: String, unique: true, required: true },
@@ -33,11 +33,27 @@ const memberSchema = new mongoose.Schema(
     MemberNIDnumber: { type: String, required: true },
     MemberMobile: { type: String, required: true },
     NominiName: { type: String, required: true },
+    NominiNID: { type: String, required: true },
     NominiFather: { type: String, required: true },
     MemberNominiRelation: { type: String, required: true },
     AdmissionFee: { type: Number, required: true },
     FormFee: { type: Number, required: true },
     agreementChecked: { type: Boolean, required: true },
+
+    approvalStatus: {
+      type: String,
+      enum: ["Approved", "Granted", "Needs Correction"],
+      default: "Approved",
+    },
+    ActiveStatus: {
+      type: String,
+      enum: ["True", "False"],
+      default: "True",
+    },
+    submittedBy: { type: String, required: true },
+    GrantedBy: { type: String, default: "Null", required: true },
+    DeletedBy: { type: String, default: "Null", required: true },
+    DeleteDate: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -1,0 +1,45 @@
+/* @import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap"); */
+
+.navbar .navbar-text {
+  font-size: 1rem;
+  margin-right: 1rem;
+}
+
+.btn.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+  position: absolute; /* Ensure it's positioned relative to the notification bell */
+  right: 0; /* Align to the right */
+  top: 100%; /* Position below the notification bell */
+  z-index: 1050; /* Ensure the dropdown appears above all other content */
+  background-color: white; /* Background for better visibility */
+  border: 1px solid #ccc; /* Border for aesthetics */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Shadow for dropdown */
+  overflow: auto; /* Enable scrolling if too many notifications */
+  max-height: 400px; /* Limit the height of the dropdown */
+  width: 250px; /* Width for better layout */
+}
+
+/* Bell Icon and Dropdown Container */
+.notification-bell {
+  position: relative; /* Ensure the dropdown aligns with the bell */
+  z-index: 1049; /* Slightly lower than dropdown itself */
+}
+
+/* Ensure Main Content and Navbar Don't Interfere */
+.main,
+.navbar,
+.Size {
+  z-index: 1; /* Lower z-index than the dropdown to avoid overlap */
+  position: relative;
+}

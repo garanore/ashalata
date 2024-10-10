@@ -1,6 +1,6 @@
 // /src/components/auth/Login.jsx
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -27,23 +27,65 @@ const Login = () => {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5000/login",
-        {
-          loginInfo,
-          password,
-        }
-      );
-
-      setError("");
+      // Step 1: Authenticate the user
+      const response = await axios.post("http://localhost:5000/login", {
+        loginInfo,
+        password,
+      });
+  
+      const { username, approvalStatus, ActiveStatus } = response.data;
+  
+      // Log approvalStatus and ActiveStatus for debugging
+      console.log("approvalStatus:", approvalStatus);
+      console.log("ActiveStatus:", ActiveStatus);
+  
+      // Check if the user's approvalStatus is "Granted" and ActiveStatus is "True"
+      if (approvalStatus !== "Granted" || ActiveStatus !== "True") {
+        setError("Permission Denied");
+        return;
+      }
+  
+      // Store authentication data if the user is valid
       localStorage.setItem("authToken", response.data.token);
       localStorage.setItem("accountName", response.data.accountName);
-      navigate("/home"); // Redirect to Home upon successful login
+      localStorage.setItem("username", username);
+  
+      // Step 2: Fetch user branch and center data
+      const userResponse = await axios.get(
+        `http://localhost:5000/get-branch-center/${username}`
+      );
+      localStorage.setItem("userBranchData", JSON.stringify(userResponse.data));
+  
+      // Clear any previous error
+      setError("");
+  
+      // Step 3: Redirect to the home page
+      window.location.reload();
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
       setError(error.response?.data?.message || "Invalid email or password");
     }
   };
+  
+  
+
+  // Check if the user is already logged in on page load
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (authToken) {
+      navigate("/home", { replace: true });
+    }
+    // // Add event listener for when the browser is closed or refreshed
+    // const handleBrowserClose = () => {
+    //   localStorage.clear();
+    // };
+
+    // window.addEventListener("beforeunload", handleBrowserClose);
+
+    // return () => {
+    //   window.removeEventListener("beforeunload", handleBrowserClose);
+    // };
+  }, [navigate]);
 
   return (
     <div className="container mt-5">

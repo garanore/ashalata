@@ -1,0 +1,36 @@
+.custom-btn {
+  background: linear-gradient(
+    45deg,
+    #28a745,
+    #85e085
+  ); /* Gradient background */
+  color: white;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 50px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slight shadow for depth */
+  transition: background 0.3s ease-in-out, transform 0.3s ease; /* Smooth transitions */
+}
+
+.custom-btn:hover {
+  background: linear-gradient(
+    45deg,
+    #218838,
+    #76d976
+  ); /* Darker gradient on hover */
+  transform: translateY(-3px); /* Subtle lift effect */
+}
+
+.custom-btn:active {
+  background: linear-gradient(
+    45deg,
+    #218838,
+    #76d976
+  ); /* Same hover background when active */
+  transform: translateY(0); /* No lift on click */
+}
+
+.custom-btn i {
+  margin-right: 8px; /* Space between icon and text */
+}

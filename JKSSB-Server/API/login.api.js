@@ -7,12 +7,19 @@ const { ObjectId } = require("mongoose").Types;
 router.post("/login", async (req, res) => {
   const { loginInfo, password } = req.body;
   try {
+    // Find the user by either username or phone number
     const user = await User.findOne({
       $or: [{ username: loginInfo }, { phoneNumber: loginInfo }],
     });
 
+    // Check if user exists and password matches
     if (!user || user.password !== password) {
       return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Check approvalStatus and ActiveStatus
+    if (user.approvalStatus !== "Granted" || user.ActiveStatus !== "True") {
+      return res.status(403).json({ message: "Permission Denied" });
     }
 
     // Generate JWT token
@@ -20,15 +27,20 @@ router.post("/login", async (req, res) => {
       expiresIn: "1h",
     });
 
+    // Send success response with the required fields
     res.status(200).json({
       message: "Login successful",
       token,
       accountName: user.accountName,
+      username: user.username,
+      approvalStatus: user.approvalStatus, // Include approvalStatus
+      ActiveStatus: user.ActiveStatus,     // Include ActiveStatus
     });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 //User Check-------------------------
 

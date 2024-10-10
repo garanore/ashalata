@@ -126,9 +126,7 @@ function OpenSavings() {
 
     try {
       // Fetch member data
-      const response = await axios.get(
-        "http://localhost:5000/member-callback"
-      );
+      const response = await axios.get("http://localhost:5000/member-callback");
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         const fetchedMember = response.data.find(
@@ -253,35 +251,91 @@ function OpenSavings() {
     const formattedDate = moment(installmentStart).format("DD-MM-YY");
     const nextDates = generateNextDates(installmentStart);
 
-    try {
-      // Send request to backend API to save the next dates
-      const response = await fetch(
-        "http://localhost:5000/opensaving",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            SavingID: SavingID,
-            memberID: memberID,
-            SavingName: selectedMember?.memberName || "", // Use optional chaining and provide a default value
-            fathername: selectedMember?.MfhName || "", // Use optional chaining and provide a default value
-            SavingBranch: selectedMember?.BranchMember || "", // Use optional chaining and provide a default value
-            SavingCenter: selectedMember?.CenterIDMember || "", // Use optional chaining and provide a default value
-            SavingMobile: selectedMember?.MemberMobile || "", // Use optional chaining and provide a default value
-            installmentStart: formattedDate,
-            nextDates: nextDates,
-            SavingAmount: SavingAmount,
-            installment: installment,
-            SavingType: SavingTypeTranslations[SavingType],
-            SavingTime: SavingTimeTranslations[SavingTime],
-            CenterDay: centerDay,
-          }),
+    // Step 2: Retrieve user branch data and username from localStorage
+    const storedUserData = localStorage.getItem("userBranchData");
+    let submittedBy = "Unknown"; // Default to 'Unknown' if not found
+
+    if (storedUserData) {
+      try {
+        const parsedData = JSON.parse(storedUserData);
+
+        // Extract the username from localStorage
+        const userNames = Object.keys(parsedData)
+          .filter((key) => key.startsWith("username"))
+          .map((key) => parsedData[key]);
+
+        // Use the first username if available
+        if (userNames.length > 0) {
+          submittedBy = userNames[0];
         }
-      );
+      } catch (error) {
+        console.error(
+          "Error parsing userBranchData from localStorage:",
+          error.message
+        );
+      }
+    }
+
+    // If the submittedBy is still 'Unknown', stop submission
+    if (submittedBy === "Unknown") {
+      setSubmitMessage("Error: Submitted by field is missing or invalid.");
+      return;
+    }
+
+    try {
+      // Log the values being sent to the server to verify submission
+      console.log("Submitting form data:", {
+        SavingID,
+        memberID,
+        SavingName: selectedMember?.memberName || "",
+        fathername: selectedMember?.MfhName || "",
+        SavingBranch: selectedMember?.BranchMember || "",
+        SavingCenter: selectedMember?.CenterIDMember || "",
+        SavingMobile: selectedMember?.MemberMobile || "",
+        installmentStart: formattedDate,
+        nextDates: nextDates,
+        SavingAmount: SavingAmount,
+        installment: installment,
+        SavingType: SavingTypeTranslations[SavingType],
+        SavingTime: SavingTimeTranslations[SavingTime],
+        CenterDay: centerDay,
+        approvalStatus: "Approved",
+        ActiveStatus: "True",
+        submittedBy: submittedBy, // Use the retrieved username from localStorage
+        GrantedBy: "Null",
+        DeletedStatus: "Null",
+      });
+
+      const response = await fetch("http://localhost:5000/opensaving", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          SavingID: SavingID,
+          memberID: memberID,
+          SavingName: selectedMember?.memberName || "",
+          fathername: selectedMember?.MfhName || "",
+          SavingBranch: selectedMember?.BranchMember || "",
+          SavingCenter: selectedMember?.CenterIDMember || "",
+          SavingMobile: selectedMember?.MemberMobile || "",
+          installmentStart: formattedDate,
+          nextDates: nextDates,
+          SavingAmount: SavingAmount,
+          installment: installment,
+          SavingType: SavingTypeTranslations[SavingType],
+          SavingTime: SavingTimeTranslations[SavingTime],
+          CenterDay: centerDay,
+          approvalStatus: "Pending",
+          ActiveStatus: "True",
+          submittedBy: submittedBy, // Send the correct submittedBy value
+          GrantedBy: "Null",
+          DeletedStatus: "Null",
+        }),
+      });
 
       if (response.ok) {
+        // Clear form and show success message
         setSavingCount(SavingCount + 1);
         setSelectedMember("");
         setInstallmentStart(null);
@@ -308,120 +362,271 @@ function OpenSavings() {
   };
 
   return (
-    <div className="bg-light mt-2">
-      <div className="mt-2 p-2">
+    <div className="bg-light container-fluid">
+      <div className=" p-2">
         <form onSubmit={handleSubmit}>
-          <div>
-            <div className="">
-              <div className="border-bottom mb-3">
-                <h2 className="text-center mb-4 pt-3">সঞ্চয় খুলুন</h2>
+          <div className="row mb-4">
+            <div className="col">
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{
+                  backgroundColor: "#f0f4f8", // Soft background for the header
+                  borderRadius: "10px", // Rounded edges for a modern look
+                  padding: "20px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+                }}
+              >
+                <h2
+                  className="text-center mb-0"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "2rem", // Larger text for prominence
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> সঞ্চয় খুলুন
+                </h2>
               </div>
             </div>
-            <div className="mb-3 row">
-              <div className="col-3">
-                <label htmlFor="memberID" className="form-label">
-                  সদস্য ID:
-                </label>
+          </div>
+          <div className="row">
+            <div className="col">
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                  marginTop: "10px",
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="mb-3 row">
+            <div className="col-md-3">
+              <label
+                htmlFor="memberID"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-id-card"></i> সদস্য ID
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-id-card"></i>
+                </span>
                 <input
                   type="text"
                   id="memberID"
-                  className="form-control"
+                  className="form-control border-primary"
                   value={memberID}
                   onChange={handleMemberIDChange} // Handle Member ID change
-                  placeholder="Enter Member ID"
+                  placeholder="সদস্য ID লিখুন"
                 ></input>
               </div>
-              <div className="mb-3 col-3">
-                <label htmlFor="SavingID" className="form-label">
-                  সঞ্চয় সংখ্যা
-                </label>
+              <small className="text-muted">উদাহরণ: B01M0001</small>
+            </div>
+
+            <div className="col-md-3">
+              <label
+                htmlFor="SavingID"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-id-card"></i> সঞ্চয় সংখ্যা
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-id-card"></i>
+                </span>
                 <input
                   id="SavingID"
-                  className="form-control"
+                  className="form-control border-primary"
                   type="text"
                   value={SavingID}
                   disabled
                 />
               </div>
+            </div>
 
-              {selectedMember && (
-                <div className="mt-3 row">
-                  <div className="col-2">
-                    <label htmlFor="SavingName" className="form-label">
-                      নাম
-                    </label>
+            {selectedMember && (
+              <div className="mt-3 row">
+                <div className="col-md-3">
+                  <label
+                    htmlFor="SavingName"
+                    className="form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-use"></i> সদস্য নাম
+                  </label>
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-user"></i>
+                    </span>
                     <input
                       type="text"
                       id="SavingName"
-                      className="form-control"
+                      className="form-control border-primary"
                       value={selectedMember.memberName}
                       readOnly
                     />
                   </div>
+                </div>
 
-                  <div className="col-2">
-                    <label htmlFor="fathername" className="form-label">
-                      পিতা/স্বামী
-                    </label>
+                <div className="col-md-3">
+                  <label
+                    htmlFor="fathername"
+                    className="form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-user-friends"></i> পিতা/স্বামী
+                  </label>
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-user-friends"></i>
+                    </span>
                     <input
                       type="text"
                       id="fathername"
-                      className="form-control"
+                      className="form-control border-primary"
                       value={selectedMember.MfhName}
                       readOnly
                     />
                   </div>
+                </div>
 
-                  <div className="col-2">
-                    <label htmlFor="SavingBranch" className="form-label">
-                      শাঁখা
-                    </label>
+                <div className="col-md-3">
+                  <label
+                    htmlFor="SavingBranch"
+                    className="form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-code-branch"></i> শাঁখা
+                  </label>
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-code-branch"></i>
+                    </span>
                     <input
                       type="text"
                       id="SavingBranch"
-                      className="form-control"
+                      className="form-select border-primary"
                       value={selectedMember.BranchMember}
                       readOnly
                     />
                   </div>
+                </div>
 
-                  <div className="col-3">
-                    <label htmlFor="SavingCenter" className="form-label">
-                      কেন্দ্র
-                    </label>
+                <div className="col-md-3">
+                  <label
+                    htmlFor="SavingCenter"
+                    className="form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+                  </label>
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-map-marker-alt"></i>
+                    </span>
                     <input
                       type="text"
                       id="SavingCenter"
-                      className="form-control"
+                      className="form-select border-primary"
                       value={selectedMember.CenterIDMember}
                       readOnly
                     />
                   </div>
+                </div>
 
-                  <div className="col-3">
-                    <label htmlFor="SavingMobile" className="form-label">
-                      মোবাইল:
-                    </label>
+                <div className="col-3">
+                  <label
+                    htmlFor="SavingMobile"
+                    className="col-form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-mobile-alt"></i> মোবাইল
+                  </label>
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-mobile-alt"></i>
+                    </span>
                     <input
                       type="number"
                       id="SavingMobile"
-                      className="form-control"
+                      className="form-select border-primary"
                       value={selectedMember.MemberMobile}
                       readOnly
                     />
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
-            <div className="row mt-5">
-              <div className="mb-3 col-3">
-                <label htmlFor="SavingType" className="form-label">
-                  সঞ্চয়ের ধরণ
-                </label>
+          <div className="row mt-5">
+            <div className="col-3">
+              <label
+                htmlFor="SavingType"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-money-check-alt"></i> সঞ্চয়ের ধরণ
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-check-alt"></i>
+                </span>
                 <select
                   id="SavingType"
-                  className="form-select"
+                  className="form-control border-primary"
                   onChange={handleSavingTypeChange}
                   value={SavingType}
                 >
@@ -435,15 +640,30 @@ function OpenSavings() {
                   )}
                 </select>
               </div>
+            </div>
 
-              {(SavingType === "Meyadi" || SavingType === "NonMeyadi") && (
-                <div className="mb-3 col-3">
-                  <label htmlFor="SavingTime" className="form-label">
-                    সময়
-                  </label>
+            {(SavingType === "Meyadi" || SavingType === "NonMeyadi") && (
+              <div className="col-3">
+                <label
+                  htmlFor="SavingTime"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> সময়
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i>
+                  </span>
                   <select
                     id="SavingTime"
-                    className="form-select"
+                    className="form-control border-primary"
                     onChange={handleTimeTypeChange}
                     value={SavingTime}
                   >
@@ -457,44 +677,89 @@ function OpenSavings() {
                     )}
                   </select>
                 </div>
-              )}
+              </div>
+            )}
 
-              <div className="mb-3 col-3">
-                <label htmlFor="SavingAmount" className="form-label">
-                  সঞ্চয়ের পরিমাণ
-                </label>
+            <div className="col-3">
+              <label
+                htmlFor="SavingAmount"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-money-bill-wave"></i> সঞ্চয়ের পরিমাণ
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i>
+                </span>
                 <input
                   type="number"
                   id="SavingAmount"
-                  className="form-control"
+                  className="form-control border-primary"
                   placeholder="Enter Amount"
                   value={SavingAmount}
                   onChange={(e) => setSavingAmount(e.target.value)}
                 />
               </div>
+            </div>
 
-              <div className="row mt-5">
-                <div className="col-3">
-                  <label htmlFor="CenterDay" className="form-label">
-                    কেন্দ্র বার
-                  </label>
+            <div className="row mt-5">
+              <div className="col-3">
+                <label
+                  htmlFor="CenterDay"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> কেন্দ্র বার
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i>
+                  </span>
                   <input
                     type="text"
                     id="CenterDay"
-                    className="form-control"
+                    className="form-control border-primary"
                     value={centerDay}
                     readOnly
                   />
                 </div>
+              </div>
 
-                <div className="mb-3 col-3">
-                  <label htmlFor="installmentStart" className="form-label">
-                    সঞ্চয় শুরু
-                  </label>
+              <div className="col-md-3">
+                <label
+                  htmlFor="installmentStart"
+                  className="form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-calendar-alt"></i> সঞ্চয় শুরু
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-calendar-alt"></i>
+                  </span>
                   <div>
                     <DatePicker
                       id="installmentStart"
-                      className="form-control"
+                      className="form-control border-primary"
                       selected={installmentStart}
                       onChange={handleDateChange}
                       dateFormat="dd/MM/yyyy"
@@ -502,14 +767,41 @@ function OpenSavings() {
                   </div>
                 </div>
               </div>
-
-              <button className="btn btn-primary">Submit</button>
-              {submitMessage && (
-                <div className="alert alert-success mt-3" role="alert">
-                  {submitMessage}
-                </div>
-              )}
             </div>
+
+            <div className="d-flex justify-content-center mb-3 mt-5">
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg shadow"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-paper-plane"></i> Submit
+              </button>
+            </div>
+
+            {submitMessage && (
+              <div
+                className="alert alert-success mt-3 d-flex align-items-center"
+                role="alert"
+                style={{
+                  borderRadius: "0.5rem", // Rounded corners
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+                }}
+              >
+                <i
+                  className="fas fa-check-circle"
+                  style={{
+                    fontSize: "1.5rem",
+                    marginRight: "10px", // Space between icon and text
+                    color: "#155724", // Dark green for the icon
+                  }}
+                ></i>
+                <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
+              </div>
+            )}
           </div>
         </form>
       </div>

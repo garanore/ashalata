@@ -11,609 +11,760 @@ const SideBar = () => {
   };
 
   return (
-    <div className="navbar-expand-sm">
+    <div className="navbar-expand-sm mt-5">
       <div className="">
-        <div className="">
-          {/* <!-- Sidebar --> */}
-          <aside id="sidebar" className="js-sidebar ">
-            <div className="h-100">
-              <div className="sidebar-logo">{/* <a href="#"></a> */}</div>
+        {/* <!-- Sidebar --> */}
+        <aside id="sidebar" className="js-sidebar ">
+          <div className="h-100">
+            <div className="sidebar-logo">{/* <a href="#"></a> */}</div>
 
-              <div>
-                <ul className="sidebar-nav">
-                  <li className="sidebar-header">Admin Elements</li>
-                  <li
-                    className={`sidebar-item ${
-                      location.pathname === "/Home" ? "active" : ""
-                    }`}
+            <div>
+              <ul className="sidebar-nav">
+                <li className="sidebar-header">Admin Elements</li>
+                <li
+                  className={`sidebar-item ${
+                    location.pathname === "/Home" ? "active" : ""
+                  }`}
+                >
+                  <Link to="/Home" className="sidebar-link">
+                    <i className="fa-solid fa-list pe-2"></i>
+                    ড্যাশবোর্ড
+                  </Link>
+                </li>
+
+                {/* সদস্য শুরু  */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "member" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("member")}
+                    aria-expanded={activeMenu === "member"}
                   >
-                    <Link to="/Home" className="sidebar-link">
-                      <i className="fa-solid fa-list pe-2"></i>
-                      ড্যাশবোর্ড
-                    </Link>
-                  </li>
+                    <i className="fa-solid fa-file-lines pe-2"></i>
+                    সদস্য
+                  </a>
 
-                  {/* সদস্য শুরু  */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "member" ? "active" : ""
+                  <ul
+                    id="member"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "member" ? "show" : ""
                     }`}
+                    data-bs-parent="#sidebar"
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("member")}
-                      aria-expanded={activeMenu === "member"}
-                    >
-                      <i className="fa-solid fa-file-lines pe-2"></i>
-                      সদস্য
-                    </a>
-
-                    <ul
-                      id="member"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "member" ? "show" : ""
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/MemberAdmission" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/MemberAdmission"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="MemberAdmission" className="sidebar-link">
-                          সদস্য ভর্তি করুণ
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
+                      <Link to="MemberAdmission" className="sidebar-link">
+                        সদস্য ভর্তি করুণ
+                      </Link>
+                    </li>
 
-                  {/* সদস্য শেষ */}
-
-                  {/* কেন্দ্র শুরু */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "center" ? "active" : ""
-                    }`}
-                  >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("center")}
-                      aria-expanded={activeMenu === "center"}
-                    >
-                      <i className="fa-solid fa-sliders pe-2"></i>
-                      কেন্দ্র
-                    </a>
-                    <ul
-                      id="center"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "center" ? "show" : ""
+                    {/* <li
+                      className={`sidebar-item ${
+                        location.pathname === "/ApproveMember" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/OpenCenter" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="OpenCenter" className="sidebar-link">
-                          কেন্দ্র যোগ করুণ
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/CenterList" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="CenterList" className="sidebar-link">
-                          কেদ্রের তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/MemberListCenter"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="MemberListCenter" className="sidebar-link">
-                          কেদ্রের সদস্য তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/LoanDetails" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="LoanDetails" className="sidebar-link">
-                          কেন্দ্রের ঋণ বিবরণ
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/SavingsDetails"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="SavingsDetails" className="sidebar-link">
-                          কেন্দ্রের সঞ্চয় বিবরণ
-                        </Link>
-                      </li>
-                      <li className="sidebar-item">
-                        <a href="#" className="sidebar-link">
-                          কেদ্রের হিসাব
-                        </a>
-                      </li>
-                    </ul>
-                  </li>
+                      <Link to="ApproveMember" className="sidebar-link">
+                        Approve Member
+                      </Link>
+                    </li> */}
 
-                  {/* কেন্দ্র শেষ  */}
+                    {/* <li
+                      className={`sidebar-item ${location.pathname === "/GrantMember" ? "active" : ""
+                        }`}
+                    >
+                      <Link to="GrantMember" className="sidebar-link">
+                        Granted Member
+                      </Link>
+                    </li> */}
 
-                  {/* শাঁখা শুরু */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "branch" ? "active" : ""
-                    }`}
+                    {/* <li
+                      className={`sidebar-item ${location.pathname === "/MemberReview" ? "active" : ""
+                        }`}
+                    >
+                      <Link to="MemberReview" className="sidebar-link">
+                        Member Review
+                      </Link>
+                    </li> */}
+                  </ul>
+                </li>
+
+                {/* সদস্য শেষ */}
+
+                {/* কেন্দ্র শুরু */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "center" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("center")}
+                    aria-expanded={activeMenu === "center"}
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("branch")}
-                      aria-expanded={activeMenu === "branch"}
-                    >
-                      <i className="fa-solid fa-sliders pe-2"></i>
-                      শাঁখা
-                    </a>
-                    <ul
-                      id="branch"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "branch" ? "show" : ""
-                      }`}
-                      data-bs-parent="#sidebar"
-                    >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/OpenBranch" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="OpenBranch" className="sidebar-link">
-                          শাঁখা যোগ করুণ
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/BranchList" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="BranchList" className="sidebar-link">
-                          শাখার তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/BranchMemberList"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="BranchMemberList" className="sidebar-link">
-                          শাখার সদস্য তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/LoanDetailsForBranch"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link
-                          to="LoanDetailsForBranch"
-                          className="sidebar-link"
-                        >
-                          শাখার ঋণের তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/SavingsDetailsFroBranch"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link
-                          to="SavingsDetailsFroBranch"
-                          className="sidebar-link"
-                        >
-                          শাখার সঞ্চয়ের তালিকা
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
-
-                  {/* শাঁখা শেষ  */}
-
-                  {/* ঋণ শুরু  */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "loan" ? "active" : ""
+                    <i className="fa-solid fa-sliders pe-2"></i>
+                    কেন্দ্র
+                  </a>
+                  <ul
+                    id="center"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "center" ? "show" : ""
                     }`}
+                    data-bs-parent="#sidebar"
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("loan")}
-                      aria-expanded={activeMenu === "loan"}
-                    >
-                      <i className="fa-solid fa-sliders pe-2"></i>
-                      ঋণ
-                    </a>
-                    <ul
-                      id="loan"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "loan" ? "show" : ""
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/OpenCenter" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/OpenLoan" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="OpenLoan" className="sidebar-link">
-                          ঋণ বিতরণ
-                        </Link>
-                      </li>
+                      <Link to="OpenCenter" className="sidebar-link">
+                        কেন্দ্র যোগ করুণ
+                      </Link>
+                    </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/InstallmentList"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="InstallmentList" className="sidebar-link">
-                          কিস্তির তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/InstallmentCollection"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link
-                          to="InstallmentCollection"
-                          className="sidebar-link"
-                        >
-                          কিস্তি কালেকশন
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
+                    {/* <li
+                      className={`sidebar-item ${
+                        location.pathname === "/ApproveCenter" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="ApproveCenter" className="sidebar-link">
+                        Approve Center
+                      </Link>
+                    </li> */}
 
-                  {/* ঋণ শেষ  */}
+                    {/* <li
+                      className={`sidebar-item ${location.pathname === "/GrantCenter" ? "active" : ""
+                        }`}
+                    >
+                      <Link to="GrantCenter" className="sidebar-link">
+                        Granted Center
+                      </Link>
+                    </li> */}
 
-                  {/* সঞ্চয় শুরু  */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "savings" ? "active" : ""
+                    {/* <li
+                      className={`sidebar-item ${location.pathname === "/ReviewCenter" ? "active" : ""
+                        }`}
+                    >
+                      <Link to="ReviewCenter" className="sidebar-link">
+                        Review Center
+                      </Link>
+                    </li> */}
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/CenterList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="CenterList" className="sidebar-link">
+                        কেদ্রের তালিকা
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/MemberListCenter"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="MemberListCenter" className="sidebar-link">
+                        কেদ্রের সদস্য তালিকা
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/LoanDetails" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="LoanDetails" className="sidebar-link">
+                        কেন্দ্রের ঋণ বিবরণ
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/SavingsDetails" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="SavingsDetails" className="sidebar-link">
+                        কেন্দ্রের সঞ্চয় বিবরণ
+                      </Link>
+                    </li>
+                    <li className="sidebar-item">
+                      <a href="#" className="sidebar-link">
+                        কেদ্রের হিসাব
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                {/* কেন্দ্র শেষ  */}
+
+                {/* শাঁখা শুরু */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "branch" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("branch")}
+                    aria-expanded={activeMenu === "branch"}
+                  >
+                    <i className="fa-solid fa-sliders pe-2"></i>
+                    শাঁখা
+                  </a>
+                  <ul
+                    id="branch"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "branch" ? "show" : ""
                     }`}
+                    data-bs-parent="#sidebar"
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("savings")}
-                      aria-expanded={activeMenu === "savings"}
-                    >
-                      <i className="fa-solid fa-sliders pe-2"></i>
-                      সঞ্চয়
-                    </a>
-                    <ul
-                      id="savings"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "savings" ? "show" : ""
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/OpenBranch" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/OpenSavings" ? "active" : ""
-                        }`}
+                      <Link to="OpenBranch" className="sidebar-link">
+                        শাঁখা যোগ করুণ
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/BranchList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="BranchList" className="sidebar-link">
+                        শাখার তালিকা
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/BranchMemberList"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="BranchMemberList" className="sidebar-link">
+                        শাখার সদস্য তালিকা
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/LoanDetailsForBranch"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="LoanDetailsForBranch" className="sidebar-link">
+                        শাখার ঋণের তালিকা
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/SavingsDetailsFroBranch"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link
+                        to="SavingsDetailsFroBranch"
+                        className="sidebar-link"
                       >
-                        <Link to="OpenSavings" className="sidebar-link">
-                          সঞ্চয় খুলুন
-                        </Link>
-                      </li>
+                        শাখার সঞ্চয়ের তালিকা
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/SavingList" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="SavingList" className="sidebar-link">
-                          সঞ্চয় তালিকা
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/SavingsCollection"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="SavingsCollection" className="sidebar-link">
-                          সঞ্চয় কালেকশন
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/SavingsWithdraw"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="SavingsWithdraw" className="sidebar-link">
-                          সঞ্চয় উত্তলন
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
-                  {/* সঞ্চয় শেষ  */}
+                {/* শাঁখা শেষ  */}
 
-                  {/* অফিস শুরু  */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "Office" ? "active" : ""
+                {/* ঋণ শুরু  */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "loan" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("loan")}
+                    aria-expanded={activeMenu === "loan"}
+                  >
+                    <i className="fa-solid fa-sliders pe-2"></i>
+                    ঋণ
+                  </a>
+                  <ul
+                    id="loan"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "loan" ? "show" : ""
                     }`}
+                    data-bs-parent="#sidebar"
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("Office")}
-                      aria-expanded={activeMenu === "Office"}
-                    >
-                      <i className="fa-solid fa-sliders pe-2"></i>
-                      অফিস
-                    </a>
-                    <ul
-                      id="Office"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "Office" ? "show" : ""
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/OpenLoan" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/WorkerAdmission"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="WorkerAdmission" className="sidebar-link">
-                          অফিস কর্মী যোগ করুণ
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/WorkerDetails" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="WorkerDetails" className="sidebar-link">
-                          অফিস কর্মী বিবরণ
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/WorkerTransfer"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="WorkerTransfer" className="sidebar-link">
-                          অফিস কর্মী ট্র্যান্সফার
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/Designation" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="Designation" className="sidebar-link">
-                          পদবি যোগ করুণ
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/Salary" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="Salary" className="sidebar-link">
-                          বেতন তৈরি করুণ
-                        </Link>
-                      </li>
+                      <Link to="OpenLoan" className="sidebar-link">
+                        ঋণ বিতরণ
+                      </Link>
+                    </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/SalaryList" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="SalaryList" className="sidebar-link">
-                          বেতন বিবরণ
-                        </Link>
-                      </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/InstallmentList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="InstallmentList" className="sidebar-link">
+                        কিস্তির তালিকা
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/InstallmentCollection"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="InstallmentCollection" className="sidebar-link">
+                        কিস্তি কালেকশন
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/OfficeCollection"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="Voucher" className="sidebar-link">
-                          অফিস জমা
-                        </Link>
-                      </li>
+                {/* ঋণ শেষ  */}
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/Voucher" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="Voucher" className="sidebar-link">
-                          ভাউচার
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
-                  {/* অফিস শেষ  */}
-
-                  {/* হিসাব শুরু */}
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "account" ? "active" : ""
+                {/* সঞ্চয় শুরু  */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "savings" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("savings")}
+                    aria-expanded={activeMenu === "savings"}
+                  >
+                    <i className="fa-solid fa-sliders pe-2"></i>
+                    সঞ্চয়
+                  </a>
+                  <ul
+                    id="savings"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "savings" ? "show" : ""
                     }`}
+                    data-bs-parent="#sidebar"
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("account")}
-                      aria-expanded={activeMenu === "account"}
-                    >
-                      <i className="fa-solid fa-sliders pe-2"></i>
-                      হিসাব
-                    </a>
-                    <ul
-                      id="account"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "account" ? "show" : ""
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/OpenSavings" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/AllMemberList" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="AllMemberList" className="sidebar-link">
-                          সকল সদস্য তালিকা
-                        </Link>
-                      </li>
+                      <Link to="OpenSavings" className="sidebar-link">
+                        সঞ্চয় খুলুন
+                      </Link>
+                    </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/LoanPortfolioStatement"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link
-                          to="LoanPortfolioStatement"
-                          className="sidebar-link"
-                        >
-                          Loan Portfolio Statement
-                        </Link>
-                      </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/ApproveSavings" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="ApproveSavings" className="sidebar-link">
+                        Approve Saving
+                      </Link>
+                    </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/BalanceSheet" ? "active" : ""
-                        }`}
-                      >
-                        <Link to="BalanceSheet" className="sidebar-link">
-                          Blance Sheet
-                        </Link>
-                      </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/GrantSavings" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="GrantSavings" className="sidebar-link">
+                        Granted Saving
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/ReviewSaving" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="ReviewSaving" className="sidebar-link">
+                        Review Saving
+                      </Link>
+                    </li>
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/DailyDepositRegister"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link
-                          to="DailyDepositRegister"
-                          className="sidebar-link"
-                        >
-                          Daily Deposit Register
-                        </Link>
-                      </li>
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/MonthlyServiceChargeStatement"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link
-                          to="MonthlyServiceChargeStatement"
-                          className="sidebar-link"
-                        >
-                          Monthly Service Charge Statement
-                        </Link>
-                      </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/SavingList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="SavingList" className="sidebar-link">
+                        সঞ্চয় তালিকা
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/SavingsCollection"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="SavingsCollection" className="sidebar-link">
+                        সঞ্চয় কালেকশন
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/SavingsWithdraw" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="SavingsWithdraw" className="sidebar-link">
+                        সঞ্চয় উত্তলন
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+                {/* সঞ্চয় শেষ  */}
 
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/IncomeExpenseReport"
-                            ? "active"
-                            : ""
-                        }`}
-                      >
-                        <Link to="IncomeExpenseReport" className="sidebar-link">
-                          Income Expense Report
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
-
-                  {/* হিসাব শেষ  */}
-
-                  <li
-                    className={`sidebar-item ${
-                      activeMenu === "auth" ? "active" : ""
+                {/* অফিস শুরু  */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "Office" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("Office")}
+                    aria-expanded={activeMenu === "Office"}
+                  >
+                    <i className="fa-solid fa-sliders pe-2"></i>
+                    অফিস
+                  </a>
+                  <ul
+                    id="Office"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "Office" ? "show" : ""
                     }`}
+                    data-bs-parent="#sidebar"
                   >
-                    <a
-                      href="#"
-                      className="sidebar-link collapsed"
-                      onClick={() => handleMenuClick("auth")}
-                      aria-expanded={activeMenu === "auth"}
-                    >
-                      <i className="fa-regular fa-user pe-2"></i>
-                      Auth
-                    </a>
-                    <ul
-                      id="auth"
-                      className={`sidebar-dropdown list-unstyled collapse ${
-                        activeMenu === "auth" ? "show" : ""
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/WorkerAdmission" ? "active" : ""
                       }`}
-                      data-bs-parent="#sidebar"
                     >
-                      <li
-                        className={`sidebar-item ${
-                          location.pathname === "/signup" ? "active" : ""
-                        }`}
+                      <Link to="WorkerAdmission" className="sidebar-link">
+                        অফিস কর্মী যোগ করুণ
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/OfficeWorkerGranted"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="OfficeWorkerGranted" className="sidebar-link">
+                        Office Worker Granted
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/ReviewWorker" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="ReviewWorker" className="sidebar-link">
+                        Office Worker Review
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/WorkerDetails" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="WorkerDetails" className="sidebar-link">
+                        কর্মী বিবরণ ও ট্র্যান্সফার
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/Designation" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="Designation" className="sidebar-link">
+                        পদবি যোগ করুণ
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/Salary" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="Salary" className="sidebar-link">
+                        বেতন তৈরি করুণ
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/SalaryList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="SalaryList" className="sidebar-link">
+                        বেতন বিবরণ
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/OfficeCollection"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="OfficeCollection" className="sidebar-link">
+                        অফিস জমা
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/Voucher" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="Voucher" className="sidebar-link">
+                        ভাউচার
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+                {/* অফিস শেষ  */}
+
+                {/* হিসাব শুরু */}
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "account" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("account")}
+                    aria-expanded={activeMenu === "account"}
+                  >
+                    <i className="fa-solid fa-sliders pe-2"></i>
+                    হিসাব
+                  </a>
+                  <ul
+                    id="account"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "account" ? "show" : ""
+                    }`}
+                    data-bs-parent="#sidebar"
+                  >
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/AllMemberList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="AllMemberList" className="sidebar-link">
+                        সকল সদস্য তালিকা
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/LoanPortfolioStatement"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link
+                        to="LoanPortfolioStatement"
+                        className="sidebar-link"
                       >
-                        <Link to="signup" className="sidebar-link">
-                          Account Create
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
+                        Loan Portfolio Statement
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/BalanceSheet" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="BalanceSheet" className="sidebar-link">
+                        Blance Sheet
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/DailyDepositRegister"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="DailyDepositRegister" className="sidebar-link">
+                        Daily Deposit Register
+                      </Link>
+                    </li>
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/MonthlyServiceChargeStatement"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link
+                        to="MonthlyServiceChargeStatement"
+                        className="sidebar-link"
+                      >
+                        Monthly Service Charge Statement
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/IncomeExpenseReport"
+                          ? "active"
+                          : ""
+                      }`}
+                    >
+                      <Link to="IncomeExpenseReport" className="sidebar-link">
+                        Income Expense Report
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+
+                {/* হিসাব শেষ  */}
+
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "auth" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("auth")}
+                    aria-expanded={activeMenu === "auth"}
+                  >
+                    <i className="fa-regular fa-user pe-2"></i>
+                    Auth
+                  </a>
+                  <ul
+                    id="auth"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "auth" ? "show" : ""
+                    }`}
+                    data-bs-parent="#sidebar"
+                  >
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/signup" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="signup" className="sidebar-link">
+                        Account Create
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/UserEdit" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="UserEdit" className="sidebar-link">
+                        User Update
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/UserList" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="UserList" className="sidebar-link">
+                        User List
+                      </Link>
+                    </li>
+
+                    {/* <li
+                      className={`sidebar-item ${location.pathname === "/GrantUser" ? "active" : ""
+                        }`}
+                    >
+                      <Link to="GrantUser" className="sidebar-link">
+                        Granted User
+                      </Link>
+                    </li> */}
+                  </ul>
+                </li>
+
+                {/* অনুমতি  */}
+
+                <li
+                  className={`sidebar-item ${
+                    activeMenu === "Permission" ? "active" : ""
+                  }`}
+                >
+                  <a
+                    href="#"
+                    className="sidebar-link collapsed"
+                    onClick={() => handleMenuClick("Permission")}
+                    aria-expanded={activeMenu === "Permission"}
+                  >
+                    <i className="fa-regular fa-user pe-2"></i>
+                    অনুমতি
+                  </a>
+                  <ul
+                    id="Permission"
+                    className={`sidebar-dropdown list-unstyled collapse ${
+                      activeMenu === "Permission" ? "show" : ""
+                    }`}
+                    data-bs-parent="#sidebar"
+                  >
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/Permission" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="Permission" className="sidebar-link">
+                        অনুমতি
+                      </Link>
+                    </li>
+
+                    <li
+                      className={`sidebar-item ${
+                        location.pathname === "/Review" ? "active" : ""
+                      }`}
+                    >
+                      <Link to="Review" className="sidebar-link">
+                        পুনঃনিরীক্ষণ
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
             </div>
-          </aside>
+          </div>
+        </aside>
 
-          <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4"></main>
-        </div>
+        <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4"></main>
       </div>
     </div>
   );

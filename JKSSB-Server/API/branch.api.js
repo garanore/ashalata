@@ -5,7 +5,7 @@ const { ObjectId } = require("mongoose").Types;
 
 const generateBranchID = async () => {
   const count = await OpenBranch.countDocuments();
-  const paddedCount = (count + 1).toString().padStart(4, "0");
+  const paddedCount = (count + 1).toString().padStart(2, "0");
   return `B${paddedCount}`;
 };
 
@@ -21,15 +21,16 @@ router.get("/openbranch/count", async (req, res) => {
 
 router.post("/openbranch", async (req, res) => {
   try {
-    const { BranchName, BranchAddress, selectedManager, BranchMobile } =
-      req.body;
+    const { BranchName, BranchAddress, BranchMobile, submittedBy } = req.body;
     const BranchID = await generateBranchID();
     const newBranchrouterlication = new OpenBranch({
       BranchID,
       BranchName,
       BranchAddress,
-
+      submittedBy,
       BranchMobile,
+      ActiveStatus: "True",
+      DeletedBy: "Null",
     });
     await newBranchrouterlication.save();
     res.status(201).json({ message: "Branch Create successfully" });
@@ -46,7 +47,7 @@ router.get("/branch-callback", async (req, res) => {
     // Fetch all centers and return only CenterName
     const branchs = await OpenBranch.find(
       {},
-      "BranchID BranchName BranchAddress  BranchMobile"
+      "BranchID BranchName BranchAddress  BranchMobile ActiveStatus DeletedBy submittedBy "
     );
     res.json(branchs);
   } catch (error) {
@@ -65,7 +66,7 @@ router.get("/branch-callback/:ID", async (req, res) => {
 
     const branch = await OpenBranch.findOne(
       query,
-      " BranchID BranchName BranchAddress  BranchMobile"
+      " BranchID BranchName BranchAddress  BranchMobile ActiveStatus DeletedBy submittedBy"
     );
 
     if (!branch) {
@@ -107,6 +108,34 @@ router.put("/branch-callback/:ID", async (req, res) => {
     });
   } catch (error) {
     console.error("Branch Update Error:", error.message);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+// for disabling branches ------------------------------
+
+router.put("/openbranch/ActiveStatus/:id", async (req, res) => {
+  try {
+    const { username, deleteDate } = req.body;
+    const branchId = req.params.id;
+
+    const branch = await OpenBranch.findById(branchId);
+
+    if (!branch) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Branch not found" });
+    }
+
+    branch.ActiveStatus = "False";
+    branch.DeletedBy = username;
+    branch.DeleteDate = deleteDate; // Assuming you have a DeleteDate field in your schema
+
+    await branch.save();
+
+    res.status(200).json({ message: "Branch updated successfully" });
+  } catch (error) {
+    console.error("Error updating ActiveStatus:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });

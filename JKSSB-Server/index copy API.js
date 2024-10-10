@@ -32,7 +32,7 @@ app.use(bodyParser.json());
 
 // for loaclhost ---------------------------------------------------------
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "http://localhost:5000" }));
 
 // database connection
 

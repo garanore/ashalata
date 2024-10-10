@@ -8,9 +8,7 @@ const useHasUsers = () => {
   useEffect(() => {
     const fetchHasUsers = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/has-users"
-        );
+        const response = await axios.get("http://localhost:5000/has-users");
         setHasUsers(response.data.hasUsers);
       } catch (error) {
         console.error("Error fetching user count:", error);

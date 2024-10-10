@@ -34,6 +34,10 @@ function OpenLoan() {
   const [centerDay, setCenterDay] = useState("");
   const [installmentCount, setInstallmentCount] = useState(46); // Default installment count
   const [totalInstallment, setTotalInstallment] = useState(46);
+  const [hasAccess, setHasAccess] = useState(true);
+  const [accountName, setAccountName] = useState(""); // Add accountName state
+  const [, setUserBranches] = useState([]);
+  const [username, setUsername] = useState(""); // Add username state
 
   useEffect(() => {
     // Fetch member data
@@ -49,6 +53,56 @@ function OpenLoan() {
     };
 
     fetchMemberData();
+
+    // Step 2: Retrieve user branch data from localStorage
+    const storedUserBranchData = localStorage.getItem("userBranchData");
+    if (storedUserBranchData) {
+      const parsedData = JSON.parse(storedUserBranchData);
+      const userBranches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+      setUserBranches(userBranches);
+
+      const usernames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+
+      const username = usernames[0] || "Unknown";
+      setUsername(username);
+
+      // Fetch accountName based on the username
+      if (username !== "Unknown") {
+        axios
+          .get(`http://localhost:5000/get-user-username/${username}`)
+          .then((response) => {
+            if (response.data.length > 0) {
+              setAccountName(response.data[0].accountName);
+            } else {
+              setAccountName("Unknown User");
+            }
+          })
+          .catch(() => {
+            setAccountName("Error fetching user");
+          });
+      }
+
+      const designations = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key]);
+
+      // Check if the user has a restricted designation
+      const restrictedDesignations = [
+        "উর্দ্ধতন কর্মসূচী সংগঠক",
+        "কর্মসূচী সংগঠক",
+        "সহকারী কর্মসূচী সংগঠক",
+      ];
+      const userHasRestrictedDesignation = designations.some((designation) =>
+        restrictedDesignations.includes(designation)
+      );
+
+      // Restrict access if the user has a restricted designation
+      setHasAccess(!userHasRestrictedDesignation);
+    }
   }, []);
 
   // Fetch center details based on selected member's center ID
@@ -68,6 +122,7 @@ function OpenLoan() {
   };
 
   // Generate Loan ID-----------------------------------------------------------
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchLoanCount = async () => {
     try {
@@ -233,6 +288,37 @@ function OpenLoan() {
       const nextDates = [];
       let currentDate = moment(installmentStart);
 
+      // Step 2: Retrieve user branch data and username from localStorage
+      const storedUserData = localStorage.getItem("userBranchData");
+      let submittedBy = "Unknown"; // Default to 'Unknown' if not found
+
+      if (storedUserData) {
+        try {
+          const parsedData = JSON.parse(storedUserData);
+
+          // Extract the username from localStorage
+          const userNames = Object.keys(parsedData)
+            .filter((key) => key.startsWith("username"))
+            .map((key) => parsedData[key]);
+
+          // Use the first username if available
+          if (userNames.length > 0) {
+            submittedBy = userNames[0];
+          }
+        } catch (error) {
+          console.error(
+            "Error parsing userBranchData from localStorage:",
+            error.message
+          );
+        }
+      }
+
+      // If the submittedBy is still 'Unknown', stop submission
+      if (submittedBy === "Unknown") {
+        setSubmitMessage("Error: Submitted by field is missing or invalid.");
+        return;
+      }
+
       // Check if the loan type is 'daily'
       if (loanType === "daily") {
         for (let i = 0; i < installmentCount; i++) {
@@ -321,6 +407,11 @@ function OpenLoan() {
               totalInstallment: totalInstallment, // Include totalInstallment in the request body
               macroloan, // Include macroloan value in the data sent to the backend
               fromFee, // Include FromFee value in the data sent to the backend
+              approvalStatus: "Approved",
+              ActiveStatus: "True",
+              submittedBy: submittedBy, // Use the retrieved username from localStorage
+              GrantedBy: "Null",
+              DeletedStatus: "Null",
             }),
           }
         );
@@ -362,206 +453,526 @@ function OpenLoan() {
     }
   };
 
+  if (!hasAccess) {
+    return (
+      <div className="bg-light container-fluid">
+        <div className="p-4">
+          <div className="border-bottom mb-4">
+            <h2
+              className="text-center mb-4"
+              style={{ fontWeight: "bold", color: "#2D3748" }}
+            >
+              <i
+                className="fas fa-list-alt"
+                style={{ marginRight: "10px" }}
+              ></i>
+              ঋণ বিতরণ
+            </h2>
+          </div>
+
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{
+              backgroundColor: "#f8d7da",
+              borderRadius: "10px",
+              padding: "20px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <p
+              className="text-center mb-0"
+              style={{
+                fontSize: "1.25rem",
+                fontWeight: "bold",
+                color: "#721c24",
+              }}
+            >
+              <i
+                className="fas fa-exclamation-triangle"
+                style={{ fontSize: "1.5rem", marginRight: "10px" }}
+              ></i>
+              প্রিয়{" "}
+              <span className="highlighted-username">
+                {accountName || username}
+              </span>
+              , এই পেইজে আপনার অনুমতি নেই।
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-light mt-2 ">
-      <div className="mt-2 p-2">
+    <div className="bg-light container-fluid ">
+      <div className="p-2">
         <form onSubmit={handleSubmit}>
           <div>
-            <div>
-              <div className="border-bottom mb-3">
-                <h2 className="text-center mb-4 pt-3">ঋণ বিতরণ</h2>
+            <div className="row mb-4">
+              <div className="col">
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{
+                    backgroundColor: "#f0f4f8", // Soft background for the header
+                    borderRadius: "10px", // Rounded edges for a modern look
+                    padding: "20px",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+                  }}
+                >
+                  <h2
+                    className="text-center mb-0"
+                    style={{
+                      fontWeight: "bold",
+                      color: "#2D3748",
+                      fontSize: "2rem", // Larger text for prominence
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i> ঋণ বিতরণ
+                  </h2>
+                </div>
               </div>
             </div>
-            <div className="mb-3 row">
-              <div className="col-3">
-                <label htmlFor="memberID" className="form-label">
-                  Member ID:
-                </label>
-                <input
-                  type="text"
-                  id="memberID"
-                  className="form-control"
-                  value={memberID}
-                  onChange={handleMemberIDChange} // Handle Member ID change
-                  placeholder="Enter Member ID"
-                ></input>
-              </div>
-              <div className="mb-3 col-3">
-                <label htmlFor="loanID" className="form-label">
-                  ঋণ সংখ্যা
-                </label>
-                <input
-                  id="loanID"
-                  className="form-control"
-                  type="text"
-                  value={loanID}
-                  disabled
+            <div className="row">
+              <div className="col">
+                <hr
+                  style={{
+                    border: "none",
+                    borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                    marginTop: "10px",
+                  }}
                 />
+              </div>
+            </div>
+
+            <div className="mb-3 row">
+              <div className="col-md-3">
+                <label
+                  htmlFor="memberID"
+                  className="form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-id-card"></i> সদস্য ID
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-id-card"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="memberID"
+                    className="form-control border-primary"
+                    value={memberID}
+                    onChange={handleMemberIDChange} // Handle Member ID change
+                    placeholder="সদস্য ID লিখুন"
+                  ></input>
+                </div>
+                <small className="text-muted">উদাহরণ: B01M0001</small>
+              </div>
+
+              <div className="col-md-3">
+                <label
+                  htmlFor="loanID"
+                  className="form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-id-card"></i> ঋণ সংখ্যা
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-id-card"></i>
+                  </span>
+                  <input
+                    id="loanID"
+                    className="form-control border-primary"
+                    type="text"
+                    value={loanID}
+                    disabled
+                  />
+                </div>
               </div>
 
               {selectedMember && (
                 <div className="mt-3 row">
-                  <div className="col-2">
-                    <label htmlFor="OLname" className="form-label">
-                      নাম
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="OLname"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-use"></i> সদস্য নাম
                     </label>
-                    <input
-                      type="text"
-                      id="OLname"
-                      className="form-control"
-                      value={selectedMember.memberName}
-                      readOnly
-                    />
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-user"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="OLname"
+                        className="form-control border-primary"
+                        value={selectedMember.memberName}
+                        readOnly
+                      />
+                    </div>
                   </div>
 
-                  <div className="col-2">
-                    <label htmlFor="fathername" className="form-label">
-                      পিতা/স্বামী
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="MfhName"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-user-friends"></i> পিতা/স্বামী
                     </label>
-                    <input
-                      type="text"
-                      id="fathername"
-                      className="form-control"
-                      value={selectedMember.MfhName}
-                      readOnly
-                    />
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-user-friends"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="fathername"
+                        className="form-control border-primary"
+                        value={selectedMember.MfhName}
+                        readOnly
+                      />
+                    </div>
                   </div>
 
-                  <div className="col-2">
-                    <label htmlFor="OLbranch" className="form-label">
-                      শাঁখা
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="OLbranch"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-code-branch"></i> শাঁখা
                     </label>
-                    <input
-                      type="text"
-                      id="OLbranch"
-                      className="form-control"
-                      value={selectedMember.BranchMember}
-                      readOnly
-                    />
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-code-branch"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="OLbranch"
+                        className="form-select border-primary"
+                        value={selectedMember.BranchMember}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="OLcenter"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-map-marker-alt"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="OLcenter"
+                        className="form-select border-primary"
+                        value={selectedMember.CenterIDMember}
+                        readOnly
+                      />
+                    </div>
                   </div>
 
                   <div className="col-3">
-                    <label htmlFor="OLcenter" className="form-label">
-                      কেন্দ্র
+                    <label
+                      htmlFor="OLmobile"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-mobile-alt"></i> মোবাইল
                     </label>
-                    <input
-                      type="text"
-                      id="OLcenter"
-                      className="form-control"
-                      value={selectedMember.CenterIDMember}
-                      readOnly
-                    />
-                  </div>
-
-                  <div className="col-3">
-                    <label htmlFor="OLmobile" className="form-label">
-                      মোবাইল:
-                    </label>
-                    <input
-                      type="number"
-                      id="OLmobile"
-                      className="form-control"
-                      value={selectedMember.MemberMobile}
-                      readOnly
-                    />
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-mobile-alt"></i>
+                      </span>
+                      <input
+                        type="number"
+                        id="OLmobile"
+                        className="form-control border-primary"
+                        value={selectedMember.MemberMobile}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="row mt-5">
-              <div className="mb-3 col-3">
-                <label htmlFor="loanType" className="form-label">
-                  ঋণের ধরণ
-                </label>
-                <select
-                  id="loanType"
-                  className="form-select"
-                  onChange={handleLoanTypeChange}
-                  value={loanType}
+              <div className="col-3">
+                <label
+                  htmlFor="loanType"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
                 >
-                  <option value="">বাছাই করুণ</option>
-                  {Object.entries(loanTypeTranslations).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
+                  <i className="fas fa-money-check-alt"></i> ঋণের ধরণ
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-money-check-alt"></i>
+                  </span>
+                  <select
+                    id="loanType"
+                    className="form-control border-primary"
+                    onChange={handleLoanTypeChange}
+                    value={loanType}
+                  >
+                    <option value="">--------</option>
+                    {Object.entries(loanTypeTranslations).map(
+                      ([key, value]) => (
+                        <option key={key} value={key}>
+                          {value}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
               </div>
 
-              <div className="mb-3 col-3">
-                <label htmlFor="OLamount" className="form-label">
-                  ঋণের পরিমাণ
+              <div className="col-3">
+                <label
+                  htmlFor="OLamount"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> ঋণের পরিমাণ
                 </label>
-                <input
-                  type="number"
-                  id="OLamount"
-                  className="form-control"
-                  value={OLamount}
-                  onChange={handleAmountChange}
-                  placeholder="Enter Amount"
-                />
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i>
+                  </span>
+                  <input
+                    type="number"
+                    id="OLamount"
+                    className="form-control border-primary"
+                    placeholder="ঋণের পরিমাণ লিখুন"
+                    value={OLamount}
+                    onChange={handleAmountChange}
+                  />
+                </div>
               </div>
 
-              <div className="mb-3 col-3">
-                <label htmlFor="OLtotal" className="form-label">
-                  মোট টাকা
+              <div className="col-3">
+                <label
+                  htmlFor="OLtotal"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> মোট টাকা
                 </label>
-                <input
-                  type="text"
-                  id="OLtotal"
-                  className="form-control"
-                  value={OLtotal}
-                  readOnly
-                />
-              </div>
-
-              <div className="mb-3 col-3">
-                <label htmlFor="installment" className="form-label">
-                  কিস্তির পরিমাণ
-                </label>
-                <input
-                  type="text"
-                  id="installment"
-                  className="form-control"
-                  value={installment}
-                  readOnly
-                />
-              </div>
-              <div className="row mt-5">
-                <div className="col-3">
-                  <label htmlFor="CenterDay" className="form-label">
-                    কেন্দ্র বার
-                  </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i>
+                  </span>
                   <input
                     type="text"
-                    id="CenterDay"
-                    className="form-control"
-                    value={centerDay}
+                    id="OLtotal"
+                    className="form-control border-primary"
+                    value={OLtotal}
                     readOnly
                   />
                 </div>
+                <small className="text-muted">Interest সহ মোট টাকা</small>
+              </div>
 
-                <div className="mb-3 col-3">
-                  <label htmlFor="date" className="form-label">
-                    কিস্তি শুরু
+              <div className="col-3">
+                <label
+                  htmlFor="installment"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> কিস্তির পরিমাণ
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="installment"
+                    className="form-control border-primary"
+                    value={installment}
+                    readOnly
+                  />
+                </div>
+                <small className="text-muted">প্রতি কিস্তির পরিমাণ</small>
+              </div>
+
+              <div className="row mt-5">
+                <div className="col-md-3">
+                  <label
+                    htmlFor="CenterDay"
+                    className="form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-calendar-day"></i> কেন্দ্র বার
                   </label>
-                  <div>
-                    <DatePicker
-                      id="date"
-                      className="form-control"
-                      selected={installmentStart}
-                      onChange={handleDateChange}
-                      dateFormat="dd/MM/yyyy"
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-calendar-day"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="CenterDay"
+                      className="form-select border-primary"
+                      value={centerDay}
+                      readOnly
                     />
                   </div>
                 </div>
+
+                <div className="col-md-3">
+                  <label
+                    htmlFor="installmentStart"
+                    className="form-label"
+                    style={{ fontWeight: "bold", color: "#4A5568" }}
+                  >
+                    <i className="fas fa-calendar-alt"></i> কিস্তি শুরু
+                  </label>
+                  <div className="input-group shadow-sm">
+                    <span
+                      className="input-group-text bg-primary text-white"
+                      style={{
+                        background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                        color: "#fff",
+                      }}
+                    >
+                      <i className="fas fa-calendar-alt"></i>
+                    </span>
+                    <div>
+                      <DatePicker
+                        id="installmentStart"
+                        className="form-control border-primary"
+                        selected={installmentStart}
+                        onChange={handleDateChange}
+                        dateFormat="dd/MM/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <small className="text-muted">
+                    কেন্দ্র বার অনুযায়ী প্রথম কিস্তির তারিখ
+                  </small>
+                </div>
               </div>
 
-              <button className="btn btn-primary">Submit</button>
+              {/* <button className="btn btn-primary">Submit</button> */}
+
+              <div className="d-flex justify-content-center mb-3 mt-5">
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg shadow"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-paper-plane"></i> Submit
+                </button>
+              </div>
+
               {submitMessage && (
-                <div className="alert alert-success mt-3" role="alert">
-                  {submitMessage}
+                <div
+                  className="alert alert-success mt-3 d-flex align-items-center"
+                  role="alert"
+                  style={{
+                    borderRadius: "0.5rem", // Rounded corners
+                    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+                  }}
+                >
+                  <i
+                    className="fas fa-check-circle"
+                    style={{
+                      fontSize: "1.5rem",
+                      marginRight: "10px", // Space between icon and text
+                      color: "#155724", // Dark green for the icon
+                    }}
+                  ></i>
+                  <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
                 </div>
               )}
             </div>

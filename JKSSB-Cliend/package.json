@@ -1,5 +1,5 @@
 {
-  "name": "ashalota.gandhipoka.com",
+  "name": "localhost:5000",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -27,6 +27,7 @@
     "babel-plugin-macros": "^3.1.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
+    "bootstrap-icons": "^1.11.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",

@@ -4,18 +4,30 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import axios from "axios";
-import DatePickers from "./../../datepicker/DatePicker";
+// import DatePickers from "./../../datepicker/DatePicker";
 const API_URL = "http://localhost:5000/workeradmission";
-const DESIGNATION_CALLBACK_API =
-  "http://localhost:5000/designation-callback";
+const DESIGNATION_CALLBACK_API = "http://localhost:5000/designation-callback";
 
 const WorkerAdmission = () => {
   const [WorkerCount, setWorkerCount] = useState(0);
+
+  const [designation, setdesignation] = useState("");
+  const [, setDesignationName] = useState(""); // DesignationName
+  const [showUserBranch, setShowUserBranch] = useState(false);
+  const [showCenterIDMember, setShowCenterIDMember] = useState(false);
+  const [, setSelectedCenter] = useState({});
+  const [, setUserCenter] = useState("");
+  const [memberData, setmemberData] = useState({});
+  const [accountName, setAccountName] = useState("");
+  const [username, setUsername] = useState("");
+
   const [workerID, setWorkerID] = useState("");
   const [centers, setCenters] = useState([]);
-  const [branches, setBranchs] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
-
+  const [hasAccess, setHasAccess] = useState(true);
+  const [userBranches, setUserBranches] = useState([]);
+  const [submitMessage, setSubmitMessage] = useState("");
   const [WorkerData, setWorkerData] = useState({
     WorkerName: "",
     WorkerParent: "",
@@ -36,6 +48,9 @@ const WorkerAdmission = () => {
     WorkerBranchAdd: "",
     Designation: "",
     JoiningDate: "",
+    submittedBy: "", // Make sure this is part of the form state
+    GrantedBy: "Null", // Ensure it's set correctly
+    DeletedStatus: "Null", // Ensure it's set correctly
     agreementChecked: false,
   });
   const formRef = useRef(null);
@@ -46,7 +61,6 @@ const WorkerAdmission = () => {
     });
   };
   const [designations, setDesignations] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
 
   //for Worker Count
 
@@ -59,7 +73,7 @@ const WorkerAdmission = () => {
       setWorkerID(generateWorkerID(count));
     } catch (error) {
       console.error("Error fetching branch count:", error.message);
-      setSuccessMessage("Error fetching branch count");
+      setSubmitMessage("Error fetching branch count");
     }
   };
 
@@ -84,15 +98,72 @@ const WorkerAdmission = () => {
   };
 
   useEffect(() => {
-    // Fetch branches data
+    // Step 1: Fetch all branches
     axios
       .get("http://localhost:5000/branch-callback")
       .then((response) => {
-        setBranchs(response.data);
+        setBranches(response.data);
       })
       .catch((error) => {
         console.error("Error fetching branch data:", error);
       });
+
+    // Step 2: Retrieve user branch data and designation from localStorage
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+
+      const branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+      setUserBranches(branches);
+
+      const designations = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key]);
+
+      const usernames = Object.keys(parsedData)
+        .filter((key) => key.startsWith("username"))
+        .map((key) => parsedData[key]);
+
+      const username = usernames[0] || "Unknown";
+      setUsername(username);
+
+      // Fetch accountName based on the username
+      if (username !== "Unknown") {
+        axios
+          .get(`http://localhost:5000/get-user-username/${username}`)
+          .then((response) => {
+            if (response.data.length > 0) {
+              setAccountName(response.data[0].accountName);
+            } else {
+              setAccountName("Unknown User");
+            }
+          })
+          .catch(() => {
+            setAccountName("Error fetching user");
+          });
+      }
+
+      // Check if the user has a restricted designation
+      const restrictedDesignations = [
+        "উর্দ্ধতন কর্মসূচী সংগঠক",
+        "কর্মসূচী সংগঠক",
+        "সহকারী কর্মসূচী সংগঠক",
+      ];
+      const userHasRestrictedDesignation = designations.some((designation) =>
+        restrictedDesignations.includes(designation)
+      );
+
+      // Restrict access if the user has a restricted designation
+      setHasAccess(!userHasRestrictedDesignation);
+
+      // Store the username in the formData to use it later in handleSubmit
+      setWorkerData((prevData) => ({
+        ...prevData,
+        submittedBy: username, // Set the username correctly here
+      }));
+    }
 
     // Fetch designations data
     axios
@@ -119,10 +190,14 @@ const WorkerAdmission = () => {
           )}`
         )
         .then((response) => {
-          setCenters(response.data);
+          // Filter out centers with ActiveStatus "False"
+          const activeCenters = response.data.filter(
+            (center) => center.ActiveStatus !== "False"
+          );
+          setCenters(activeCenters);
         })
         .catch((error) => {
-          console.error("Error fetching worker data:", error);
+          console.error("Error fetching center data:", error);
         });
     }
     if (name === "WorkerBranchAdd") {
@@ -131,6 +206,69 @@ const WorkerAdmission = () => {
         ...prevData,
         WorkerBranchAdd: value,
       }));
+    }
+  };
+
+  const handleCenterChange = (e) => {
+    const selectedCenterID = e.target.value;
+    setUserCenter(selectedCenterID); // Update UserCenter with selected center ID
+
+    axios
+      .get(`http://localhost:5000/center-callback-id/${selectedCenterID}`)
+      .then((response) => {
+        const center = response.data;
+
+        setSelectedCenter(center[0]);
+        setmemberData((prevData) => ({
+          ...prevData,
+          CenterIDMember: selectedCenterID, // Update CenterIDMember in memberData
+          CenterNameMember: center[0].CenterName,
+        }));
+      })
+      .catch((error) => {
+        console.error("Error fetching center data:", error);
+      });
+  };
+
+  // Get logged-in user's designation from localStorage
+  const loggedUserDesignation = localStorage.getItem("selectedDesignationName");
+
+  const handleRankChange = (e) => {
+    const selectedDesignationID = e.target.value;
+
+    const selectedDesignationName = designations.find(
+      (designation) => designation.DesignationName === selectedDesignationID
+    )?.DesignationName;
+
+    setdesignation(selectedDesignationID); // Set this to DesignationID for the select's value binding
+    setDesignationName(selectedDesignationName); // Use another state to store DesignationName for display/logic
+
+    if (
+      [
+        "নির্বাহী পরিচালক",
+        "সহকারী নির্বাহী পরিচালক",
+        "অর্থ পরিচালক",
+        "প্রোগ্রাম অফিসার",
+        "অডিট অফিসার",
+        "সহকারী অডিট অফিসার",
+        "এরিয়া ম্যানাজার",
+      ].includes(selectedDesignationName)
+    ) {
+      setShowUserBranch(false);
+      setShowCenterIDMember(false);
+    } else if (
+      [
+        "শাখা ব্যাবস্থাপক",
+        "সহকারী শাখা ব্যাবস্থাপক",
+        "শাখা হিসাব রক্ষক",
+        "সহকারী শাখা হিসাবরক্ষক",
+      ].includes(selectedDesignationName)
+    ) {
+      setShowUserBranch(true);
+      setShowCenterIDMember(false);
+    } else {
+      setShowUserBranch(true);
+      setShowCenterIDMember(true);
     }
   };
 
@@ -162,7 +300,7 @@ const WorkerAdmission = () => {
       const data = await response.json();
 
       // Handle success
-      setSuccessMessage("Successfully added worker data!");
+      setSubmitMessage("Pending for Approval");
       setWorkerCount(WorkerCount + 1);
       setWorkerID(generateWorkerID());
       setWorkerData({
@@ -186,10 +324,15 @@ const WorkerAdmission = () => {
         WorkerBranchAdd: "",
         Designation: "",
         JoiningDate: "",
+        approvalStatus: "Approved", // Ensure it's set correctly
+        ActiveStatus: "True", // Ensure it's set correctly
+        submittedBy: "", // Reset this as well
+        GrantedBy: "Null", // Ensure it's set correctly
+        DeletedStatus: "Null", // Ensure it's set correctly
         agreementChecked: false,
       });
       setTimeout(() => {
-        setSuccessMessage("");
+        setSubmitMessage("");
       }, 3000);
       formRef.current.reset();
     } catch (error) {
@@ -197,37 +340,145 @@ const WorkerAdmission = () => {
       // Handle error appropriately
     }
   };
-  return (
-    <div className=" container-fluid">
-      <div className="  mt-2 bg-light">
-        <div className="mb-5 ">
-          <h2 className="text-center mb-4 pt-4 ">অফিস কর্মী ভর্তি ফর্ম </h2>
+
+  if (!hasAccess) {
+    return (
+      <div className="bg-light container-fluid">
+        <div className="p-4">
+          <div className="border-bottom mb-4">
+            <h2
+              className="text-center mb-4"
+              style={{ fontWeight: "bold", color: "#2D3748" }}
+            >
+              <i className="fas fa-lock" style={{ marginRight: "10px" }}></i>{" "}
+              অফিস কর্মী ভর্তি ফর্ম
+            </h2>
+          </div>
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{
+              backgroundColor: "#f8d7da",
+              borderRadius: "10px",
+              padding: "20px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <p
+              className="text-center mb-0"
+              style={{
+                fontSize: "1.25rem",
+                fontWeight: "bold",
+                color: "#721c24",
+              }}
+            >
+              <i
+                className="fas fa-exclamation-triangle"
+                style={{ fontSize: "1.5rem", marginRight: "10px" }}
+              ></i>
+              প্রিয়{" "}
+              <span className="highlighted-username">
+                {accountName || username}
+              </span>
+              , এই পেইজে আপনার অনুমতি নেই।
+            </p>
+          </div>
         </div>
+      </div>
+    );
+  }
 
-        <form className=" bg-light " onSubmit={handleSubmit} ref={formRef}>
-          {/* <!-- Full Name --> */}
+  return (
+    <div className=" bg-light container-fluid">
+      <div className="row mb-4">
+        <div className="col">
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{
+              backgroundColor: "#f0f4f8", // Soft background for the header
+              borderRadius: "10px", // Rounded edges for a modern look
+              padding: "20px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+            }}
+          >
+            <h2
+              className="text-center mb-0"
+              style={{
+                fontWeight: "bold",
+                color: "#2D3748",
+                fontSize: "2rem", // Larger text for prominence
+              }}
+            >
+              <i className="fas fa-user-tie"></i> অফিস কর্মী ভর্তি ফর্ম
+            </h2>
+          </div>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col">
+          <hr
+            style={{
+              border: "none",
+              borderTop: "2px solid #2D3748", // Thicker line for emphasis
+              marginTop: "10px",
+            }}
+          />
+        </div>
+      </div>
 
-          <div className="row">
-            <div className="mb-3 col-4">
-              <label htmlFor="workerID" className="form-label">
-                Worker ID:
-              </label>
+      <form className=" bg-light " onSubmit={handleSubmit} ref={formRef}>
+        {/* <!-- Full Name --> */}
+
+        <div className="row">
+          <div className="col-md-3">
+            <label
+              htmlFor="workerID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> Worker ID
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
               <input
                 id="workerID"
-                className="form-control"
+                className="form-control border-primary"
                 type="text"
                 value={workerID}
                 disabled
               />
             </div>
+          </div>
 
-            <div className="col-md-4">
-              <label htmlFor="WorkerName" className="form-label">
-                নাম
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerName"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user"></i> নাম
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="নাম লিখুন"
                 id="WorkerName"
                 required
                 onChange={handleChange}
@@ -235,48 +486,63 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerName}
               ></input>
             </div>
+          </div>
 
-            {/* সদস্য তথ্য শুরু */}
+          {/* সদস্য তথ্য শুরু */}
 
-            <div className="col-md-4">
-              <label htmlFor="WorkerParent" className="form-label">
-                পিতা/স্বামীর নাম
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerParent"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user-friends"></i> পিতা/স্বামীর নাম
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user-friends"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
+                className="form-control border-primary"
                 id="WorkerParent"
                 required
                 onChange={handleChange}
                 name="WorkerParent"
+                placeholder="পিতা/স্বামীর নাম লিখুন"
                 value={WorkerData.WorkerParent}
               ></input>
             </div>
           </div>
 
-          <div className="row mt-4">
-            <div className="col-md-3">
-              <label htmlFor="WorkerJob" className="form-label">
-                পেশা
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerHome"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-home"></i> গ্রাম/পাড়া
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-home"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
-                id="WorkerJob"
-                required
-                onChange={handleChange}
-                name="WorkerJob"
-                value={WorkerData.WorkerJob}
-              ></input>
-            </div>
-
-            <div className="col-md-3">
-              <label htmlFor="WorkerHome" className="form-label">
-                গ্রাম/পাড়া
-              </label>
-              <input
-                type="text"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="গ্রাম/পাড়া লিখুন"
                 id="WorkerHome"
                 required
                 onChange={handleChange}
@@ -284,14 +550,32 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerHome}
               ></input>
             </div>
+          </div>
+        </div>
 
-            <div className="col-md-3">
-              <label htmlFor="WorkerUnion" className="form-label">
-                ইউনিয়ন
-              </label>
+        <div className="row mt-4">
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerUnion"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map-signs"></i> ইউনিয়ন
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map-signs"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="ইউনিয়ন লিখুন"
                 id="WorkerUnion"
                 required
                 onChange={handleChange}
@@ -299,14 +583,30 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerUnion}
               ></input>
             </div>
+          </div>
 
-            <div className="col-md-3">
-              <label htmlFor="WorkerPost" className="form-label">
-                ডাকঘর
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerPost"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mail-bulk"></i> ডাকঘর
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mail-bulk"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="ডাকঘর লিখুন"
                 id="WorkerPost"
                 required
                 onChange={handleChange}
@@ -316,14 +616,28 @@ const WorkerAdmission = () => {
             </div>
           </div>
 
-          <div className="row mt-4">
-            <div className="col-md-3">
-              <label htmlFor="WorkerSubDic" className="form-label">
-                থানা
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerSubDic"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map-marker-alt"></i> থানা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map-marker-alt"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="থানা লিখুন"
                 id="WorkerSubDic"
                 required
                 onChange={handleChange}
@@ -331,14 +645,30 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerSubDic}
               ></input>
             </div>
+          </div>
 
-            <div className="col-md-3">
-              <label htmlFor="WorkerDic" className="form-label">
-                জেলা
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerDic"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map"></i> জেলা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="জেলা লিখুন"
                 id="WorkerDic"
                 required
                 onChange={handleChange}
@@ -346,19 +676,36 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerDic}
               ></input>
             </div>
+          </div>
+        </div>
 
-            <div className="col-md-3">
-              <label htmlFor="WorkerMarital" className="form-label">
-                বৈবাহিক অবস্থা
-              </label>
+        <div className="row mt-4">
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerMarital"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-heart"></i> বৈবাহিক অবস্থা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-heart"></i>
+              </span>
               <select
                 id="WorkerMarital"
                 name="WorkerMarital"
-                className="form-select"
+                className="form-select shadow-sm border-primary"
                 value={WorkerData.WorkerMarital}
                 onChange={handleChange}
               >
-                <option value="">Choose...</option>
+                <option value="">--------</option>
                 <option>অবিবাহিত</option>
                 <option>বিবাহিত</option>
                 <option>তালাকপ্রাপ্ত</option>
@@ -366,19 +713,65 @@ const WorkerAdmission = () => {
                 <option>অন্যান্য</option>
               </select>
             </div>
+          </div>
 
-            <div className="col-md-3">
-              <label htmlFor="WorkerStudy" className="form-label">
-                শিক্ষাগত যোগ্যতা
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerJob"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-graduation-cap"></i> পেশা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-graduation-cap"></i>
+              </span>
+              <input
+                type="text"
+                className="form-select shadow-sm border-primary"
+                placeholder="পেশা লিখুন"
+                id="WorkerJob"
+                required
+                onChange={handleChange}
+                name="WorkerJob"
+                value={WorkerData.WorkerJob}
+              ></input>
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerStudy"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-graduation-cap"></i> শিক্ষাগত যোগ্যতা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-graduation-cap"></i>
+              </span>
               <select
                 id="WorkerStudy"
                 name="WorkerStudy"
-                className="form-select"
+                className="form-select shadow-sm border-primary"
                 value={WorkerData.WorkerStudy}
                 onChange={handleChange}
               >
-                <option value="">Choose...</option>
+                <option value="">-------</option>
                 <option>স্বাক্ষর জ্ঞান সম্পন্ন</option>
                 <option>প্রাথমিক</option>
                 <option>মাধ্যমিক</option>
@@ -389,14 +782,70 @@ const WorkerAdmission = () => {
             </div>
           </div>
 
-          <div className="row mt-4">
-            <div className="col-3">
-              <label htmlFor="WorkerNID" className="form-label">
-                NID নাম্বার{" "}
-              </label>
+          <div className="col-md-3">
+            <label
+              htmlFor="WdateOfBirth"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-birthday-cake"></i> জন্ম তারিখ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-birthday-cake"></i>
+              </span>
+              <DatePicker
+                id="WdateOfBirth"
+                className="form-control border-primary"
+                selected={
+                  WorkerData.WdateOfBirth
+                    ? new Date(WorkerData.WdateOfBirth)
+                    : null
+                }
+                onChange={handleDateChange}
+                dateFormat="dd/MM/yyyy"
+                required
+              />
+            </div>
+          </div>
+
+          {/* <div className="col-3">
+            <DatePickers
+              selectedDate={WorkerData.WdateOfBirth}
+              onDateChange={handleDateChange}
+            />
+          </div> */}
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-3">
+            <label
+              htmlFor="WorkerNID"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> NID নাম্বার
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
               <input
                 type="number"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="NID নাম্বার লিখুন"
                 id="WorkerNID"
                 required
                 onChange={handleChange}
@@ -404,21 +853,30 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerNID}
               ></input>
             </div>
+          </div>
 
-            <div className="col-3">
-              <DatePickers
-                selectedDate={WorkerData.WdateOfBirth}
-                onDateChange={handleDateChange}
-              />
-            </div>
-
-            <div className="col-3">
-              <label htmlFor="WorkerMobile" className="form-label">
-                মোবাইল নাম্বার{" "}
-              </label>
+          <div className="col-3">
+            <label
+              htmlFor="WorkerMobile"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mobile-alt"></i> মোবাইল নাম্বার
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mobile-alt"></i>
+              </span>
               <input
                 type="number"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="019xxxxxxxx"
                 id="WorkerMobile"
                 required
                 onChange={handleChange}
@@ -426,15 +884,30 @@ const WorkerAdmission = () => {
                 value={WorkerData.WorkerMobile}
               ></input>
             </div>
+          </div>
 
-            <div className="col-3">
-              <label htmlFor="WorkerMail" className="col-form-label">
-                মেইল{" "}
-              </label>
-
+          <div className="col-3">
+            <label
+              htmlFor="WorkerMail"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mobile-alt"></i> মেইল
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mobile-alt"></i>
+              </span>
               <input
                 type="email"
-                className="form-control"
+                className="form-control border-primary"
+                placeholder="Demo@gmail.com"
                 id="WorkerMail"
                 required
                 onChange={handleChange}
@@ -444,119 +917,280 @@ const WorkerAdmission = () => {
             </div>
           </div>
 
-          <div className="row mt-4">
-            <div className="col-md-3">
-              <label htmlFor="WorkerBranchAdd" className="form-label">
-                শাঁখা নির্বাচন করুণ
-              </label>
-              <select
-                id="WorkerBranchAdd"
-                className="form-select"
-                value={selectedBranch.WorkerBranchAdd}
-                onChange={handleBranchChange}
-                name="WorkerBranchAdd"
+          <div className="col-3">
+            <label
+              htmlFor="Designation"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user-tag"></i> পদ নির্বাচন করুণ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
               >
-                <option value="">Choose...</option>
-                {Array.isArray(branches) &&
-                  branches.length > 0 &&
-                  branches.map((branch) => (
-                    <option key={branch._id} value={branch.BranchName}>
-                      {branch.BranchName}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="col-md-3">
-              <label htmlFor="WorkerCenterAdd" className="form-label">
-                কেন্দ্র নির্বাচন করুণ
-              </label>
+                <i className="fas fa-user-tag"></i>
+              </span>
               <select
-                id="workerCenterAdd"
-                name="WorkerCenterAdd"
-                className="form-select"
-                value={WorkerData.WorkerCenterAdd}
-                onChange={handleChange}
-              >
-                <option value="">Choose...</option>
-                {centers.map((center) => (
-                  <option key={center.centerID} value={center.centerID}>
-                    {center.centerID}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-3">
-              <label htmlFor="Designation" className="form-label">
-                পদবি
-              </label>
-              <select
+                className="form-control border-primary"
                 id="Designation"
-                name="Designation"
-                className="form-select"
-                value={WorkerData.Designation}
-                onChange={handleChange}
+                value={designation}
+                onChange={handleRankChange}
+                required
               >
-                <option value="">Choose...</option>
-                {/* Map over the designations state to create options */}
-                {designations.map((designation) => (
-                  <option
-                    key={designation.DesignationID}
-                    value={designation.DesignationName}
-                  >
-                    {designation.DesignationName}
-                  </option>
-                ))}
+                <option value="" disabled>
+                  --------
+                </option>
+                {/* Full Access or Restricted Access Designations */}
+                {loggedUserDesignation === "নির্বাহী পরিচালক" ||
+                loggedUserDesignation === "সহকারী নির্বাহী পরিচালক" ||
+                loggedUserDesignation === "অর্থ পরিচালক" ||
+                loggedUserDesignation === "প্রোগ্রাম অফিসার" ||
+                loggedUserDesignation === "অডিট অফিসার" ||
+                loggedUserDesignation === "সহকারী অডিট অফিসার" ||
+                loggedUserDesignation === "এরিয়া ম্যানাজার"
+                  ? designations.map((designation) => (
+                      <option
+                        key={designation.DesignationName}
+                        value={designation.DesignationName}
+                      >
+                        {designation.DesignationName}
+                      </option>
+                    ))
+                  : designations
+                      .filter((d) =>
+                        [
+                          "উর্দ্ধতন কর্মসূচী সংগঠক",
+                          "কর্মসূচী সংগঠক",
+                          "সহকারী কর্মসূচী সংগঠক",
+                        ].includes(d.DesignationName)
+                      )
+                      .map((filteredDesignation) => (
+                        <option
+                          key={filteredDesignation.DesignationName}
+                          value={filteredDesignation.DesignationName}
+                        >
+                          {filteredDesignation.DesignationName}
+                        </option>
+                      ))}
               </select>
             </div>
-            <div className="mb-3 col-3">
-              <label htmlFor="JoiningDate" className="form-label">
-                যোগদানের তারিখ
-              </label>
+          </div>
+        </div>
 
-              <div>
-                <DatePicker
-                  id="JoiningDate"
-                  className="form-control"
-                  selected={
-                    WorkerData.JoiningDate
-                      ? new Date(WorkerData.JoiningDate)
-                      : null
-                  }
-                  onChange={handleJoiningDateChange}
-                  dateFormat="dd/MM/yyyy"
-                />
+        <div className="row mt-3">
+          {/* User Branch */}
+          {showUserBranch && (
+            <div className="col-md-3">
+              <label
+                htmlFor="WorkerBranchAdd"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-code-branch"></i> শাঁখা নির্বাচন করুণ
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-code-branch"></i>
+                </span>
+                <select
+                  className="form-select border-primary"
+                  id="WorkerBranchAdd"
+                  onChange={handleBranchChange}
+                  value={selectedBranch}
+                  required
+                >
+                  <option value="" disabled>
+                    --------
+                  </option>
+                  {userBranches.includes("AllBranch") ||
+                  userBranches.includes("AllCenter")
+                    ? branches.map((branch) => (
+                        <option key={branch._id} value={branch.BranchName}>
+                          {branch.BranchName}
+                        </option>
+                      ))
+                    : branches
+                        .filter((branch) =>
+                          userBranches.includes(branch.BranchName)
+                        )
+                        .map((branch) => (
+                          <option key={branch._id} value={branch.BranchName}>
+                            {branch.BranchName}
+                          </option>
+                        ))}
+                </select>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="col-12">
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="gridCheck"
-                name="agreementChecked"
-                checked={WorkerData.agreementChecked}
-                onChange={handleChange}
-              ></input>
-              <label className="form-check-label" htmlFor="gridCheck">
-                Check me out
+          {/* User Center */}
+          {showCenterIDMember && (
+            <div className="col-md-3">
+              <label
+                htmlFor="WorkerCenterAdd"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-map-marker-alt"></i> কেন্দ্র নির্বাচন করুণ
               </label>
-            </div>
-          </div>
-
-          <div className="col-12 mb-5">
-            <button type="submit" className="btn btn-primary">
-              Submit
-            </button>
-          </div>
-          {successMessage && (
-            <div className="alert alert-success" role="alert">
-              {successMessage}
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-map-marker-alt"></i>
+                </span>
+                <select
+                  id="WorkerCenterAdd"
+                  className="form-select border-primary"
+                  value={memberData.CenterMember}
+                  onChange={handleCenterChange}
+                  required
+                >
+                  <option value="">--------</option>
+                  {centers.map((center) => (
+                    <option key={center.centerID} value={center.centerID}>
+                      {center.centerID}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
-        </form>
-      </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="JoiningDate"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-birthday-cake"></i> জন্ম তারিখ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-birthday-cake"></i>
+              </span>
+              <DatePicker
+                id="JoiningDate"
+                className="form-control border-primary"
+                selected={
+                  WorkerData.JoiningDate
+                    ? new Date(WorkerData.JoiningDate)
+                    : null
+                }
+                onChange={handleJoiningDateChange}
+                dateFormat="dd/MM/yyyy"
+                required
+              />
+            </div>
+          </div>
+
+          {/* <div className="mb-3 col-3">
+            <label htmlFor="JoiningDate" className="form-label">
+              যোগদানের তারিখ
+            </label>
+
+            <div>
+              <DatePicker
+                id="JoiningDate"
+                className="form-control"
+                selected={
+                  WorkerData.JoiningDate
+                    ? new Date(WorkerData.JoiningDate)
+                    : null
+                }
+                onChange={handleJoiningDateChange}
+                dateFormat="dd/MM/yyyy"
+              />
+            </div>
+          </div> */}
+        </div>
+
+        <div className="col-12 mb-4 mt-5">
+          <div className="form-check d-flex align-items-center">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="agreementChecked"
+              name="agreementChecked"
+              checked={memberData.agreementChecked}
+              onChange={(e) =>
+                setmemberData((prevData) => ({
+                  ...prevData,
+                  agreementChecked: e.target.checked,
+                }))
+              }
+              style={{
+                cursor: "pointer",
+                width: "20px",
+                height: "20px",
+                borderRadius: "4px",
+              }}
+            />
+            <label
+              htmlFor="agreementChecked"
+              className="form-check-label ms-2"
+              style={{ fontSize: "16px", color: "#333" }}
+            >
+              I agree to the terms and conditions
+            </label>
+          </div>
+        </div>
+
+        <div className="d-flex justify-content-center mb-3">
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg shadow"
+            style={{
+              background: "linear-gradient(45deg, #007bff, #00d4ff)",
+              color: "#fff",
+            }}
+          >
+            <i className="fas fa-paper-plane"></i> Submit
+          </button>
+        </div>
+
+        {submitMessage && (
+          <div
+            className="alert alert-success mt-3 d-flex align-items-center"
+            role="alert"
+            style={{
+              borderRadius: "0.5rem", // Rounded corners
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+            }}
+          >
+            <i
+              className="fas fa-check-circle"
+              style={{
+                fontSize: "1.5rem",
+                marginRight: "10px", // Space between icon and text
+                color: "#155724", // Dark green for the icon
+              }}
+            ></i>
+            <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
+          </div>
+        )}
+      </form>
     </div>
   );
 };

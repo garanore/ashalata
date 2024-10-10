@@ -22,6 +22,8 @@ router.post("/save-savings-collection", async (req, res) => {
         },
         $push: {
           savingCollecting: item.SavingCollecting,
+          submittedBy: item.submittedBy,
+          SavingCount: item.SavingCount,
         },
         $addToSet: { savingCollectionDate: savingDate },
       };
@@ -41,23 +43,34 @@ router.post("/save-savings-collection", async (req, res) => {
 
 router.patch("/update-savings-collection/:savingID", async (req, res) => {
   const { savingID } = req.params;
-  const { savingCollectionDate, savingCollecting } = req.body;
+  const { savingCollectionDate, savingCollecting, submittedBy, SavingCount } =
+    req.body; // added submittedBy
 
-  if (!savingID || !savingCollectionDate || savingCollecting === undefined) {
+  if (
+    !savingID ||
+    !savingCollectionDate ||
+    savingCollecting === undefined ||
+    !submittedBy ||
+    !SavingCount
+  ) {
     return res
       .status(400)
       .send(
-        "Bad Request: Missing savingID, savingCollectionDate, or savingCollecting"
+        "Bad Request: Missing savingID, savingCollectionDate, savingCollecting, or submittedBy"
       );
   }
 
   try {
-    // Update the document by adding the new date to the array if it doesn't exist
+    // Update the document by adding the new date and submittedBy if they don't exist
     const updatedDocument = await SavingCollection.findOneAndUpdate(
       { savingID: savingID },
       {
-        $addToSet: { savingCollectionDate: savingCollectionDate }, // Add new date to the array if it doesn't exist
-        $push: { savingCollecting: savingCollecting }, // Add new collecting value to the array
+        $push: {
+          savingCollecting: savingCollecting,
+          submittedBy: submittedBy,
+          SavingCount: SavingCount,
+          savingCollectionDate: savingCollectionDate,
+        }, // Add new collecting value and submittedBy to the array
       },
       { new: true } // Return the updated document
     );

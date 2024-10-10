@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import axios from "axios";
 
 const incomeData = {
   1101: "Service Charge",
@@ -52,7 +53,7 @@ const InterestSavings = {
 
 const IncomeExpenseReport = () => {
   const [formData, setFormData] = useState({});
-  const [branchs, setBranchs] = useState([]);
+
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -68,8 +69,11 @@ const IncomeExpenseReport = () => {
   const [sumFormFeeBranchMonth, setsumFormFeeBranchMonth] = useState(0);
   const [sumAdmissionFeesBranchMonth, setsumAdmissionFeesBranchMonth] =
     useState(0);
-
+  const [userBranches, setUserBranches] = useState([]);
+  const [branches, setBranches] = useState([]);
   const pdfRef = useRef();
+
+  const [hasAccess, setHasAccess] = useState(true);
   // Fro Previous Month
 
   const [PreviousMonth1101, setPreviousMonth1101] = useState(0);
@@ -161,18 +165,43 @@ const IncomeExpenseReport = () => {
   };
 
   useEffect(() => {
-    const fetchCenters = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/branch-callback");
-        if (!response.ok) throw new Error("Network response was not ok");
-        const data = await response.json();
-        setBranchs(data);
-      } catch (error) {
-        console.error("Error fetching branch options:", error.message);
-      }
-    };
+    // Step 1: Fetch all branches
+    axios
+      .get("http://localhost:5000/branch-callback")
+      .then((response) => {
+        setBranches(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching branch data:", error);
+      });
 
-    fetchCenters();
+    // Step 2: Retrieve user branch data and designation from localStorage
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+
+      const branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+      setUserBranches(branches);
+
+      const designations = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key]);
+
+      // Check if the user has a restricted designation
+      const restrictedDesignations = [
+        "উর্দ্ধতন কর্মসূচী সংগঠক",
+        "কর্মসূচী সংগঠক",
+        "সহকারী কর্মসূচী সংগঠক",
+      ];
+      const userHasRestrictedDesignation = designations.some((designation) =>
+        restrictedDesignations.includes(designation)
+      );
+
+      // Restrict access if the user has a restricted designation
+      setHasAccess(!userHasRestrictedDesignation);
+    }
   }, []);
 
   useEffect(() => {
@@ -680,8 +709,23 @@ const IncomeExpenseReport = () => {
     });
   };
 
+  if (!hasAccess) {
+    return (
+      <div className="bg-light container-fluid">
+        <div className="p-2">
+          <div className="border-bottom mb-5">
+            <h2 className="text-center mb-4 pt-3">Income Expense</h2>
+          </div>
+        </div>
+        <div className="p-3">
+          <p className="text-center text-danger">এই পেইজে আপনার অনুমতি নেই।</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container-fluid mt-5">
+    <div className="container-fluid  bg-light p-3">
       <form onSubmit={handleSubmit} ref={pdfRef}>
         <div className="text-center mb-4">
           <h2>Ashalata</h2>
@@ -715,11 +759,23 @@ const IncomeExpenseReport = () => {
               name="centerBranch"
             >
               <option value="">Choose...</option>
-              {branchs.map((branch) => (
-                <option key={branch._id} value={branch.BranchName}>
-                  {branch.BranchName}
-                </option>
-              ))}
+              {/* Step 3: Filter branches based on userBranches */}
+              {userBranches.includes("AllBranch") ||
+              userBranches.includes("AllCenter")
+                ? branches.map((branch) => (
+                    <option key={branch._id} value={branch.BranchName}>
+                      {branch.BranchName}
+                    </option>
+                  ))
+                : branches
+                    .filter((branch) =>
+                      userBranches.includes(branch.BranchName)
+                    )
+                    .map((branch) => (
+                      <option key={branch._id} value={branch.BranchName}>
+                        {branch.BranchName}
+                      </option>
+                    ))}
             </select>
           </div>
         </div>

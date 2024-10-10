@@ -4,23 +4,38 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-const MEMBER_LIST_CENTER_ROUTE = "/home/WorkerDetails";
+// const MEMBER_LIST_CENTER_ROUTE = "/home/WorkerDetails";
 
 const WorkerEdit = () => {
   const location = useLocation();
   const workerID = location.state ? location.state.workerID : null;
   const navigate = useNavigate();
-  const [allWorker, setAllWorker] = useState({});
+
   const [designations, setDesignations] = useState([]);
   const [submitMessage, setSubmitMessage] = useState("");
   const [centers, setCenters] = useState([]);
   const [branches, setBranchs] = useState([]);
+  const [allWorker, setAllWorker] = useState({
+    WorkerCenterAdd: [""],
+    WorkerBranchAdd: [""],
+  });
 
   useEffect(() => {
     // Fetch worker data
+    // Fetch worker data
     fetch(`http://localhost:5000/worker-callback/${workerID}`)
       .then((res) => res.json())
-      .then((data) => setAllWorker(data))
+      .then((data) => {
+        setAllWorker({
+          ...data,
+          WorkerCenterAdd: Array.isArray(data.WorkerCenterAdd)
+            ? data.WorkerCenterAdd
+            : [""],
+          WorkerBranchAdd: Array.isArray(data.WorkerBranchAdd)
+            ? data.WorkerBranchAdd
+            : [""],
+        });
+      })
       .catch((error) => console.error("Error fetching worker data:", error));
 
     // Fetch designations
@@ -37,7 +52,11 @@ const WorkerEdit = () => {
     axios
       .get("http://localhost:5000/center-callback")
       .then((response) => {
-        setCenters(response.data);
+        // Filter out centers with ActiveStatus "False"
+        const activeCenters = response.data.filter(
+          (center) => center.ActiveStatus !== "False"
+        );
+        setCenters(activeCenters);
       })
       .catch((error) => {
         console.error("Error fetching center data:", error);
@@ -57,37 +76,22 @@ const WorkerEdit = () => {
   const handleUpdateWorker = (e) => {
     e.preventDefault();
     const form = e.target;
-    const ID = form.ID.value;
-    const WorkerName = form.WorkerName.value;
-    const WorkerParent = form.WorkerParent.value;
-    const WorkerJob = form.WorkerJob.value;
-    const WorkerHome = form.WorkerHome.value;
-    const WorkerUnion = form.WorkerUnion.value;
-    const WorkerPost = form.WorkerPost.value;
-    const WorkerSubDic = form.WorkerSubDic.value;
-    const WorkerDic = form.WorkerDic.value;
-    const WorkerNID = form.WorkerNID.value;
-    const WorkerMobile = form.WorkerMobile.value;
-    const WorkerBranchAdd = form.WorkerBranchAdd.value;
-    const WorkerCenterAdd = form.WorkerCenterAdd.value;
-    const Designation = form.Designation.value;
 
-    setSubmitMessage("Successfully Updated!");
     const updatedData = {
-      ID,
-      WorkerName,
-      WorkerParent,
-      WorkerJob,
-      WorkerHome,
-      WorkerUnion,
-      WorkerPost,
-      WorkerSubDic,
-      WorkerDic,
-      WorkerNID,
-      WorkerMobile,
-      WorkerBranchAdd,
-      WorkerCenterAdd,
-      Designation,
+      ID: form.ID.value,
+      WorkerName: form.WorkerName.value,
+      WorkerParent: form.WorkerParent.value,
+      WorkerJob: form.WorkerJob.value,
+      WorkerHome: form.WorkerHome.value,
+      WorkerUnion: form.WorkerUnion.value,
+      WorkerPost: form.WorkerPost.value,
+      WorkerSubDic: form.WorkerSubDic.value,
+      WorkerDic: form.WorkerDic.value,
+      WorkerNID: form.WorkerNID.value,
+      WorkerMobile: form.WorkerMobile.value,
+      WorkerBranchAdd: allWorker.WorkerBranchAdd,
+      WorkerCenterAdd: allWorker.WorkerCenterAdd,
+      Designation: form.Designation.value,
     };
 
     fetch(`http://localhost:5000/worker-callback/${workerID}`, {
@@ -100,25 +104,62 @@ const WorkerEdit = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          // console.log("Worker Updated Successfully");
+          setSubmitMessage("Successfully Updated!");
         } else {
           console.error("Worker Update Failed");
         }
       });
   };
 
-  const handleCenterChange = (e) => {
-    const selectedCenter = e.target.value;
-    setAllWorker({ ...allWorker, WorkerCenterAdd: selectedCenter });
+  const handleCenterChange = (e, index) => {
+    const updatedCenters = [...allWorker.WorkerCenterAdd];
+    updatedCenters[index] = e.target.value;
+    setAllWorker({ ...allWorker, WorkerCenterAdd: updatedCenters });
+  };
+  const handleAddCenter = () => {
+    setAllWorker((prevState) => ({
+      ...prevState,
+      WorkerCenterAdd: [...prevState.WorkerCenterAdd, ""],
+    }));
+  };
+  const handleRemoveCenter = (index) => {
+    const updatedCenters = allWorker.WorkerCenterAdd.filter(
+      (_, i) => i !== index
+    );
+    setAllWorker({ ...allWorker, WorkerCenterAdd: updatedCenters });
   };
 
-  const handleBranchChange = (e) => {
-    const selectedBranch = e.target.value;
-    setAllWorker({ ...allWorker, WorkerBranchAdd: selectedBranch });
+  const handleBranchChange = (e, index) => {
+    const updatedBranches = [...allWorker.WorkerBranchAdd];
+    updatedBranches[index] = e.target.value;
+    setAllWorker({ ...allWorker, WorkerBranchAdd: updatedBranches });
+  };
+
+  const handleAddBranch = () => {
+    setAllWorker((prevState) => ({
+      ...prevState,
+      WorkerBranchAdd: [...prevState.WorkerBranchAdd, ""],
+    }));
+  };
+
+  const handleRemoveBranch = (index) => {
+    const updatedBranches = allWorker.WorkerBranchAdd.filter(
+      (_, i) => i !== index
+    );
+    setAllWorker({ ...allWorker, WorkerBranchAdd: updatedBranches });
   };
 
   const handleCancel = () => {
-    navigate(MEMBER_LIST_CENTER_ROUTE);
+    const previousPage = location.state?.from || "WorkerDetails"; // Use "WorkerDetails" as a default
+    const workerID = location.state?.workerID;
+
+    if (previousPage === "OfficeWorkerGranted") {
+      navigate("/home/OfficeWorkerGranted", { state: { workerID } });
+    } else if (previousPage === "WorkerDetails") {
+      navigate("/home/WorkerDetails", { state: { workerID }, replace: true });
+    } else {
+      navigate("/home/WorkerDetails", { state: { workerID }, replace: true });
+    }
   };
 
   const handleDesignationChange = (e) => {
@@ -260,46 +301,91 @@ const WorkerEdit = () => {
             />
           </div>
 
-          <div className="col-md-3">
-            <label htmlFor="WorkerBranchAdd" className="form-label">
-              শাঁখা নির্বাচন করুণ
-            </label>
-            <select
-              id="WorkerBranchAdd"
-              className="form-select"
-              value={allWorker.WorkerBranchAdd}
-              onChange={handleBranchChange}
-              name="WorkerBranchAdd"
-            >
-              <option value="">Choose...</option>
-              {Array.isArray(branches) &&
-                branches.length > 0 &&
-                branches.map((branch) => (
-                  <option key={branch._id} value={branch.BranchName}>
-                    {branch.BranchName}
-                  </option>
-                ))}
-            </select>
-          </div>
+          {/* Branches */}
+          {allWorker.WorkerBranchAdd.map((branch, index) => (
+            <div className="col-3 d-flex align-items-center" key={index}>
+              <div className="w-100">
+                <label
+                  htmlFor={`WorkerBranchAdd${index}`}
+                  className="form-label"
+                >
+                  শাঁখা নির্বাচন করুণ
+                </label>
+                <select
+                  id={`WorkerBranchAdd${index}`}
+                  className="form-select"
+                  value={branch || "N/A"}
+                  onChange={(e) => handleBranchChange(e, index)}
+                >
+                  <option value="">Choose...</option>
+                  {branches.map((branch) => (
+                    <option key={branch._id} value={branch.BranchName}>
+                      {branch.BranchName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm mt-4 ms-2"
+                onClick={handleAddBranch}
+              >
+                +
+              </button>
+              {allWorker.WorkerBranchAdd.length > 1 && index > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm mt-4"
+                  onClick={() => handleRemoveBranch(index)}
+                >
+                  X
+                </button>
+              )}
+            </div>
+          ))}
 
-          <div className="col-md-3 mb-3">
-            <label htmlFor="WorkerCenterAdd" className="form-label">
-              কেন্দ্র নির্বাচন করুণ
-            </label>
-            <select
-              className="form-select"
-              id="WorkerCenterAdd"
-              value={allWorker.WorkerCenterAdd} // Set the value to the state
-              onChange={handleCenterChange}
-            >
-              <option value="">Choose...</option>
-              {centers.map((center) => (
-                <option key={center._id} value={center.centerID}>
-                  {center.centerID}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Centers */}
+          {allWorker.WorkerCenterAdd.map((center, index) => (
+            <div className="col-3 d-flex align-items-center" key={index}>
+              <div className="w-100">
+                <label
+                  htmlFor={`WorkerCenterAdd${index}`}
+                  className="form-label"
+                >
+                  কেন্দ্র নির্বাচন করুণ
+                </label>
+                <select
+                  id={`WorkerCenterAdd${index}`}
+                  className="form-select"
+                  value={center || "N/A"}
+                  onChange={(e) => handleCenterChange(e, index)}
+                >
+                  <option value="">Choose...</option>
+                  {centers.map((center) => (
+                    <option key={center._id} value={center.centerID}>
+                      {center.centerID}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm ms-2 mt-4"
+                onClick={handleAddCenter}
+              >
+                +
+              </button>
+              {allWorker.WorkerCenterAdd.length > 1 && index > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm ms-2 mt-4"
+                  onClick={() => handleRemoveCenter(index)}
+                >
+                  X
+                </button>
+              )}
+            </div>
+          ))}
 
           <div className="col-md-3">
             <label htmlFor="Designation" className="form-label">

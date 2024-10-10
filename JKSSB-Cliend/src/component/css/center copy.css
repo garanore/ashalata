@@ -1,0 +1,60 @@
+/* Add this to your CSS file, e.g., App.css */
+.btn-toggle {
+  padding: 0;
+  border: none;
+  height: 34px;
+  min-width: 50px;
+  border-radius: 50px;
+  position: relative;
+  margin: 0.5rem;
+  background-color: #696666;
+  transition: all 0.3s;
+}
+
+.btn-toggle.active {
+  background-color: #31af36;
+}
+
+.btn-toggle .handle {
+  height: 34px;
+  width: 34px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: all 0.3s;
+}
+
+.btn-toggle.active .handle {
+  left: calc(100% - 34px);
+}
+
+.pagination {
+  justify-content: center; /* Center the pagination */
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #007bff; /* Bootstrap primary color */
+  border-color: #007bff;
+}
+
+.pagination .page-link {
+  border-radius: 0.5rem; /* Rounded corners for links */
+  transition: background-color 0.2s, border-color 0.2s; /* Smooth transition for hover */
+}
+
+.pagination .page-link:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  color: white; /* White text on hover */
+}
+
+.pagination .disabled .page-link {
+  background-color: #e9ecef; /* Light grey for disabled */
+  color: #6c757d; /* Darker grey for disabled text */
+  border-color: #e9ecef; /* Match border color to disabled background */
+}
+
+.page-link i {
+  margin-right: 5px; /* Spacing for icons */
+}

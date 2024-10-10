@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/designation";
-// const Managers = ["আব্দুল ছাত্তার", "সুমন সরকার", "আকলিমা বেগম "];
 
 function Designation() {
   const [DesignationCount, setDesignationCount] = useState(0);
@@ -12,6 +11,7 @@ function Designation() {
     DesignationName: "",
   });
   const [submitMessage, setSubmitMessage] = useState("");
+  const [hasAccess, setHasAccess] = useState(false);
 
   //For Generate ID---------------------------------------------------
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -26,6 +26,22 @@ function Designation() {
       setSubmitMessage("Error fetching designation count");
     }
   };
+
+  useEffect(() => {
+    // Retrieve user branch data from localStorage
+    const storedUserBranchData = localStorage.getItem("userBranchData");
+    if (storedUserBranchData) {
+      const parsedData = JSON.parse(storedUserBranchData);
+      const userBranches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("UserBranch"))
+        .map((key) => parsedData[key]);
+
+      if (userBranches.includes("AllBranch")) {
+        setHasAccess(true);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     fetchDesignationCount();
   }, [fetchDesignationCount]);
@@ -48,7 +64,7 @@ function Designation() {
         ...DesignationIDData,
       });
 
-      setSubmitMessage("Branch created successfully");
+      setSubmitMessage("Designation created successfully");
 
       // Reset form values
       setDesignationIDData({
@@ -63,6 +79,21 @@ function Designation() {
       setSubmitMessage("Error creating Designation");
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <div className="bg-light container-fluid">
+        <div className="p-2">
+          <div className="border-bottom mb-5">
+            <h2 className="text-center mb-4 pt-3">পদবি যোগ করুণ</h2>
+          </div>
+        </div>
+        <div className="p-3">
+          <p className="text-center text-danger">এই পেইজে আপনার অনুমতি নেই।</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -102,59 +133,7 @@ function Designation() {
                   required
                 />
               </div>
-
-              {/* <div className="mb-3 col-3 col-md-3">
-                <label htmlFor="BranchAddress" className="form-label">
-                  ঠিকানা
-                </label>
-                <input
-                  id="BranchAddress"
-                  className="form-control"
-                  type="text"
-                  name="BranchAddress"
-                  value={branchData.BranchAddress}
-                  onChange={handleChange}
-                  required
-                />
-              </div> */}
-
-              {/* <div className="mb-3 col-3 col-md-3">
-                <label htmlFor="BranchMobile" className="form-label">
-                  Mobile:
-                </label>
-                <input
-                  id="BranchMobile"
-                  className="form-control"
-                  type="number"
-                  name="BranchMobile"
-                  value={branchData.BranchMobile}
-                  onChange={handleChange}
-                  required
-                />
-              </div> */}
             </div>
-
-            {/* <div className="row">
-              <div className="mb-3 col-4 col-md-4">
-                <label htmlFor="selectedManager" className="form-label">
-                  ম্যনেজার নির্বাচন করুণ
-                </label>
-                <select
-                  id="selectedManager"
-                  className="form-select"
-                  name="selectedManager"
-                  value={branchData.selectedManager}
-                  onChange={handleChange}
-                >
-                  <option value="">Choose...</option>
-                  {Managers.map((manager) => (
-                    <option key={manager} value={manager}>
-                      {manager}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div> */}
 
             <div className="col-12 mb-5 mt-5">
               <div className="mb-3">
