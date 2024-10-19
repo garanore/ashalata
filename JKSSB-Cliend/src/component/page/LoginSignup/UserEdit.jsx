@@ -440,7 +440,7 @@ const UserEdit = () => {
                         value={branch || "N/A"}
                         onChange={(e) => handleBranchChange(e, index)}
                       >
-                        <option value="">Choose...</option>
+                        <option value="">--------</option>
                         {branchs.map((branch) => (
                           <option key={branch._id} value={branch.BranchName}>
                             {branch.BranchName}
@@ -474,11 +474,11 @@ const UserEdit = () => {
                 <div className="col-3 d-flex align-items-center" key={index}>
                   <div className="w-100">
                     <label
-                      htmlFor="CenterIDMember"
+                      htmlFor="UserCenter"
                       className="form-label"
                       style={{ fontWeight: "bold", color: "#4A5568" }}
                     >
-                      <i className="fas fa-map-marker-alt"></i>Center
+                      <i className="fas fa-map-marker-alt"></i> Center
                     </label>
                     <div className="input-group shadow-sm">
                       <span

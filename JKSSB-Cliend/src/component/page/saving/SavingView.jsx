@@ -53,182 +53,420 @@ const SavingView = () => {
   return (
     <div className="form-row bg-light container-fluid p-2">
       <form>
-        <div className=" ">
-          <div className="border-bottom mb-3">
-            <h2 className="text-center mb-4 pt-3">সঞ্চয় বিস্তারিত</h2>
+        <div className="row mb-4">
+          <div className="col">
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{
+                backgroundColor: "#f0f4f8", // Soft background for the header
+                borderRadius: "10px", // Rounded edges for a modern look
+                padding: "20px",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+              }}
+            >
+              <h2
+                className="text-center mb-0"
+                style={{
+                  fontWeight: "bold",
+                  color: "#2D3748",
+                  fontSize: "2rem", // Larger text for prominence
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i> সঞ্চয় বিস্তারিত
+              </h2>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col">
+            <hr
+              style={{
+                border: "none",
+                borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                marginTop: "10px",
+              }}
+            />
           </div>
         </div>
 
         <div className="row g-4 mt-5">
-          <div className="col-md-4">
-            <label htmlFor="SavingID" className="form-label">
-              ID
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> সঞ্চয় ID
             </label>
-            <input
-              type="text"
-              name="SavingID"
-              className="form-control"
-              defaultValue={AllSaving.SavingID}
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                type="text"
+                name="SavingID"
+                className="form-control border-primary"
+                defaultValue={AllSaving.SavingID}
+                readOnly
+              />
+            </div>
           </div>
 
-          <div className="mb-3 col-3">
-            <label htmlFor="installmentStart" className="form-label">
-              সঞ্চয় শুরু
+          <div className="col-md-3">
+            <label
+              htmlFor="installmentStart"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-calendar-alt"></i> সঞ্চয় শুরু
             </label>
-            <input
-              type="text"
-              name="installmentStart"
-              className="form-control"
-              value={AllSaving.installmentStart || ""} // Check if AllSaving.installmentStart exists, if not, use an empty string
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-calendar-alt"></i>
+              </span>
+              <input
+                type="text"
+                name="installmentStart"
+                className="form-control border-primary"
+                value={AllSaving.installmentStart || ""} // Check if AllSaving.installmentStart exists, if not, use an empty string
+                readOnly
+              />
+            </div>
           </div>
 
-          <div className="col-md-4">
-            <label htmlFor="memberID" className="form-label">
-              সদস্য ID
+          <div className="col-md-3">
+            <label
+              htmlFor="memberID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> সদস্য ID
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="memberID"
-              defaultValue={AllSaving.memberID}
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="memberID"
+                defaultValue={AllSaving.memberID}
+                readOnly
+              />
+            </div>
           </div>
 
-          <div className="col-md-4">
-            <label htmlFor="SavingName" className="form-label">
-              সদস্য নাম
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingName"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-use"></i> সদস্য নাম
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingName"
-              defaultValue={AllSaving.SavingName}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="fathername" className="form-label">
-              পিতা/স্বামীর নাম
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="fathername"
-              defaultValue={AllSaving.fathername}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="SavingBranch" className="form-label">
-              শাঁখা
-            </label>
-            <input
-              type="text"
-              id="SavingBranch"
-              className="form-control"
-              value={AllSaving.SavingBranch}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="SavingCenter" className="form-label">
-              কেন্দ্র
-            </label>
-            <input
-              type="text"
-              id="SavingCenter"
-              className="form-control"
-              value={AllSaving.SavingCenter}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="SavingMobile" className="form-label">
-              মোবাইল:
-            </label>
-            <input
-              type="number"
-              id="SavingMobile"
-              className="form-control"
-              value={AllSaving.SavingMobile}
-              readOnly
-            ></input>
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="SavingType" className="form-label">
-              সঞ্চয়ের ধরণ
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingType"
-              defaultValue={AllSaving.SavingType}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="SavingTime" className="form-label">
-              সঞ্চয়ের সময়
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingTime"
-              defaultValue={AllSaving.SavingTime}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="SavingAmount" className="form-label">
-              সঞ্চয়ের পরিমাণ
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingAmount"
-              defaultValue={AllSaving.SavingAmount}
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="SavingName"
+                defaultValue={AllSaving.SavingName}
+                readOnly
+              />
+            </div>
           </div>
 
-          <div className="col-md-4">
-            <label htmlFor="TotalSavingAmount" className="form-label">
-              মোট সঞ্চয়ের পরিমাণ
+          <div className="col-md-3">
+            <label
+              htmlFor="fathername"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user-friends"></i> পিতা/স্বামী
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="TotalSavingAmount"
-              value={totalSavingAmount}
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user-friends"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="fathername"
+                defaultValue={AllSaving.fathername}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingBranch"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-code-branch"></i> শাখা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-code-branch"></i>
+              </span>
+              <input
+                type="text"
+                id="SavingBranch"
+                className="form-select border-primary"
+                value={AllSaving.SavingBranch}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingCenter"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map-marker-alt"></i>
+              </span>
+              <input
+                type="text"
+                id="SavingCenter"
+                className="form-select border-primary"
+                value={AllSaving.SavingCenter}
+                readOnly
+              />
+            </div>
           </div>
 
           <div className="col-3">
-            <label htmlFor="CenterDay" className="form-label">
-              কেন্দ্র বার
+            <label
+              htmlFor="SavingMobile"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mobile-alt"></i> মোবাইল
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="installment"
-              defaultValue={AllSaving.CenterDay}
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mobile-alt"></i>
+              </span>
+              <input
+                type="number"
+                id="SavingMobile"
+                className="form-select border-primary"
+                value={AllSaving.SavingMobile}
+                readOnly
+              ></input>
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="btn btn-primary btn-md"
-          >
-            Cancel
-          </button>
+          <div className="col-3">
+            <label
+              htmlFor="SavingType"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-check-alt"></i> সঞ্চয়ের ধরণ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-check-alt"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="SavingType"
+                defaultValue={AllSaving.SavingType}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="SavingTime"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-bill-wave"></i> সময়
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="SavingTime"
+                defaultValue={AllSaving.SavingTime}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="SavingAmount"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-bill-wave"></i> সঞ্চয়ের পরিমাণ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="SavingAmount"
+                value={AllSaving.SavingAmount}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="totalSavingAmount"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-bill-wave"></i> মোট সঞ্চয়ের পরিমাণ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="TotalSavingAmount"
+                value={totalSavingAmount}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="CenterDay"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-bill-wave"></i> কেন্দ্র বার
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="installment"
+                defaultValue={AllSaving.CenterDay}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-center mb-3 mt-5">
+            <button
+              type="button"
+              className="btn btn-primary btn-lg shadow"
+              onClick={handleCancel}
+              style={{
+                background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                color: "#fff",
+              }}
+            >
+              <i className="fas fa-paper-plane"></i> Cancel
+            </button>
+          </div>
         </div>
       </form>
     </div>

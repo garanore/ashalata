@@ -11,7 +11,7 @@ function UserList() {
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState([]);
   const navigate = useNavigate();
-  const [userBranches, setUserBranches] = useState([]);
+  const [Branches, setBranches] = useState([]);
   const [username, setUsername] = useState(""); // Add username state
   const [deleteMode, setDeleteMode] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -40,16 +40,16 @@ function UserList() {
       });
 
     // Retrieve user branch data from localStorage
-    const storedUserBranchData = localStorage.getItem("userBranchData");
-    if (storedUserBranchData) {
-      const parsedData = JSON.parse(storedUserBranchData);
-      const userBranches = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserBranch"))
+    const storedBranchData = localStorage.getItem("BranchData");
+    if (storedBranchData) {
+      const parsedData = JSON.parse(storedBranchData);
+      const Branches = Object.keys(parsedData)
+        .filter((key) => key.startsWith("Branch"))
         .map((key) => parsedData[key]);
 
-      setUserBranches(userBranches);
+      setBranches(Branches);
 
-      if (userBranches.includes("AllBranch")) {
+      if (Branches.includes("AllBranch")) {
         setHasAccess(true);
       }
 
@@ -93,7 +93,7 @@ function UserList() {
     }
     // If only branch is selected
     else if (branch) {
-      apiUrl = `http://localhost:5000/get-user-UserBranch/${encodeURIComponent(
+      apiUrl = `http://localhost:5000/get-user-Branch/${encodeURIComponent(
         branch
       )}`;
     }
@@ -192,16 +192,15 @@ function UserList() {
             value={selectedBranch}
           >
             <option value="">Choose...</option>
-            {/* Filter branches based on userBranches */}
-            {userBranches.includes("AllBranch") ||
-            userBranches.includes("AllCenter")
+            {/* Filter branches based on Branches */}
+            {Branches.includes("AllBranch") || Branches.includes("AllCenter")
               ? branches.map((branch) => (
                   <option key={branch._id} value={branch.BranchName}>
                     {branch.BranchName}
                   </option>
                 ))
               : branches
-                  .filter((branch) => userBranches.includes(branch.BranchName))
+                  .filter((branch) => Branches.includes(branch.BranchName))
                   .map((branch) => (
                     <option key={branch._id} value={branch.BranchName}>
                       {branch.BranchName}
@@ -276,8 +275,8 @@ function UserList() {
                   <td>{user.accountName}</td>
                   <td>{user.phoneNumber}</td>
                   <td>{user.designation}</td>
-                  <td>{user.UserBranch}</td>
-                  <td>{user.UserCenter}</td>
+                  <td>{user.Branch}</td>
+                  <td>{user.Center}</td>
                   <td>
                     <button
                       type="button"

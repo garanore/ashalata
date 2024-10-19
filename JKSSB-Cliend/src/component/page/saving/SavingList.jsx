@@ -28,10 +28,10 @@ const SavingList = () => {
   const [SavingType, setSavingType] = useState("");
   const [centerDay, setCenterDay] = useState("");
   const [userCenters, setuserCenters] = useState([]);
-
   const [hasAccess, setHasAccess] = useState(false); // Initially, set access to false
   const [designation, setDesignation] = useState("");
-  const [deleteMode, setDeleteMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const centersPerPage = 40; // Centers per page
 
   useEffect(() => {
     axios
@@ -172,7 +172,22 @@ const SavingList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (SavingType && selectedCenter) {
+        if (SavingType && selectedCenter && selectedDate) {
+          const formattedDate = moment(selectedDate).format("DD-MM-YYYY");
+          const translatedSavingType = SavingTypeTranslations[SavingType];
+
+          // Call API that handles savingType, centerID, and selectedDate
+          const response = await axios.get(
+            `http://localhost:5000/saving-callback-type-center-date/${translatedSavingType}/${formattedDate}`
+          );
+
+          let filteredData = response.data.filter(
+            (item) => item.SavingCenter === selectedCenter
+          );
+
+          setCenterMember(filteredData);
+        } else if (SavingType && selectedCenter) {
+          // Handle the case where only SavingType and selectedCenter are chosen
           const translatedSavingType = SavingTypeTranslations[SavingType];
           const endpoint =
             SavingType === "General"
@@ -184,16 +199,7 @@ const SavingList = () => {
           let filteredData = [];
           if (SavingType === "General") {
             filteredData = response.data.filter(
-              (item) =>
-                item.SavingCenter === selectedCenter &&
-                item.ActiveStatus === (deleteMode ? "False" : "True") // Add the deleteMode logic here
-            );
-          } else if (selectedDate) {
-            const searchDate = moment(selectedDate).format("DD-MM-YY");
-            filteredData = response.data.filter(
-              (item) =>
-                item.nextDates.includes(searchDate) &&
-                item.ActiveStatus === (deleteMode ? "False" : "True") // Add the deleteMode logic here
+              (item) => item.SavingCenter === selectedCenter
             );
           }
 
@@ -207,7 +213,7 @@ const SavingList = () => {
     };
 
     fetchData();
-  }, [SavingType, selectedCenter, selectedDate, deleteMode]);
+  }, [SavingType, selectedCenter, selectedDate]); // Add selectedDate to the dependency array
 
   const exportToExcel = () => {
     const data = centerMember.map((center) => ({
@@ -265,124 +271,235 @@ const SavingList = () => {
     saveAs(blob, "Savings.xlsx");
   };
 
-  // Toggle button function
-  const handleToggleClick = () => {
-    setDeleteMode(!deleteMode);
+  // Pagination logic
+  const indexOfLastSaving = currentPage * centersPerPage;
+  const indexOfFirstSaving = indexOfLastSaving - centersPerPage;
+  const currentSaving = centerMember.slice(
+    indexOfFirstSaving,
+    indexOfLastSaving
+  );
+  const totalPages = Math.ceil(centerMember.length / centersPerPage);
+
+  const paginate = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
   };
 
   return (
     <div className="bg-light container-fluid">
       <form>
         <div className="mb-3">
-          <div className="row mb-5">
-            <h2 className="text-center mb-4 pt-4">সঞ্চয়ের তালিকা</h2>
+          <div className="row mb-4">
+            <div className="col">
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{
+                  backgroundColor: "#f0f4f8", // Soft background for the header
+                  borderRadius: "10px", // Rounded edges for a modern look
+                  padding: "20px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+                }}
+              >
+                <h2
+                  className="text-center mb-0"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "2rem", // Larger text for prominence
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> সঞ্চয়ের তালিকা
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                  marginTop: "10px",
+                }}
+              />
+            </div>
           </div>
 
           <div className="row">
-            <div className="mb-3 col-3">
-              <label htmlFor="SavingType" className="form-label">
-                সঞ্চয়ের ধরণ
-              </label>
-              <select
-                id="SavingType"
-                className="form-select"
-                onChange={handleSavingTypeChange}
-                value={SavingType}
+            <div className="col-3">
+              <label
+                htmlFor="SavingType"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <option value="">বাছাই করুণ</option>
-                {Object.entries(SavingTypeTranslations).map(([key, value]) => (
-                  <option key={key} value={key}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="CenterSelect" className="form-label">
-                কেন্দ্র নির্বাচন করুণ
+                <i className="fas fa-money-check-alt"></i> সঞ্চয়ের ধরণ
               </label>
-              <select
-                className="form-select"
-                id="CenterSelect"
-                onChange={handleCenterChange}
-                value={selectedCenter}
-              >
-                <option value="">Choose...</option>
-                {hasAccess || !restrictedDesignations.includes(designation)
-                  ? centers.map((center) => (
-                      <option key={center._id} value={center.centerID}>
-                        {center.centerID}
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-check-alt"></i>
+                </span>
+                <select
+                  id="SavingType"
+                  className="form-control border-primary"
+                  onChange={handleSavingTypeChange}
+                  value={SavingType}
+                >
+                  <option value="">--------</option>
+                  {Object.entries(SavingTypeTranslations).map(
+                    ([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
                       </option>
-                    ))
-                  : centers
-                      .filter((center) => userCenters.includes(center.centerID))
-                      .map((center) => (
+                    )
+                  )}
+                </select>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <label
+                htmlFor="SavingCenter"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-map-marker-alt"></i>
+                </span>
+                <select
+                  className="form-select border-primary"
+                  id="CenterSelect"
+                  onChange={handleCenterChange}
+                  value={selectedCenter}
+                >
+                  <option value="">Choose...</option>
+                  {hasAccess || !restrictedDesignations.includes(designation)
+                    ? centers.map((center) => (
                         <option key={center._id} value={center.centerID}>
                           {center.centerID}
                         </option>
-                      ))}
-              </select>
+                      ))
+                    : centers
+                        .filter((center) =>
+                          userCenters.includes(center.centerID)
+                        )
+                        .map((center) => (
+                          <option key={center._id} value={center.centerID}>
+                            {center.centerID}
+                          </option>
+                        ))}
+                </select>
+              </div>
             </div>
 
-            <div className="col-md-3 mb-3">
-              <label htmlFor="date" className="form-label">
-                তারিখ নির্বাচন করুণ
+            <div className="col-md-3">
+              <label
+                htmlFor="installmentStart"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-calendar-alt"></i> তারিখ নির্বাচন করুণ
               </label>
-              <div>
-                <DatePicker
-                  id="date"
-                  className="form-control"
-                  selected={selectedDate}
-                  onChange={handleDateChange}
-                  dateFormat="dd/MM/yyyy"
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-calendar-alt"></i>
+                </span>
+                <div>
+                  <DatePicker
+                    id="date"
+                    className="form-control border-primary"
+                    selected={selectedDate}
+                    onChange={handleDateChange}
+                    dateFormat="dd/MM/yyyy"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <label
+                htmlFor="CenterWorker"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-user"></i>
+                কেন্দ্র কর্মীর নাম
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-user"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-primary"
+                  id="CenterWorker"
+                  value={selectedWorker}
+                  readOnly
                 />
               </div>
             </div>
 
-            <div className="col-md-3 mb-3">
-              <label htmlFor="CenterWorker" className="form-label">
-                কেন্দ্র কর্মীর নাম
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="CenterWorker"
-                value={selectedWorker}
-                readOnly
-              />
-            </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="CenterDay" className="form-label">
-                কেন্দ্র বার
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="CenterDay"
-                value={centerDay}
-                readOnly
-              />
-            </div>
-            <div className="col-md-3 mb-3  justify-content-end  mt-3">
-              <label className="form-label">Show Deleted Installment</label>
-              <button
-                type="button"
-                className={`btn btn-lg btn-toggle ${
-                  deleteMode ? "active" : ""
-                }`}
-                onClick={handleToggleClick}
-                aria-pressed={deleteMode}
+            <div className="col-3">
+              <label
+                htmlFor="CenterDay"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <div className="handle"></div>
-              </button>
+                <i className="fas fa-money-bill-wave"></i> কেন্দ্র বার
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-primary"
+                  id="CenterDay"
+                  value={centerDay}
+                  readOnly
+                />
+              </div>
             </div>
           </div>
         </div>
-        <div className="table-responsive">
-          {centerMember.length > 0 ? (
+        <div className="table-responsive mt-5">
+          {currentSaving.length > 0 ? (
             <>
               <table className="table table-hover">
-                <thead>
+                <thead className="table-light">
                   <tr>
                     <th>Saving ID</th>
                     <th>সদস্য ID</th>
@@ -396,7 +513,7 @@ const SavingList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {centerMember.map((center, index) => (
+                  {currentSaving.map((center, index) => (
                     <tr key={index}>
                       <td>{center.SavingID}</td>
                       <td>{center.memberID}</td>
@@ -414,22 +531,78 @@ const SavingList = () => {
               <div className="text-center">
                 <button
                   type="button"
-                  className="btn btn-success mt-3"
+                  className="btn custom-btn mt-3"
                   onClick={exportToExcel}
                 >
-                  Download as Excel
+                  <i className="fas fa-file-excel"></i> Download as Excel
                 </button>
               </div>
             </>
           ) : selectedCenter && (SavingType === "General" || selectedDate) ? (
-            <p>
-              {" "}
-              কেন্দ্র এবং {SavingType === "General" ? "সাধারণ" : "তারিখ"}{" "}
-              অনুযায়ী কোন সঞ্চয় নেই{" "}
-            </p>
+            <div className="alert alert-info text-center" role="alert">
+              <i className="fas fa-info-circle me-2"></i>{" "}
+              {/* Font Awesome info icon */} কেন্দ্র এবং{" "}
+              {SavingType === "General" ? "সাধারণ" : "তারিখ"} অনুযায়ী কোন সঞ্চয়
+              নেই{" "}
+            </div>
           ) : null}
         </div>
       </form>
+
+      {selectedCenter && (
+        <div className="row justify-content-center my-3">
+          <div className="col-md-12">
+            <nav>
+              <ul className="pagination pagination-rounded">
+                <li className="page-item">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    className={`page-link ${
+                      currentPage === 1 ? "disabled" : ""
+                    }`}
+                    disabled={currentPage === 1} // Disable if on the first page
+                    title="Previous Page"
+                  >
+                    <i className="fas fa-chevron-left"></i>{" "}
+                    {/* Left arrow icon */}
+                    Previous
+                  </button>
+                </li>
+                {[...Array(totalPages)].map((_, i) => (
+                  <li
+                    key={i + 1}
+                    className={`page-item ${
+                      i + 1 === currentPage ? "active" : ""
+                    }`}
+                  >
+                    <button
+                      onClick={() => paginate(i + 1)}
+                      className="page-link"
+                      title={`Go to page ${i + 1}`}
+                    >
+                      {i + 1}
+                    </button>
+                  </li>
+                ))}
+                <li className="page-item">
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    className={`page-link ${
+                      currentPage === totalPages ? "disabled" : ""
+                    }`}
+                    disabled={currentPage === totalPages} // Disable if on the last page
+                    title="Next Page"
+                  >
+                    Next
+                    <i className="fas fa-chevron-right"></i>{" "}
+                    {/* Right arrow icon */}
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

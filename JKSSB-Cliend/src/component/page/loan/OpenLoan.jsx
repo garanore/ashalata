@@ -430,7 +430,9 @@ function OpenLoan() {
           setMemberID("");
           setSubmitMessage(""); // Clear submit message
 
-          setSubmitMessage("Successfully submitted!");
+          setSubmitMessage(
+            "সঠিক ভাবে ঋণের আবেদন করা হয়েছে। শাখা ব্যবস্থাপকের অনুমতির জন্য অপেক্ষা করুণ।"
+          );
         } else {
           // Handle unexpected response status
           console.error("Unexpected response status:", response.status);
@@ -462,10 +464,7 @@ function OpenLoan() {
               className="text-center mb-4"
               style={{ fontWeight: "bold", color: "#2D3748" }}
             >
-              <i
-                className="fas fa-list-alt"
-                style={{ marginRight: "10px" }}
-              ></i>
+              <i className="fas fa-lock" style={{ marginRight: "10px" }}></i>
               ঋণ বিতরণ
             </h2>
           </div>

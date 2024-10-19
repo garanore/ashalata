@@ -23,15 +23,14 @@ const SavingCollection = () => {
   const [selectedCenter, setSelectedCenter] = useState("");
   const [centerMember, setCenterMember] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState("");
-
   const [submitMessage, setSubmitMessage] = useState("");
+  const [messageType, setMessageType] = useState("success"); // Add messageType state
   const [fields, setFields] = useState({ savingCollecting: {} });
   const [centerDay, setCenterDay] = useState("");
   const [userCenters, setuserCenters] = useState([]);
 
   const [hasAccess, setHasAccess] = useState(false); // Initially, set access to false
   const [designation, setDesignation] = useState("");
-  const [deleteMode, setDeleteMode] = useState(false);
   const [SavingType, setSavingType] = useState("");
   const [username, setUsername] = useState("Unknown");
 
@@ -179,7 +178,22 @@ const SavingCollection = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (SavingType && selectedCenter) {
+        if (SavingType && selectedCenter && selectedDate) {
+          const formattedDate = moment(selectedDate).format("DD-MM-YYYY");
+          const translatedSavingType = SavingTypeTranslations[SavingType];
+
+          // Call API that handles savingType, centerID, and selectedDate
+          const response = await axios.get(
+            `http://localhost:5000/saving-callback-type-center-date/${translatedSavingType}/${formattedDate}`
+          );
+
+          let filteredData = response.data.filter(
+            (item) => item.SavingCenter === selectedCenter
+          );
+
+          setCenterMember(filteredData);
+        } else if (SavingType && selectedCenter) {
+          // Handle the case where only SavingType and selectedCenter are chosen
           const translatedSavingType = SavingTypeTranslations[SavingType];
           const endpoint =
             SavingType === "General"
@@ -191,16 +205,7 @@ const SavingCollection = () => {
           let filteredData = [];
           if (SavingType === "General") {
             filteredData = response.data.filter(
-              (item) =>
-                item.SavingCenter === selectedCenter &&
-                item.ActiveStatus === (deleteMode ? "False" : "True") // Add the deleteMode logic here
-            );
-          } else if (selectedDate) {
-            const searchDate = moment(selectedDate).format("DD-MM-YY");
-            filteredData = response.data.filter(
-              (item) =>
-                item.nextDates.includes(searchDate) &&
-                item.ActiveStatus === (deleteMode ? "False" : "True") // Add the deleteMode logic here
+              (item) => item.SavingCenter === selectedCenter
             );
           }
 
@@ -214,7 +219,7 @@ const SavingCollection = () => {
     };
 
     fetchData();
-  }, [SavingType, selectedCenter, selectedDate, deleteMode]);
+  }, [SavingType, selectedCenter, selectedDate]); // Add selectedDate to the dependency array
 
   const handleChange = (field, id, value) => {
     setFields({
@@ -223,25 +228,68 @@ const SavingCollection = () => {
     });
   };
 
+  const handleBlur = (field, id) => {
+    const member = centerMember.find((member) => member.SavingID === id);
+    if (member) {
+      const SavingAmount = parseFloat(member.SavingAmount); // Convert to number
+      const inputValue = parseFloat(fields[field][id]); // Convert input value to number
+
+      // Allow any value for "General" SavingType (translated as "সাধারণ")
+      if (member.SavingType === SavingTypeTranslations.General) {
+        setSubmitMessage(""); // Clear any previous error message
+        setMessageType(""); // Clear message type
+        return; // Skip further validation
+      }
+
+      // Apply validation for non-General SavingTypes
+      if (!isNaN(inputValue) && !isNaN(SavingAmount)) {
+        if (inputValue % SavingAmount !== 0) {
+          // Set danger message and message type
+          setSubmitMessage(
+            `${member.SavingName} এর জন্য অবশ্যই ${SavingAmount} বা ${SavingAmount} এর গুণিতক টাকা যোগ করুণ `
+          );
+          setMessageType("danger"); // Set the message type to 'danger'
+        } else {
+          setSubmitMessage(""); // Clear error message if input is valid
+          setMessageType(""); // Clear message type
+        }
+      } else {
+        setSubmitMessage("নাম্বার ছাড়া  অন্য কিছু দেওয়া যাবে না");
+        setMessageType("danger"); // Set the message type to 'danger'
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const invalidEntries = [];
     const emptyEntries = [];
     const validData = centerMember.map((member) => {
-      const savingCollectingValue = fields.savingCollecting[member.SavingID];
-      const savingCountValue = fields.SavingCount?.[member.SavingID];
+      const savingCollectingValue = parseFloat(
+        fields.savingCollecting[member.SavingID] || 0
+      );
+      const savingAmountValue = parseFloat(member.SavingAmount || 0);
 
+      // Check for empty input
       if (!savingCollectingValue) {
         emptyEntries.push(member);
-      } else if (
-        SavingType !== "General" &&
-        parseFloat(savingCollectingValue) !== parseFloat(member.SavingAmount)
-      ) {
-        invalidEntries.push(
-          `সঞ্চয় জমা must match the saving amount for ${member.SavingID}`
-        );
       }
+
+      // Run handleBlur validation for savingCollecting
+      handleBlur("savingCollecting", member.SavingID);
+
+      // Skip SavingCount calculation if SavingType is General
+      let savingCountValue = 0;
+      if (member.SavingType === "General" || member.SavingType === "সাধারণ") {
+        // Allow any value if SavingType is "General" and set SavingCount to 1
+        savingCountValue = savingCollectingValue > 0 ? 1 : 0; // Ensure SavingCount is 1 if the value is greater than 0
+      } else {
+        // If it's not "General", calculate SavingCount as usual
+        savingCountValue =
+          savingAmountValue > 0 ? savingCollectingValue / savingAmountValue : 0;
+      }
+
       return {
         ...member,
         SavingCollecting: savingCollectingValue || 0,
@@ -256,7 +304,7 @@ const SavingCollection = () => {
 
     if (emptyEntries.length > 0) {
       const confirmation = window.confirm(
-        "Some input fields are empty. Do you want to save the non-empty data?"
+        "কিছু সঞ্চয় খালি আছে, সঞ্চয় খালি রেখেই বাকি সঞ্চয় গ্রহণ করতে চান?"
       );
       if (!confirmation) {
         return;
@@ -271,6 +319,7 @@ const SavingCollection = () => {
         member.SavingCount !== "" &&
         member.SavingCount !== 0
     );
+
     // Prepare request payload including savingCount as an array
     const requestData = {
       centerName: selectedCenter,
@@ -297,7 +346,8 @@ const SavingCollection = () => {
         "http://localhost:5000/save-savings-collection",
         requestData
       );
-      setSubmitMessage("Data saved successfully!");
+      setSubmitMessage("সঠিক ভাবে সঞ্চয় গ্রহণ করা হয়েছে");
+      setMessageType("success"); // Set message type to 'success'
 
       // Clear form inputs and state
       setFields({ savingCollecting: {}, SavingCount: {} });
@@ -306,124 +356,223 @@ const SavingCollection = () => {
       setCenterMember([]);
     } catch (error) {
       setSubmitMessage(`Error: ${error.message}`);
-      console.error("Error saving data:", error.message);
+      setMessageType("danger"); // Set message type to 'danger' on error
     }
-  };
-
-  // Toggle button function
-  const handleToggleClick = () => {
-    setDeleteMode(!deleteMode);
   };
 
   return (
     <div className="bg-light container-fluid">
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <div className="row mb-5">
-            <h2 className="text-center mb-4 pt-4">সঞ্চয় গ্রহণ</h2>
+          <div className="row mb-4">
+            <div className="col">
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{
+                  backgroundColor: "#f0f4f8", // Soft background for the header
+                  borderRadius: "10px", // Rounded edges for a modern look
+                  padding: "20px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+                }}
+              >
+                <h2
+                  className="text-center mb-0"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "2rem", // Larger text for prominence
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i> সঞ্চয় গ্রহণ
+                </h2>
+              </div>
+            </div>
           </div>
           <div className="row">
-            <div className="mb-3 col-3">
-              <label htmlFor="SavingType" className="form-label">
-                সঞ্চয়ের ধরণ
-              </label>
-              <select
-                id="SavingType"
-                className="form-select"
-                onChange={handleSavingTypeChange}
-                value={SavingType}
-              >
-                <option value="">বাছাই করুণ</option>
-                {Object.entries(SavingTypeTranslations).map(([key, value]) => (
-                  <option key={key} value={key}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+            <div className="col">
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                  marginTop: "10px",
+                }}
+              />
             </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="CenterName" className="form-label">
-                কেন্দ্র নির্বাচন করুণ
-              </label>
-              <select
-                className="form-select"
-                id="CenterName"
-                onChange={handleCenterChange}
-                value={selectedCenter}
+          </div>
+
+          <div className="row">
+            <div className="col-3">
+              <label
+                htmlFor="SavingType"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <option value="">Choose...</option>
-                {hasAccess || !restrictedDesignations.includes(designation)
-                  ? centers.map((center) => (
-                      <option key={center._id} value={center.centerID}>
-                        {center.centerID}
+                <i className="fas fa-money-check-alt"></i> সঞ্চয়ের ধরণ
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-check-alt"></i>
+                </span>
+                <select
+                  id="SavingType"
+                  className="form-control border-primary"
+                  onChange={handleSavingTypeChange}
+                  value={SavingType}
+                >
+                  <option value="">বাছাই করুণ</option>
+                  {Object.entries(SavingTypeTranslations).map(
+                    ([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
                       </option>
-                    ))
-                  : centers
-                      .filter((center) => userCenters.includes(center.centerID))
-                      .map((center) => (
+                    )
+                  )}
+                </select>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <label
+                htmlFor="SavingCenter"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-map-marker-alt"></i>
+                </span>
+                <select
+                  className="form-select border-primary"
+                  id="CenterName"
+                  onChange={handleCenterChange}
+                  value={selectedCenter}
+                >
+                  <option value="">Choose...</option>
+                  {hasAccess || !restrictedDesignations.includes(designation)
+                    ? centers.map((center) => (
                         <option key={center._id} value={center.centerID}>
                           {center.centerID}
                         </option>
-                      ))}
-              </select>
+                      ))
+                    : centers
+                        .filter((center) =>
+                          userCenters.includes(center.centerID)
+                        )
+                        .map((center) => (
+                          <option key={center._id} value={center.centerID}>
+                            {center.centerID}
+                          </option>
+                        ))}
+                </select>
+              </div>
             </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="SavingCollectionDate" className="form-label">
-                তারিখ নির্বাচন করুণ
+
+            <div className="col-md-3">
+              <label
+                htmlFor="installmentStart"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-calendar-alt"></i> তারিখ নির্বাচন করুণ
               </label>
-              <div>
-                <DatePicker
-                  id="SavingCollectionDate"
-                  className="form-control"
-                  selected={selectedDate}
-                  onChange={handleDateChange}
-                  dateFormat="dd/MM/yyyy"
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-calendar-alt"></i>
+                </span>
+                <div>
+                  <DatePicker
+                    id="SavingCollectionDate"
+                    className="form-control border-primary"
+                    selected={selectedDate}
+                    onChange={handleDateChange}
+                    dateFormat="dd/MM/yyyy"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <label
+                htmlFor="CenterWorker"
+                className="form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-user"></i>
+                কেন্দ্র কর্মীর নাম
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-user"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-primary"
+                  id="CenterWorker"
+                  value={selectedWorker}
+                  readOnly
                 />
               </div>
             </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="CenterWorker" className="form-label">
-                কেন্দ্র কর্মীর নাম
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="CenterWorker"
-                value={selectedWorker}
-                readOnly
-              />
-            </div>
-            <div className="col-md-3 mb-3">
-              <label htmlFor="CenterDay" className="form-label">
-                কেন্দ্র বার
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="CenterDay"
-                value={centerDay}
-                readOnly
-              />
-            </div>
-            <div className="col-md-3 mb-3  justify-content-end  mt-3">
-              <label className="form-label">Show Deleted Saving</label>
-              <button
-                type="button"
-                className={`btn btn-lg btn-toggle ${
-                  deleteMode ? "active" : ""
-                }`}
-                onClick={handleToggleClick}
-                aria-pressed={deleteMode}
+
+            <div className="col-3">
+              <label
+                htmlFor="CenterDay"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <div className="handle"></div>
-              </button>
+                <i className="fas fa-money-bill-wave"></i> কেন্দ্র বার
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-primary"
+                  id="CenterDay"
+                  value={centerDay}
+                  readOnly
+                />
+              </div>
             </div>
           </div>
         </div>
-        <div className="table-responsive">
+        <div className="table-responsive mt-5">
           {centerMember.length > 0 ? (
             <table className="table table-hover">
-              <thead>
+              <thead className="table-light">
                 <tr>
                   <th>Saving ID</th>
                   <th>সদস্য ID</th>
@@ -433,7 +582,7 @@ const SavingCollection = () => {
                   <th>সঞ্চয়ের সময়</th>
                   <th>সঞ্চয়ের পরিমাণ</th>
                   <th>সঞ্চয় জমা</th>
-                  <th>সঞ্চয় সংখ্যা</th>
+                  {/* <th>সঞ্চয় সংখ্যা</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -451,17 +600,31 @@ const SavingCollection = () => {
                         type="number"
                         value={fields.savingCollecting[center.SavingID] || ""}
                         placeholder="সঞ্চয়"
-                        onChange={(e) =>
-                          handleChange(
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          if (
+                            fields.savingCollecting[center.SavingID] !==
+                            newValue
+                          ) {
+                            handleChange(
+                              "savingCollecting",
+                              center.SavingID,
+                              newValue
+                            );
+                          }
+                        }}
+                        onBlur={() =>
+                          handleBlur(
                             "savingCollecting",
                             center.SavingID,
-                            e.target.value
+                            center.SavingAmount
                           )
                         }
                         className="form-control"
                       />
                     </td>
-                    <td>
+
+                    {/* <td>
                       <input
                         type="number"
                         className="form-control"
@@ -475,30 +638,53 @@ const SavingCollection = () => {
                           )
                         } // Update installment count
                       />
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : selectedCenter && (SavingType === "General" || selectedDate) ? (
-            <p>
-              {" "}
-              কেন্দ্র এবং {SavingType === "General" ? "সাধারণ" : "তারিখ"}{" "}
-              অনুযায়ী কোন সঞ্চয় নেই{" "}
-            </p>
+            <div className="alert alert-info text-center" role="alert">
+              <i className="fas fa-info-circle me-2"></i>{" "}
+              {/* Font Awesome info icon */} কেন্দ্র এবং{" "}
+              {SavingType === "General" ? "সাধারণ" : "তারিখ"} অনুযায়ী কোন সঞ্চয়
+              নেই{" "}
+            </div>
           ) : null}
         </div>
-        <button type="submit" className="btn btn-primary">
-          Submit
-        </button>
+        <div className="d-flex justify-content-center mb-3 mt-5">
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg shadow"
+            style={{
+              background: "linear-gradient(45deg, #007bff, #00d4ff)",
+              color: "#fff",
+            }}
+          >
+            <i className="fas fa-paper-plane"></i> Submit
+          </button>
+        </div>
+
         {submitMessage && (
           <div
-            className={`alert ${
-              submitMessage.includes("Error") ? "alert-danger" : "alert-success"
-            } mt-3`}
+            className={`alert alert-${messageType} mt-3 d-flex align-items-center`}
             role="alert"
+            style={{
+              borderRadius: "0.5rem", // Rounded corners
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+            }}
           >
-            {submitMessage}
+            <i
+              className={`fas fa-${
+                messageType === "danger" ? "exclamation-circle" : "check-circle"
+              }`}
+              style={{
+                fontSize: "1.5rem",
+                marginRight: "10px", // Space between icon and text
+                color: messageType === "danger" ? "#721c24" : "#155724", // Red for danger, green for success
+              }}
+            ></i>
+            <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
           </div>
         )}
       </form>

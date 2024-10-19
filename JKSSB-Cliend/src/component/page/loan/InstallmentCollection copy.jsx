@@ -14,7 +14,7 @@ const InstallmentCollection = () => {
   const [fields, setFields] = useState({ installmentCollecting: {} });
   const [centerDay, setCenterDay] = useState("");
   const [centerBranch, setcenterBranch] = useState("");
-  const [userCenters, setuserCenters] = useState([]);
+  const [Centers, setCenters] = useState([]);
 
   useEffect(() => {
     axios
@@ -30,13 +30,13 @@ const InstallmentCollection = () => {
         console.error("Error fetching center data:", error);
       });
 
-    const storedUserCenterData = localStorage.getItem("userBranchData");
-    if (storedUserCenterData) {
-      const parsedData = JSON.parse(storedUserCenterData);
-      const userCenters = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserCenter"))
+    const storedCenterData = localStorage.getItem("BranchData");
+    if (storedCenterData) {
+      const parsedData = JSON.parse(storedCenterData);
+      const Centers = Object.keys(parsedData)
+        .filter((key) => key.startsWith("Center"))
         .map((key) => parsedData[key]);
-      setuserCenters(userCenters);
+      setCenters(Centers);
     }
   }, []);
 
@@ -198,16 +198,15 @@ const InstallmentCollection = () => {
                 value={selectedCenter}
               >
                 <option value="">Choose...</option>
-                {/* Step 3: Filter center based on userBranches */}
-                {userCenters.includes("AllBranch") ||
-                userCenters.includes("AllCenter")
+                {/* Step 3: Filter center based on Branches */}
+                {Centers.includes("AllBranch") || Centers.includes("AllCenter")
                   ? centers.map((center) => (
                       <option key={center._id} value={center.centerID}>
                         {center.centerID}
                       </option>
                     ))
                   : centers
-                      .filter((center) => userCenters.includes(center.centerID))
+                      .filter((center) => Centers.includes(center.centerID))
                       .map((center) => (
                         <option key={center._id} value={center.centerID}>
                           {center.centerID}

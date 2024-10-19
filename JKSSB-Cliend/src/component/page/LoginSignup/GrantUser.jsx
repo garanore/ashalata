@@ -6,7 +6,7 @@
 // const GrantUser = () => {
 //   const [pendingUsers, setPendingUsers] = useState([]);
 //   const [error, setError] = useState("");
-//   const [userBranches, setUserBranches] = useState([]);
+//   const [Branches, setBranches] = useState([]);
 //   const [userDesignations, setUserDesignations] = useState([]);
 //   const [hasAccess, setHasAccess] = useState(false);
 //   const [username, setUsername] = useState(""); // Add username state
@@ -45,15 +45,15 @@
 
 //     fetchPendingUsers();
 
-//     const storedUserData = localStorage.getItem("userBranchData");
+//     const storedUserData = localStorage.getItem("BranchData");
 //     if (storedUserData) {
 //       const parsedData = JSON.parse(storedUserData);
 
 //       const branches = Object.keys(parsedData)
-//         .filter((key) => key.startsWith("UserBranch"))
+//         .filter((key) => key.startsWith("Branch"))
 //         .map((key) => parsedData[key]);
 
-//       setUserBranches(branches);
+//       setBranches(branches);
 
 //       const designations = Object.keys(parsedData)
 //         .filter((key) => key.startsWith("designation"))
@@ -124,15 +124,15 @@
 //     }
 //   };
 
-//   // const filteredUsers = userBranches.includes("AllBranch")
+//   // const filteredUsers = Branches.includes("AllBranch")
 //   //   ? pendingUsers
 //   //   : pendingUsers.filter((User) =>
-//   //       userBranches.some(
-//   //         (branch) => User.UserBranch.includes(branch) // Check if User.UserBranch array includes the branch
+//   //       Branches.some(
+//   //         (branch) => User.Branch.includes(branch) // Check if User.Branch array includes the branch
 //   //       )
 //   //     );
 
-//   const filteredUsers = userBranches.includes("AllBranch")
+//   const filteredUsers = Branches.includes("AllBranch")
 //     ? pendingUsers.filter((User) => {
 //         // Special designations that should NOT be shown for AllBranch
 //         const specialDesignations = [
@@ -150,8 +150,8 @@
 //         return isNotSpecialDesignation;
 //       })
 //     : pendingUsers.filter((User) => {
-//         const isBranchMatch = userBranches.some((branch) =>
-//           User.UserBranch.includes(branch)
+//         const isBranchMatch = Branches.some((branch) =>
+//           User.Branch.includes(branch)
 //         );
 
 //         // Special designations that managers can see
@@ -236,8 +236,8 @@
 //                     <td>{User.email}</td>
 //                     <td>{User.phoneNumber}</td>
 //                     <td>{User.designation}</td>
-//                     <td>{User.UserBranch}</td>
-//                     <td>{User.UserCenter}</td>
+//                     <td>{User.Branch}</td>
+//                     <td>{User.Center}</td>
 //                     <td>{User.submittedBy}</td>
 //                     <td>{loggedUsers[User.submittedBy]?.designation}</td>
 

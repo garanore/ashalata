@@ -17,6 +17,7 @@ const InstallmentCollection = () => {
   const [selectedCenter, setSelectedCenter] = useState("");
   const [centerMember, setCenterMember] = useState([]);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [messageType, setMessageType] = useState("success"); // Add messageType state
   const [fields, setFields] = useState({ installmentCollecting: {} });
   const [centerDay, setCenterDay] = useState("");
   const [centerBranch, setcenterBranch] = useState("");
@@ -27,8 +28,6 @@ const InstallmentCollection = () => {
   const [deleteMode, setDeleteMode] = useState(false);
 
   const [username, setUsername] = useState("Unknown");
-
-  const [calculatedOnlyInterest, setCalculatedOnlyInterest] = useState({});
 
   useEffect(() => {
     axios
@@ -197,21 +196,43 @@ const InstallmentCollection = () => {
   const handleBlur = (field, id) => {
     const member = centerMember.find((member) => member.loanID === id);
     if (member) {
-      const installment = parseFloat(member.installment); // Convert to number
+      const installment = parseFloat(member.installment); // Convert installment to number
       const inputValue = parseFloat(fields[field][id]); // Convert input value to number
 
-      // Ensure both values are valid numbers
       if (!isNaN(inputValue) && !isNaN(installment)) {
-        // Check if the input value is a multiple of the installment amount
         if (inputValue % installment !== 0) {
+          // Show error message when the input value is not a multiple of installment
           setSubmitMessage(
-            `Input value must be a multiple of ${installment} for loanID ${id}`
+            `${member.OLname} এর জন্য অবশ্যই ${installment} বা ${installment} এর গুণিতক টাকা যোগ করুণ`
           );
+          setMessageType("danger"); // Set the message type to 'danger'
+
+          // Clear the input value if it is invalid
+          setFields((prevFields) => ({
+            ...prevFields,
+            [field]: {
+              ...prevFields[field],
+              [id]: "", // Reset the input field to an empty string
+            },
+          }));
         } else {
-          setSubmitMessage(""); // Clear error message if input is valid
+          // Clear error message if input is valid
+          setSubmitMessage("");
+          setMessageType("");
         }
       } else {
-        setSubmitMessage("Please enter a valid number");
+        // Error for non-numeric input
+        setSubmitMessage("সংখ্যা ছাড়া অন্য কিছু দেওয়া যাবে না");
+        setMessageType("danger");
+
+        // Clear the input value if it is not a valid number
+        setFields((prevFields) => ({
+          ...prevFields,
+          [field]: {
+            ...prevFields[field],
+            [id]: "", // Reset the input field to an empty string
+          },
+        }));
       }
     }
   };
@@ -219,8 +240,8 @@ const InstallmentCollection = () => {
   const handleInstallmentChange = (
     loanID,
     value,
-    installment,
-    onlyInterest
+    installment
+    // onlyInterest
   ) => {
     const inputValue = parseFloat(value);
     const installmentValue = parseFloat(installment);
@@ -230,18 +251,6 @@ const InstallmentCollection = () => {
       !isNaN(installmentValue) &&
       installmentValue > 0
     ) {
-      // Calculate how many times the installment is entered
-      const multiplier = Math.floor(inputValue / installmentValue);
-
-      // Calculate the new onlyInterest value based on the multiplier
-      const newOnlyInterest = multiplier * onlyInterest;
-
-      // Store the calculated onlyInterest in state
-      setCalculatedOnlyInterest((prevState) => ({
-        ...prevState,
-        [loanID]: newOnlyInterest,
-      }));
-
       // Continue with the normal handleChange logic
       handleChange("installmentCollecting", loanID, value);
     }
@@ -252,35 +261,41 @@ const InstallmentCollection = () => {
 
     const emptyEntries = [];
 
+    // Use centerMember data, which already contains the onlyInterest values
     const validData = centerMember.map((member) => {
       const installmentCollectingValue =
         fields.installmentCollecting[member.loanID];
-      fields.installmentCount?.[member.loanID];
-      const installmentValue = member.installment; // Add the installment value from the member data
+      const installmentValue = member.installment;
 
       if (!installmentCollectingValue || !installmentValue) {
         emptyEntries.push(member);
       }
 
-      // Calculate the installment count based on the logic (installmentCollectingValue / installment)
+      // The onlyInterest value is already fetched in useEffect and stored in centerMember
+      const onlyInterestFromDB = member.onlyInterest; // Use the already fetched value
+
       const calculatedInstallmentCount =
         installmentCollectingValue && installmentValue
-          ? Math.floor(installmentCollectingValue / installmentValue) // Calculate the division result
-          : 0; // Default to 0 if values are missing
+          ? Math.floor(installmentCollectingValue / installmentValue)
+          : 0;
+
+      // Calculate the total onlyInterest value based on installmentCount
+      const totalOnlyInterest = onlyInterestFromDB * calculatedInstallmentCount;
 
       return {
         ...member,
-        InstallmentCollecting: installmentCollectingValue || 0, // Default to 0 if empty
-        InstallmentCount: calculatedInstallmentCount, // Save the calculated count
+        InstallmentCollecting: installmentCollectingValue || 0,
+        InstallmentCount: calculatedInstallmentCount,
+        onlyInterest: totalOnlyInterest, // Use the already fetched and calculated value
       };
     });
 
     if (emptyEntries.length > 0) {
       const confirmation = window.confirm(
-        "Some input fields are empty. Do you want to save the non-empty data?"
+        "কিছু কিস্তি জমা খালি আছে, কিস্তি জমা খালি রেখেই বাকি কিস্তি গ্রহণ করতে চান?"
       );
       if (!confirmation) {
-        return; // Stop form submission if not confirmed
+        return;
       }
     }
 
@@ -292,31 +307,31 @@ const InstallmentCollection = () => {
         member.InstallmentCount !== 0
     );
 
-    // Prepare data to send to the backend
     const requestData = {
       centerName: selectedCenter,
       installmentDate: moment(selectedDate).format("DD-MM-YY"),
-      centerBranch: centerBranch, // Include the centerBranch information
-      submittedBy: [username], // Send submittedBy as an array
+      centerBranch: centerBranch,
+      submittedBy: [username],
       data: dataWithInstallments.map((member) => ({
         loanID: member.loanID,
         memberID: member.memberID,
         OLname: member.OLname,
         OLmobile: member.OLmobile,
         loanType: member.loanType,
-        onlyInterest: member.onlyInterest,
-        installment: [member.InstallmentCollecting], // Send installment as an array
-        installmentCount: [member.InstallmentCount], // Send the calculated installmentCount
+        onlyInterest: [member.onlyInterest], // The already fetched and calculated value for each member
+        installment: [member.InstallmentCollecting],
+        installmentCount: [member.InstallmentCount],
       })),
     };
 
-    // Send data to backend
+    // Submit the request to save the data
     axios
       .post("http://localhost:5000/save-installments-collection", requestData)
       .then(() => {
-        setSubmitMessage("Data saved successfully!");
+        setSubmitMessage("সঠিক ভাবে কিস্তি গ্রহণ করা হয়েছে");
+        setMessageType("success");
 
-        // Clear inputs
+        // Reset form state
         setFields({ installmentCollecting: {} });
         setSelectedDate(null);
         setSelectedCenter("");
@@ -324,7 +339,7 @@ const InstallmentCollection = () => {
       })
       .catch((error) => {
         setSubmitMessage(`Error: ${error.message}`);
-        console.error("Error saving data:", error.message);
+        setMessageType("danger");
       });
   };
 
@@ -540,6 +555,29 @@ const InstallmentCollection = () => {
             </div>
           </div>
         </div>
+        <div className="mt-3 mb-5">
+          {submitMessage && messageType === "danger" && (
+            <div
+              className="alert alert-danger mt-3 d-flex align-items-center"
+              role="alert"
+              style={{
+                borderRadius: "0.5rem", // Rounded corners
+                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+              }}
+            >
+              <i
+                className="fas fa-exclamation-circle"
+                style={{
+                  fontSize: "1.5rem",
+                  marginRight: "10px", // Space between icon and text
+                  color: "#721c24", // Red color for danger
+                }}
+              ></i>
+              <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
+            </div>
+          )}
+        </div>
+
         <div className="table-responsive">
           {centerMember.length > 0 ? (
             <table className="table table-hover">
@@ -568,7 +606,7 @@ const InstallmentCollection = () => {
 
                     {/* Wrap hidden input in a <td> */}
 
-                    <td style={{ display: "none" }}>
+                    {/* <td style={{ display: "none" }}>
                       <input
                         type="hidden"
                         value={
@@ -577,7 +615,7 @@ const InstallmentCollection = () => {
                         }
                         name={`onlyInterest-${center.loanID}`}
                       />
-                    </td>
+                    </td> */}
 
                     <td>
                       <input
@@ -600,22 +638,6 @@ const InstallmentCollection = () => {
                         className="form-control"
                       />
                     </td>
-                    {/* 
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="সংখ্যা"
-                        value={fields.installmentCount?.[center.loanID] || ""} // Installment count value
-                        onChange={(e) =>
-                          handleChange(
-                            "installmentCount",
-                            center.loanID,
-                            e.target.value
-                          )
-                        } // Update installment count
-                      />
-                    </td> */}
                   </tr>
                 ))}
               </tbody>
@@ -642,7 +664,7 @@ const InstallmentCollection = () => {
           </button>
         </div>
 
-        {submitMessage && (
+        {submitMessage && messageType === "success" && (
           <div
             className="alert alert-success mt-3 d-flex align-items-center"
             role="alert"
@@ -656,7 +678,7 @@ const InstallmentCollection = () => {
               style={{
                 fontSize: "1.5rem",
                 marginRight: "10px", // Space between icon and text
-                color: "#155724", // Dark green for the icon
+                color: "#155724", // Green color for success
               }}
             ></i>
             <span style={{ fontWeight: "bold" }}>{submitMessage}</span>

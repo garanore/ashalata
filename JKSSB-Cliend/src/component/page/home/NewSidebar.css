@@ -1,0 +1,88 @@
+/* Sidebar styles with sticky behavior */
+.sidebar {
+  width: 200px;
+  transition: width 0.3s;
+  background-color: #1c7c7c;
+  position: sticky;
+  top: 0; /* Ensures the sidebar sticks to the top as you scroll */
+  min-height: 100vh;
+  font-size: 14px;
+  z-index: 1000; /* Ensure it stays on top of the main content */
+  overflow-y: auto; /* Adds a vertical scrollbar if the content is too tall */
+}
+
+.menu-container {
+  flex-grow: 1;
+}
+
+.menu-item,
+.submenu-item {
+  padding: 1rem;
+  border-bottom: 1px solid #495057; /* Adjust border color as needed */
+}
+
+.submenu {
+  padding-left: 1rem; /* Indent submenu items */
+}
+
+.sidebar-collapsed {
+  width: 80px;
+}
+
+.nav-link {
+  color: #ffffff; /* White text for links */
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.nav-link span {
+  margin-left: 10px;
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+.btn-primarys {
+  background-color: #ffffff;
+  border-color: #4b438c;
+}
+
+.btn-primarys:hover {
+  background-color: #c9c9cc;
+}
+
+.me-2 {
+  margin-right: 8px;
+}
+
+/* log out button  */
+
+.logout-container {
+  background-color: #ff6f61; /* Modern and stylish single color */
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.logout-container:hover {
+  transform: translateY(-5px);
+  background-color: #fd0b03;
+  box-shadow: 0 8px 12px rgba(255, 255, 255, 0.15);
+}
+
+.logout-button {
+  color: #000000;
+  background: none;
+  border: none;
+  font-weight: bold;
+  /* text-transform: uppercase; */
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #fff;
+}

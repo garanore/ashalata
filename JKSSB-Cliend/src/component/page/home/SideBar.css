@@ -1,0 +1,47 @@
+/* Hover background effect */
+.hover-bg:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Subtle hover effect */
+}
+
+/* Sidebar link transition for smooth hover and active state changes */
+.sidebar-link {
+  transition: background-color 0.3s ease, font-weight 0.3s ease, color 0.3s ease;
+  text-decoration: none; /* Remove underline */
+}
+
+/* Active sidebar link styling */
+.sidebar-item.active > .sidebar-link,
+.sidebar-item .sidebar-link.active {
+  background-color: #17a2b8; /* Bootstrap 'info' color */
+  font-weight: bold; /* Bold text for active links */
+  color: white; /* Ensure readability */
+}
+
+/* Chevron rotation for expand/collapse indicators */
+.sidebar-link .fa-chevron-down,
+.sidebar-link .fa-chevron-up {
+  transition: transform 0.3s ease; /* Smooth rotation transition */
+}
+
+/* Rotate chevron when expanded */
+.sidebar-item .fa-chevron-up {
+  transform: rotate(180deg); /* Chevron rotation */
+}
+
+/* Dropdown indentation */
+.sidebar-dropdown .sidebar-item {
+  padding-left: 1rem; /* Indent dropdown items */
+}
+
+#sidebar {
+  max-width: 200px;
+  min-width: 200px;
+  background-color: rgb(84, 100, 105);
+  min-height: 100vh;
+  position: -webkit-sticky; /* Safari compatibility */
+  position: sticky;
+  top: 0; /* Makes it stick to the top */
+  z-index: 999; /* Ensures it stays on top of the content */
+  padding-top: 0.5rem; /* Optional: Adds some padding at the top */
+  transition: all 0.35s ease-in-out;
+}

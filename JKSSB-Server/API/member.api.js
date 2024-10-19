@@ -271,6 +271,26 @@ router.get("/member-callback-by-branch/:BranchMember", async (req, res) => {
   }
 });
 
+// Member Call Back by MemberID--------------------------------
+
+router.get("/member-callback-by-memberID/:memberID", async (req, res) => {
+  try {
+    const selectedID = req.params.memberID;
+
+    // Filter documents based on the selected BranchMember and approvalStatus = "Granted"
+    const memberIDs = await Member.find({
+      memberID: selectedID,
+      approvalStatus: "Granted", // Only select members with approvalStatus "Granted"
+    });
+
+    // Send the retrieved members as a response
+    res.status(200).json(memberIDs);
+  } catch (error) {
+    console.error("Error fetching members:", error.message);
+    res.status(500).json({ error: "Failed to fetch members" });
+  }
+});
+
 //get-AdmissionFee-by-center-and-date
 
 router.get(

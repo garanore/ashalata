@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
-// import DatePickers from "../../datepicker/DatePicker";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "@fortawesome/fontawesome-free/css/all.css";
@@ -365,14 +364,15 @@ const MemberAdmission = () => {
       <form className="container-fluid p-2 ">
         <div className="row g-4 bg-light ">
           {/* Row 1 */}
-          <div className="row mt-5 p-4 ">
+          <div className="row mt-5 p-2 ">
             <div className="col-md-3">
               <label
                 htmlFor="BranchMember"
                 className="form-label"
                 style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <i className="fas fa-code-branch"></i> শাঁখা নির্বাচন করুণ
+                <i className="fas fa-code-branch"></i> শাঁখা নির্বাচন করুণ{" "}
+                <span style={{ color: "red" }}>*</span>
               </label>
               <div className="input-group shadow-sm">
                 <span
@@ -421,6 +421,7 @@ const MemberAdmission = () => {
                 style={{ fontWeight: "bold", color: "#4A5568" }}
               >
                 <i className="fas fa-map-marker-alt"></i> কেন্দ্র নির্বাচন করুণ
+                <span style={{ color: "red" }}> *</span>
               </label>
               <div className="input-group shadow-sm">
                 <span
@@ -457,6 +458,7 @@ const MemberAdmission = () => {
                 style={{ fontWeight: "bold", color: "#4A5568" }}
               >
                 <i className="fas fa-store"></i> কেন্দ্র নাম
+                <span style={{ color: "red" }}> *</span>
               </label>
               <div className="input-group shadow-sm">
                 <span
@@ -487,7 +489,8 @@ const MemberAdmission = () => {
                 className="form-label"
                 style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <i className="fas fa-id-card"></i> সদস্য ID:
+                <i className="fas fa-id-card"></i> সদস্য ID
+                <span style={{ color: "red" }}> *</span>
               </label>
               <div className="input-group shadow-sm">
                 <span
@@ -524,6 +527,7 @@ const MemberAdmission = () => {
                 style={{ fontWeight: "bold", color: "#4A5568" }}
               >
                 <i className="fas fa-calendar-alt"></i> ভর্তি তারিখ
+                <span style={{ color: "red" }}> *</span>
               </label>
               <div className="input-group shadow-sm">
                 <span
@@ -656,7 +660,8 @@ const MemberAdmission = () => {
                 className="form-label"
                 style={{ fontWeight: "bold", color: "#4A5568" }}
               >
-                <i className="fas fa-briefcase"></i> পেশা
+                <i className="fas fa-briefcase"></i> পেশা{" "}
+                <span style={{ color: "red" }}>*</span>
               </label>
               <div className="input-group shadow-sm">
                 <span
@@ -1334,7 +1339,7 @@ const MemberAdmission = () => {
                 color: "#343a40", // Change this color as needed
               }}
             >
-              নমনী তথ্য
+              নমিনী তথ্য
             </h2>
             <div
               className="underline mx-auto"
@@ -1357,7 +1362,7 @@ const MemberAdmission = () => {
                 fontSize: "0.9rem",
               }}
             >
-              <i className="fas fa-user-tag"></i> নমনীর নাম
+              <i className="fas fa-user-tag"></i> নমিনীর নাম
             </label>
             <div className="input-group shadow-sm">
               <span
@@ -1373,7 +1378,7 @@ const MemberAdmission = () => {
                 type="text"
                 className="form-control border-primary"
                 id="NominiName"
-                placeholder="নমিনির নাম লিখুন"
+                placeholder="নমিনীর নাম লিখুন"
                 onChange={handleChange}
                 name="NominiName"
                 value={memberData.NominiName}
@@ -1392,7 +1397,7 @@ const MemberAdmission = () => {
                 fontSize: "0.9rem",
               }}
             >
-              <i className="fas fa-id-card"></i> নমনীর NID
+              <i className="fas fa-id-card"></i> নমিনীর NID
             </label>
             <div className="input-group shadow-sm">
               <span
@@ -1408,7 +1413,7 @@ const MemberAdmission = () => {
                 type="number"
                 className="form-control border-primary"
                 id="NominiNID"
-                placeholder="নমিনির NID লিখুন"
+                placeholder="নমিনীর NID লিখুন"
                 onChange={handleChange}
                 name="NominiNID"
                 value={memberData.NominiNID}
@@ -1472,7 +1477,7 @@ const MemberAdmission = () => {
                 type="text"
                 className="form-control border-primary"
                 id="MemberNominiRelation"
-                placeholder="নমিনির সাথে সম্পর্ক"
+                placeholder="নমিনীর সাথে সম্পর্ক"
                 onChange={handleChange}
                 name="MemberNominiRelation"
                 value={memberData.MemberNominiRelation}

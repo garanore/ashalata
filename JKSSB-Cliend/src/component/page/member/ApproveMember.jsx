@@ -7,7 +7,7 @@
 // const ApproveMember = () => {
 //   const [pendingMembers, setPendingMembers] = useState([]);
 //   const [error, setError] = useState("");
-//   const [userBranches, setUserBranches] = useState([]);
+//   const [Branches, setBranches] = useState([]);
 //   const [hasAccess, setHasAccess] = useState(false);
 //   const [username, setUsername] = useState(""); // Add username state
 //   const navigate = useNavigate();
@@ -49,15 +49,15 @@
 //     fetchPendingMembers();
 
 //     // Retrieve user data from localStorage
-//     const storedUserData = localStorage.getItem("userBranchData");
+//     const storedUserData = localStorage.getItem("BranchData");
 //     if (storedUserData) {
 //       const parsedData = JSON.parse(storedUserData);
 
 //       // Retrieve branches (if needed for further logic)
 //       const branches = Object.keys(parsedData)
-//         .filter((key) => key.startsWith("UserBranch"))
+//         .filter((key) => key.startsWith("Branch"))
 //         .map((key) => parsedData[key]);
-//       setUserBranches(branches);
+//       setBranches(branches);
 
 //       // Retrieve designations from user data
 //       const designations = Object.keys(parsedData)
@@ -135,11 +135,11 @@
 //     });
 //   };
 
-//   // Filter logic based on userBranches
-//   const filteredMembers = userBranches.includes("AllBranch")
+//   // Filter logic based on Branches
+//   const filteredMembers = Branches.includes("AllBranch")
 //     ? pendingMembers
 //     : pendingMembers.filter((member) =>
-//         userBranches.some((branch) => branch === member.BranchMember)
+//         Branches.some((branch) => branch === member.BranchMember)
 //       );
 
 //   if (!hasAccess) {

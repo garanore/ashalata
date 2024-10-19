@@ -23,7 +23,7 @@ router.post("/openbranch", async (req, res) => {
   try {
     const { BranchName, BranchAddress, BranchMobile, submittedBy } = req.body;
     const BranchID = await generateBranchID();
-    const newBranchrouterlication = new OpenBranch({
+    const newBranchRouterLocation = new OpenBranch({
       BranchID,
       BranchName,
       BranchAddress,
@@ -32,7 +32,7 @@ router.post("/openbranch", async (req, res) => {
       ActiveStatus: "True",
       DeletedBy: "Null",
     });
-    await newBranchrouterlication.save();
+    await newBranchRouterLocation.save();
     res.status(201).json({ message: "Branch Create successfully" });
   } catch (error) {
     console.error("Branch routerlication Error:", error.message);

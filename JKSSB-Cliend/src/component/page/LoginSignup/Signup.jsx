@@ -13,6 +13,7 @@ const Signup = () => {
   const [designation, setdesignation] = useState("");
   const [, setDesignationName] = useState(""); // DesignationName
   const [accountName, setAccountName] = useState("");
+  const [workerID, setWorkerID] = useState("");
   const [designations, setDesignations] = useState([]);
   const [passwordMatchError, setPasswordMatchError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -118,6 +119,7 @@ const Signup = () => {
   const handleEmailChange = (e) => setEmail(e.target.value); // New handler for email
   const handleUsernameChange = (e) => setUsername(e.target.value);
   const handleAccountNameChange = (e) => setAccountName(e.target.value);
+  const handleWorkerIDChange = (e) => setWorkerID(e.target.value);
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
@@ -206,6 +208,7 @@ const Signup = () => {
         password,
         designation,
         accountName,
+        workerID,
         UserBranch,
         UserCenter,
         submittedBy: loggedInUsername, // Set 'submittedBy' to the logged-in user's username
@@ -336,6 +339,20 @@ const Signup = () => {
             )}
 
             <form onSubmit={handleSubmit}>
+              {/* Name Input */}
+              <div className="form-floating mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="workerID"
+                  placeholder="Input Worker ID"
+                  value={workerID || ""}
+                  onChange={handleWorkerIDChange}
+                  required
+                />
+                <label htmlFor="accountName">Worker ID</label>
+              </div>
+
               {/* Name Input */}
               <div className="form-floating mb-3">
                 <input

@@ -24,8 +24,8 @@ const GrantUser = () => {
         setPendingUsers(response.data);
 
         // Fetch the designations for each submittedBy
-        response.data.forEach(async (member) => {
-          const submittedBy = member.submittedBy;
+        response.data.forEach(async (user) => {
+          const submittedBy = user.submittedBy;
           if (submittedBy) {
             try {
               const userResponse = await axios.get(
@@ -273,7 +273,7 @@ const GrantUser = () => {
                 fontSize: "2rem", // Larger text for prominence
               }}
             >
-              <i className="fas fa-money-bill-wave"></i> User Granted
+              <i className="fas fa-users"></i> User Granted
             </h2>
           </div>
         </div>
@@ -298,6 +298,7 @@ const GrantUser = () => {
             <table className="table table-hover">
               <thead className="table-light">
                 <tr>
+                  <th>Worker ID</th>
                   <th>User Name</th>
                   <th>User ID</th>
                   <th>Email</th>
@@ -313,6 +314,7 @@ const GrantUser = () => {
               <tbody>
                 {currentUsers.map((User) => (
                   <tr key={User._id}>
+                    <td>{User.workerID}</td>
                     <td>{User.accountName}</td>
                     <td>{User.username}</td>
                     <td>{User.email}</td>

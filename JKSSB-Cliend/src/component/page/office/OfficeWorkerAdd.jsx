@@ -10,7 +10,6 @@ const DESIGNATION_CALLBACK_API = "http://localhost:5000/designation-callback";
 
 const WorkerAdmission = () => {
   const [WorkerCount, setWorkerCount] = useState(0);
-
   const [designation, setdesignation] = useState("");
   const [, setDesignationName] = useState(""); // DesignationName
   const [showUserBranch, setShowUserBranch] = useState(false);
@@ -20,7 +19,6 @@ const WorkerAdmission = () => {
   const [memberData, setmemberData] = useState({});
   const [accountName, setAccountName] = useState("");
   const [username, setUsername] = useState("");
-
   const [workerID, setWorkerID] = useState("");
   const [centers, setCenters] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -43,10 +41,9 @@ const WorkerAdmission = () => {
     WorkerNID: "",
     WorkerMobile: "",
     WorkerMail: "",
-    Workerimage: null,
     WorkerCenterAdd: "",
     WorkerBranchAdd: "",
-    Designation: "",
+    designation: "",
     JoiningDate: "",
     submittedBy: "", // Make sure this is part of the form state
     GrantedBy: "Null", // Ensure it's set correctly
@@ -178,7 +175,6 @@ const WorkerAdmission = () => {
 
   const handleBranchChange = (e) => {
     const branch = e.target.value;
-    const { name, value } = e.target;
 
     setSelectedBranch(branch);
 
@@ -199,12 +195,11 @@ const WorkerAdmission = () => {
         .catch((error) => {
           console.error("Error fetching center data:", error);
         });
-    }
-    if (name === "WorkerBranchAdd") {
-      setSelectedBranch(value);
+
+      // Always update WorkerData regardless of name
       setWorkerData((prevData) => ({
         ...prevData,
-        WorkerBranchAdd: value,
+        WorkerBranchAdd: branch,
       }));
     }
   };
@@ -218,11 +213,11 @@ const WorkerAdmission = () => {
       .then((response) => {
         const center = response.data;
 
-        setSelectedCenter(center[0]);
-        setmemberData((prevData) => ({
+        setSelectedCenter(center[0]); // Assuming the first result is the desired one
+        setWorkerData((prevData) => ({
           ...prevData,
-          CenterIDMember: selectedCenterID, // Update CenterIDMember in memberData
-          CenterNameMember: center[0].CenterName,
+          WorkerCenterAdd: selectedCenterID, // Update WorkerCenterAdd in WorkerData
+          CenterNameMember: center[0].CenterName, // This is optional if needed
         }));
       })
       .catch((error) => {
@@ -241,8 +236,15 @@ const WorkerAdmission = () => {
     )?.DesignationName;
 
     setdesignation(selectedDesignationID); // Set this to DesignationID for the select's value binding
-    setDesignationName(selectedDesignationName); // Use another state to store DesignationName for display/logic
+    setDesignationName(selectedDesignationName);
 
+    // Update WorkerData with the selected designation
+    setWorkerData((prevData) => ({
+      ...prevData,
+      designation: selectedDesignationName, // Set the designation in WorkerData
+    }));
+
+    // Logic for showing or hiding additional fields based on the designation
     if (
       [
         "নির্বাহী পরিচালক",
@@ -284,20 +286,91 @@ const WorkerAdmission = () => {
     const formattedDate =
       name === "WdateOfBirth" ? (value ? value.toISOString() : null) : value;
   };
-  // Total Family Member End
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]; // Get the uploaded file
+
+    if (file) {
+      const img = new Image(); // Create an Image object to load and check dimensions
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const width = img.naturalWidth;
+        const height = img.naturalHeight;
+
+        // Check file size (in bytes)
+        if (file.size > 200 * 1024) {
+          // 200KB limit
+          alert("আপনার ছবি 200 KB এর বেশি, দয়া করে কমিয়ে নিন ।");
+          // Clear the input box by setting its value to empty string
+          e.target.value = "";
+          return;
+        }
+
+        // Check dimensions (in pixels)
+        if (width > 600 || height > 600) {
+          alert("আপনার ছবি 600/600 এর বড়, দয়া করে ছোট করুণ");
+          // Clear the input box by setting its value to empty string
+          e.target.value = "";
+          return;
+        }
+
+        // If file is valid, update the WorkerData state with the image file
+        setWorkerData({ ...WorkerData, WorkerImage: file });
+      };
+
+      img.onerror = () => {
+        alert("Invalid image file. Please upload jpg", "png", "jpeg");
+        // Clear the input box by setting its value to empty string
+        e.target.value = "";
+      };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+
+    // Append other form data
+
+    formData.append("WorkerName", WorkerData.WorkerName); // Ensure WorkerName is set
+    formData.append("WorkerParent", WorkerData.WorkerParent);
+    formData.append("WdateOfBirth", WorkerData.WdateOfBirth);
+    formData.append("WorkerJob", WorkerData.WorkerJob);
+    formData.append("WorkerHome", WorkerData.WorkerHome);
+    formData.append("WorkerUnion", WorkerData.WorkerUnion);
+    formData.append("WorkerPost", WorkerData.WorkerPost);
+    formData.append("WorkerSubDic", WorkerData.WorkerSubDic);
+    formData.append("WorkerDic", WorkerData.WorkerDic);
+    formData.append("WorkerMarital", WorkerData.WorkerMarital);
+    formData.append("WorkerStudy", WorkerData.WorkerStudy);
+    formData.append("WorkerNID", WorkerData.WorkerNID);
+    formData.append("WorkerMobile", WorkerData.WorkerMobile); // Ensure WorkerMobile is set
+    formData.append("WorkerMail", WorkerData.WorkerMail); // Ensure WorkerMail is set
+    formData.append("WorkerCenterAdd", WorkerData.WorkerCenterAdd);
+    formData.append("WorkerBranchAdd", WorkerData.WorkerBranchAdd);
+    formData.append("designation", WorkerData.designation); // Ensure Designation is set
+    formData.append("JoiningDate", WorkerData.JoiningDate);
+    formData.append("approvalStatus", WorkerData.approvalStatus);
+    formData.append("ActiveStatus", WorkerData.ActiveStatus);
+    formData.append("submittedBy", WorkerData.submittedBy);
+    formData.append("GrantedBy", WorkerData.GrantedBy);
+    formData.append("DeletedStatus", WorkerData.DeletedStatus);
+    formData.append("agreementChecked", WorkerData.agreementChecked);
+
+    // Append the image file (make sure it's not null)
+    if (WorkerData.WorkerImage) {
+      formData.append("WorkerImage", WorkerData.WorkerImage);
+    }
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(WorkerData),
+        body: formData,
       });
 
-      // eslint-disable-next-line no-unused-vars
-      const data = await response.json();
+      await response.json();
 
       // Handle success
       setSubmitMessage("Pending for Approval");
@@ -305,7 +378,7 @@ const WorkerAdmission = () => {
       setWorkerID(generateWorkerID());
       setWorkerData({
         workerID: "",
-        WorkerName: "",
+        Name: "",
         WorkerParent: "",
         WdateOfBirth: "",
         WorkerJob: "",
@@ -317,18 +390,18 @@ const WorkerAdmission = () => {
         WorkerMarital: "",
         WorkerStudy: "",
         WorkerNID: "",
-        WorkerMobile: "",
-        WorkerMail: "",
-        Workerimage: null,
-        WorkerCenterAdd: "",
-        WorkerBranchAdd: "",
+        phoneNumber: "",
+        email: "",
+        Center: "",
+        Branch: "",
         Designation: "",
         JoiningDate: "",
-        approvalStatus: "Approved", // Ensure it's set correctly
-        ActiveStatus: "True", // Ensure it's set correctly
-        submittedBy: "", // Reset this as well
-        GrantedBy: "Null", // Ensure it's set correctly
-        DeletedStatus: "Null", // Ensure it's set correctly
+        approvalStatus: "Approved",
+        ActiveStatus: "True",
+        submittedBy: "",
+        GrantedBy: "Null",
+        DeletedStatus: "Null",
+        WorkerImage: "Null",
         agreementChecked: false,
       });
       setTimeout(() => {
@@ -337,7 +410,6 @@ const WorkerAdmission = () => {
       formRef.current.reset();
     } catch (error) {
       console.error("Error submitting WorkerAdmission data:", error.message);
-      // Handle error appropriately
     }
   };
 
@@ -488,7 +560,7 @@ const WorkerAdmission = () => {
             </div>
           </div>
 
-          {/* সদস্য তথ্য শুরু */}
+          {/* কর্মী তথ্য শুরু */}
 
           <div className="col-md-3">
             <label
@@ -919,11 +991,11 @@ const WorkerAdmission = () => {
 
           <div className="col-3">
             <label
-              htmlFor="Designation"
+              htmlFor="designation"
               className="col-form-label"
               style={{ fontWeight: "bold", color: "#4A5568" }}
             >
-              <i className="fas fa-user-tag"></i> পদ নির্বাচন করুণ
+              <i className="fas fa-user-tag"></i> পদবী নির্বাচন করুণ
             </label>
             <div className="input-group shadow-sm">
               <span
@@ -937,7 +1009,7 @@ const WorkerAdmission = () => {
               </span>
               <select
                 className="form-control border-primary"
-                id="Designation"
+                id="designation"
                 value={designation}
                 onChange={handleRankChange}
                 required
@@ -1006,6 +1078,7 @@ const WorkerAdmission = () => {
                 <select
                   className="form-select border-primary"
                   id="WorkerBranchAdd"
+                  name="WorkerBranchAdd" // <-- Added the name attribute here
                   onChange={handleBranchChange}
                   value={selectedBranch}
                   required
@@ -1056,8 +1129,9 @@ const WorkerAdmission = () => {
                 </span>
                 <select
                   id="WorkerCenterAdd"
+                  name="WorkerCenterAdd" // Added the name attribute here
                   className="form-select border-primary"
-                  value={memberData.CenterMember}
+                  value={WorkerData.WorkerCenterAdd} // Use WorkerData.WorkerCenterAdd here
                   onChange={handleCenterChange}
                   required
                 >
@@ -1078,7 +1152,7 @@ const WorkerAdmission = () => {
               className="form-label"
               style={{ fontWeight: "bold", color: "#4A5568" }}
             >
-              <i className="fas fa-birthday-cake"></i> জন্ম তারিখ
+              <i className="fas fa-birthday-cake"></i> যোগদানের তারিখ
             </label>
             <div className="input-group shadow-sm">
               <span
@@ -1105,25 +1179,37 @@ const WorkerAdmission = () => {
             </div>
           </div>
 
-          {/* <div className="mb-3 col-3">
-            <label htmlFor="JoiningDate" className="form-label">
-              যোগদানের তারিখ
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerImage"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-image"></i> কর্মীর ছবি
             </label>
-
-            <div>
-              <DatePicker
-                id="JoiningDate"
-                className="form-control"
-                selected={
-                  WorkerData.JoiningDate
-                    ? new Date(WorkerData.JoiningDate)
-                    : null
-                }
-                onChange={handleJoiningDateChange}
-                dateFormat="dd/MM/yyyy"
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-image"></i>
+              </span>
+              <input
+                id="WorkerImage"
+                className="form-control border-primary"
+                type="file"
+                name="WorkerImage"
+                accept="image/*"
+                onChange={handleImageChange}
               />
             </div>
-          </div> */}
+            <small className="text-muted">
+              ৬০০/৬০০ এবং ২০০ KB এর মধ্যে ছবি দিন ।
+            </small>
+          </div>
         </div>
 
         <div className="col-12 mb-4 mt-5">

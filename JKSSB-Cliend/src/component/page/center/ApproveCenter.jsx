@@ -6,7 +6,7 @@
 // const ApproveCenter = () => {
 //   const [pendingCenters, setPendingCenters] = useState([]);
 //   const [error, setError] = useState("");
-//   const [userBranches, setUserBranches] = useState([]);
+//   const [Branches, setBranches] = useState([]);
 //   const [, setUserDesignations] = useState([]);
 //   const [hasAccess, setHasAccess] = useState(false);
 
@@ -25,14 +25,14 @@
 //     fetchPendingCenters();
 
 //     // Retrieve user data from localStorage
-//     const storedUserData = localStorage.getItem("userBranchData");
+//     const storedUserData = localStorage.getItem("BranchData");
 //     if (storedUserData) {
 //       const parsedData = JSON.parse(storedUserData);
 
 //       const branches = Object.keys(parsedData)
-//         .filter((key) => key.startsWith("UserBranch"))
+//         .filter((key) => key.startsWith("Branch"))
 //         .map((key) => parsedData[key]);
-//       setUserBranches(branches);
+//       setBranches(branches);
 
 //       const designations = Object.keys(parsedData)
 //         .filter((key) => key.startsWith("designation"))
@@ -72,11 +72,11 @@
 //     }
 //   };
 
-//   // Filter logic based on userBranches
-//   const filteredCenters = userBranches.includes("AllBranch")
+//   // Filter logic based on Branches
+//   const filteredCenters = Branches.includes("AllBranch")
 //     ? pendingCenters // Show all centers if user has access to "AllBranch"
 //     : pendingCenters.filter((center) =>
-//         userBranches.some((branch) => branch === center.centerBranch)
+//         Branches.some((branch) => branch === center.centerBranch)
 //       ); // Show centers matching any of the user's branches
 
 //   if (!hasAccess) {

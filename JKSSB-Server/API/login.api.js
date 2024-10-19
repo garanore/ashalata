@@ -34,13 +34,12 @@ router.post("/login", async (req, res) => {
       accountName: user.accountName,
       username: user.username,
       approvalStatus: user.approvalStatus, // Include approvalStatus
-      ActiveStatus: user.ActiveStatus,     // Include ActiveStatus
+      ActiveStatus: user.ActiveStatus, // Include ActiveStatus
     });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 
 //User Check-------------------------
 

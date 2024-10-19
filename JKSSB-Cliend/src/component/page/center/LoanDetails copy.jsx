@@ -11,7 +11,7 @@ function LoanDetails() {
   const navigate = useNavigate();
   const [selectedWorker, setSelectedWorker] = useState("");
   const [centerDay, setCenterDay] = useState("");
-  const [userCenters, setuserCenters] = useState([]);
+  const [Centers, setCenters] = useState([]);
 
   const [username, setUsername] = useState(""); // Add username state
   const [hasAccess, setHasAccess] = useState(false); // Initially, set access to false
@@ -43,16 +43,16 @@ function LoanDetails() {
         console.error("Error fetching center data:", error);
       });
 
-    const storedUserData = localStorage.getItem("userBranchData");
+    const storedUserData = localStorage.getItem("BranchData");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
 
       const branches = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserBranch"))
+        .filter((key) => key.startsWith("Branch"))
         .map((key) => parsedData[key]);
 
       const centers = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserCenter"))
+        .filter((key) => key.startsWith("Center"))
         .map((key) => parsedData[key]);
 
       const userNames = Object.keys(parsedData)
@@ -70,7 +70,7 @@ function LoanDetails() {
       if (branches.includes("AllBranch")) {
         setHasAccess(true);
       } else {
-        setuserCenters(centers); // Store the user's centers
+        setCenters(centers); // Store the user's centers
         setHasAccess(false);
       }
     }
@@ -146,8 +146,8 @@ function LoanDetails() {
       axios
         .get(`http://localhost:5000/get-worker-name/${center}`)
         .then((response) => {
-          const workerName = response.data.WorkerName;
-          setSelectedWorker(workerName ? workerName : "No worker found");
+          const Name = response.data.Name;
+          setSelectedWorker(Name ? Name : "No worker found");
         })
         .catch((error) => {
           console.error("Error fetching worker name:", error);
@@ -245,7 +245,7 @@ function LoanDetails() {
                   </option>
                 ))
               : centers
-                  .filter((center) => userCenters.includes(center.centerID))
+                  .filter((center) => Centers.includes(center.centerID))
                   .map((center) => (
                     <option key={center._id} value={center.centerID}>
                       {center.centerID}

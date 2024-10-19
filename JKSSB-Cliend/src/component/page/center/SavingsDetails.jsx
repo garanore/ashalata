@@ -12,8 +12,7 @@ const restrictedDesignations = [
 
 function SavingDetails() {
   const [selectedCenter, setSelectedCenter] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  const [selectedMember, setSelectedMember] = useState(null);
+  const [, setSelectedMember] = useState(null);
   const [savings, setSavings] = useState({});
   const [centers, setCenters] = useState([]);
   const navigate = useNavigate();

@@ -9,15 +9,19 @@ import "/src/component/css/SideBar.css";
 function App() {
   return (
     <div>
-      <header className="behind">
+      {/* <header className="behind">
         <NavBar />
-      </header>
+      </header> */}
       <div className="d-flex flex-row">
         <aside className="me-2">
           <SideBar />
         </aside>
 
         <main className="Size">
+          <div className="mb-2">
+            <NavBar />
+          </div>
+
           <Outlet />
         </main>
       </div>

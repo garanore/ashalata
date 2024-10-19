@@ -191,7 +191,7 @@ app.get("/workeradmission/count", async (req, res) => {
 app.post("/workeradmission", async (req, res) => {
   try {
     const {
-      WorkerName,
+      Name,
       WorkerParent,
       WdateOfBirth,
       WorkerJob,
@@ -203,11 +203,11 @@ app.post("/workeradmission", async (req, res) => {
       WorkerMarital,
       WorkerStudy,
       WorkerNID,
-      WorkerMobile,
-      WorkerMail,
+      phoneNumber,
+      email,
       Workerimage,
-      WorkerCenterAdd,
-      WorkerBranchAdd,
+      Center,
+      Branch,
       Designation,
       JoiningDate,
       agreementChecked,
@@ -215,7 +215,7 @@ app.post("/workeradmission", async (req, res) => {
     const workerID = await generateWorkerID();
     const newWorker = new AddWorker({
       workerID,
-      WorkerName,
+      Name,
       WorkerParent,
       WdateOfBirth,
       WorkerJob,
@@ -227,11 +227,11 @@ app.post("/workeradmission", async (req, res) => {
       WorkerMarital,
       WorkerStudy,
       WorkerNID,
-      WorkerMobile,
-      WorkerMail,
+      phoneNumber,
+      email,
       Workerimage,
-      WorkerCenterAdd,
-      WorkerBranchAdd,
+      Center,
+      Branch,
       Designation,
       JoiningDate,
       agreementChecked,
@@ -250,11 +250,11 @@ app.get("/worker-callback", async (req, res) => {
     const selectedBranch = req.query.selectedBranch;
     let query = {};
     if (selectedBranch) {
-      query = { WorkerBranchAdd: selectedBranch };
+      query = { Branch: selectedBranch };
     }
     const workers = await AddWorker.find(
       query,
-      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd Designation JoiningDate agreementChecked"
+      "workerID Name WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID phoneNumber email Workerimage Center Branch Designation JoiningDate agreementChecked"
     );
 
     res.json(workers);
@@ -267,7 +267,7 @@ app.get("/worker-callback", async (req, res) => {
 // Only Worker CallBack--------------------------------------------------------
 app.get("/worker-callback-salary", async (req, res) => {
   try {
-    const workers = await AddWorker.find({}, "workerID WorkerName Designation");
+    const workers = await AddWorker.find({}, "workerID Name Designation");
 
     res.json(workers);
   } catch (error) {
@@ -285,7 +285,7 @@ app.get("/worker-callback/:ID", async (req, res) => {
 
     const worker = await AddWorker.findOne(
       query,
-      "workerID WorkerName WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID WorkerMobile WorkerMail Workerimage WorkerCenterAdd WorkerBranchAdd Designation agreementChecked"
+      "workerID Name WorkerParent WdateOfBirth WorkerJob WorkerHome WorkerUnion WorkerPost WorkerSubDic WorkerDic WorkerMarital WorkerStudy WorkerNID phoneNumber email Workerimage Center Branch Designation agreementChecked"
     );
 
     if (!worker) {
@@ -305,10 +305,10 @@ app.get("/worker-callback/:ID", async (req, res) => {
 
 app.get("/worker-callback-center", async (req, res) => {
   try {
-    const WorkerCenterAdds = await AddWorker.find();
+    const Centers = await AddWorker.find();
 
     // Send the retrieved dates as a response
-    res.status(200).json(WorkerCenterAdds);
+    res.status(200).json(Centers);
   } catch (error) {
     console.error("Error fetching dates:", error.message);
     res.status(500).json({ error: "Failed to fetch dates" });
@@ -320,12 +320,12 @@ app.get("/worker-callback-center/:ID", async (req, res) => {
     const selectedCenter = req.params.ID; //
 
     // Filter documents based on the selected ID
-    const WorkerCenterAdds = await AddWorker.find({
-      WorkerCenterAdd: selectedCenter,
+    const Centers = await AddWorker.find({
+      Center: selectedCenter,
     });
 
     // Send the retrieved dates as a response
-    res.status(200).json(WorkerCenterAdds);
+    res.status(200).json(Centers);
   } catch (error) {
     console.error("Error fetching dates:", error.message);
     res.status(500).json({ error: "Failed to fetch dates" });
@@ -346,13 +346,13 @@ app.get("/worker-callback-branch", async (req, res) => {
   }
 });
 
-app.get("/worker-callback-branch/:WorkerBranchAdd", async (req, res) => {
+app.get("/worker-callback-branch/:Branch", async (req, res) => {
   try {
-    const selectedbranchs = req.params.WorkerBranchAdd; //
+    const selectedbranchs = req.params.Branch; //
 
     // Filter documents based on the selected ID
     const branchs = await AddWorker.find({
-      WorkerBranchAdd: selectedbranchs,
+      Branch: selectedbranchs,
     });
 
     // Send the retrieved dates as a response
@@ -409,7 +409,7 @@ app.post("/save-worker-salary", async (req, res) => {
       const update = {
         $set: {
           workerID: item.workerID,
-          workerName: item.workerName,
+          Name: item.Name,
           designation: item.designation,
         },
         $push: {
@@ -493,7 +493,7 @@ app.get("/worker-salary/:workerID/:month", async (req, res) => {
       if (monthIndex !== -1) {
         const salaryData = {
           workerID: workerSalary.workerID,
-          workerName: workerSalary.workerName,
+          Name: workerSalary.Name,
           designation: workerSalary.designation,
           advance: workerSalary.advance[monthIndex],
           basic: workerSalary.basic[monthIndex],
@@ -864,7 +864,7 @@ app.get("/center-callback", async (req, res) => {
     const centers = await OpenCenter.find(
       query,
       "centerID CenterName CenterAddress CenterMnumber centerWorker centerBranch CenterDay"
-    ).populate("centerWorker", "WorkerName");
+    ).populate("centerWorker", "Name");
 
     res.json(centers);
   } catch (error) {

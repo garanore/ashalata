@@ -17,17 +17,21 @@ function BranchList() {
   const [currentPage, setCurrentPage] = useState(1);
   const membersPerPage = 25; // Members per page
 
+  const [, setUserBranches] = useState([]);
+
   useEffect(() => {
-    const storedUserBranchData = localStorage.getItem("userBranchData");
-    if (storedUserBranchData) {
-      const parsedData = JSON.parse(storedUserBranchData);
-      const userBranches = Object.keys(parsedData)
+    const storedUserData = localStorage.getItem("userBranchData");
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+      const branches = Object.keys(parsedData)
         .filter((key) => key.startsWith("UserBranch"))
         .map((key) => parsedData[key]);
+      setUserBranches(branches);
 
-      if (userBranches.includes("AllBranch")) {
+      if (branches.includes("AllBranch")) {
         setHasAccess(true);
       }
+
       const usernames = Object.keys(parsedData)
         .filter((key) => key.startsWith("username"))
         .map((key) => parsedData[key]);

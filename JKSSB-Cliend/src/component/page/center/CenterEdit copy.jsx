@@ -12,11 +12,11 @@ function CenterEdit() {
   const [allCenter, setAllCenter] = useState({});
   const [submitMessage, setSubmitMessage] = useState("");
   const [selectedWorker, setSelectedWorker] = useState("");
-  const [workerNames, setWorkerNames] = useState([]);
+  const [Names, setNames] = useState([]);
 
   useEffect(() => {
     fetchCenterDetails();
-    fetchWorkerNames();
+    fetchNames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerID]);
 
@@ -31,12 +31,12 @@ function CenterEdit() {
     }
   };
 
-  const fetchWorkerNames = async () => {
+  const fetchNames = async () => {
     try {
       const response = await axios.get(
         "http://localhost:5000/worker-callback-center"
       );
-      setWorkerNames(response.data.map((worker) => worker.WorkerName));
+      setNames(response.data.map((worker) => worker.Name));
     } catch (error) {
       console.error("Error fetching worker names:", error.message);
     }
@@ -218,7 +218,7 @@ function CenterEdit() {
               ) : (
                 <option value="">Select a Worker</option>
               )}
-              {workerNames.map((name, index) => (
+              {Names.map((name, index) => (
                 <option key={index} value={name}>
                   {name}
                 </option>

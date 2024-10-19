@@ -96,7 +96,7 @@ const SavingEdit = () => {
     setSavingEdit({ ...SavingEdit, SavingType: selectedSavingType });
   };
 
-  const handleSavingTimeChange = (e) => {
+  const handleTimeTypeChange = (e) => {
     const selectedSavingTime = e.target.value;
     setSavingTime(selectedSavingTime);
     setSavingEdit({ ...SavingEdit, SavingTime: selectedSavingTime });
@@ -238,6 +238,11 @@ const SavingEdit = () => {
         state: { SavingID },
         replace: true,
       });
+    } else if (previousPage === "ReviewSaving") {
+      navigate("/home/ReviewSaving", {
+        state: { SavingID },
+        replace: true,
+      });
     } else {
       navigate("/home/SavingDetails", { state: { SavingID }, replace: true });
     }
@@ -246,180 +251,469 @@ const SavingEdit = () => {
   return (
     <div className="form-row bg-light container-fluid p-2">
       <form onSubmit={handleUpdateSaving}>
-        <div className=" ">
-          <div className=" border-bottom mb-3 ">
-            <h2 className="text-center   mb-4 pt-3">সঞ্চয় সম্পাদনা </h2>
+        <div className="row mb-4">
+          <div className="col">
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{
+                backgroundColor: "#f0f4f8", // Soft background for the header
+                borderRadius: "10px", // Rounded edges for a modern look
+                padding: "20px",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+              }}
+            >
+              <h2
+                className="text-center mb-0"
+                style={{
+                  fontWeight: "bold",
+                  color: "#2D3748",
+                  fontSize: "2rem", // Larger text for prominence
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i> সঞ্চয় সম্পাদনা
+              </h2>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col">
+            <hr
+              style={{
+                border: "none",
+                borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                marginTop: "10px",
+              }}
+            />
           </div>
         </div>
 
         <div className="row  g-4  mt-5">
-          <div className="col-md-4">
-            <label htmlFor="SavingID" className="form-label">
-              সঞ্চয় ID
-            </label>
-            <input
-              type="text"
-              name="SavingID"
-              className="form-control"
-              defaultValue={SavingEdit.SavingID}
-              readOnly
-            />
-          </div>
-
-          <div className="col-md-4">
-            <label htmlFor="memberID" className="form-label">
-              সদস্য ID
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="ID"
-              defaultValue={SavingEdit.memberID}
-              readOnly
-            />
-          </div>
-
-          <div className="col-md-4">
-            <label htmlFor="SavingName" className="form-label">
-              সদস্য নাম
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingName"
-              defaultValue={SavingEdit.SavingName}
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="fathername" className="form-label">
-              পিতা/স্বামীর নাম
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="fathername"
-              defaultValue={SavingEdit.fathername}
-            />
-          </div>
-
-          <div className="col-md-3 mb-3">
-            <label htmlFor="SavingCenter" className="form-label">
-              কেন্দ্র
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingCenter"
-              defaultValue={SavingEdit.SavingCenter}
-            />
-          </div>
-
-          <div className="col-md-4">
-            <label htmlFor="SavingMobile" className="form-label">
-              মোবাইল
-            </label>
-            <input
-              className="form-control"
-              type="number"
-              name="SavingMobile"
-              defaultValue={SavingEdit.SavingMobile}
-            />
-          </div>
-
-          <div className="mb-3 col-3">
-            <label htmlFor="SavingType" className="form-label">
-              সঞ্চয়ের ধরণ
-            </label>
-            <select
-              className="form-select"
-              id="SavingType"
-              value={SavingType}
-              onChange={handleSavingTypeChange}
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
             >
-              <option value="">Choose...</option>
-              {Object.entries(SavingTypeTranslations).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-3 col-3">
-            <label htmlFor="SavingTime" className="form-label">
-              সঞ্চয়ের সময়
+              <i className="fas fa-id-card"></i> সঞ্চয় ID
             </label>
-            <select
-              className="form-select"
-              id="SavingTime"
-              value={SavingTime}
-              onChange={handleSavingTimeChange}
-            >
-              <option value="">Choose...</option>
-              {Object.entries(SavingTimeTranslations).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-md-4">
-            <label htmlFor="SavingAmount" className="form-label">
-              সঞ্চয়ের পরিমাণ
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="SavingAmount"
-              defaultValue={SavingEdit.SavingAmount}
-            />
-          </div>
-
-          <div className="col-3">
-            <label htmlFor="CenterDay" className="form-label">
-              কেন্দ্র বার
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="installment"
-              defaultValue={SavingEdit.CenterDay}
-              readOnly
-            />
-          </div>
-          <div className="mb-3 col-3">
-            <label htmlFor="installmentStart" className="form-label">
-              সঞ্চয় শুরু
-            </label>
-            <div>
-              <DatePicker
-                id="installmentStart"
-                className="form-control"
-                selected={installmentStart} // Ensure this is the correct value from state
-                onChange={handleDateChange}
-                dateFormat="MM/dd/yyyy" // Adjust format if needed
-                placeholderText="Select date"
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                type="text"
+                name="SavingID"
+                className="form-control border-primary"
+                defaultValue={SavingEdit.SavingID}
+                readOnly
               />
             </div>
           </div>
 
+          <div className="col-md-3">
+            <label
+              htmlFor="memberID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> সদস্য ID
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                id="memberID"
+                name="memberID"
+                defaultValue={SavingEdit.memberID}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingName"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-use"></i> সদস্য নাম
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user"></i>
+              </span>
+              <input
+                id="SavingName"
+                className="form-control border-primary"
+                type="text"
+                name="SavingName"
+                defaultValue={SavingEdit.SavingName}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="fathername"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user-friends"></i> পিতা/স্বামী
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user-friends"></i>
+              </span>
+              <input
+                id="fathername"
+                className="form-control border-primary"
+                type="text"
+                name="fathername"
+                defaultValue={SavingEdit.fathername}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingBranch"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-code-branch"></i> শাখা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-code-branch"></i>
+              </span>
+              <input
+                id="SavingBranch"
+                className="form-select border-primary"
+                type="text"
+                name="SavingCenter"
+                defaultValue={SavingEdit.SavingBranch}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="SavingCenter"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map-marker-alt"></i>
+              </span>
+              <input
+                id="SavingCenter"
+                className="form-select border-primary"
+                type="text"
+                name="SavingCenter"
+                defaultValue={SavingEdit.SavingCenter}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="SavingMobile"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mobile-alt"></i> মোবাইল
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mobile-alt"></i>
+              </span>
+              <input
+                id="SavingMobile"
+                className="form-select border-primary"
+                type="number"
+                name="SavingMobile"
+                defaultValue={SavingEdit.SavingMobile}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="SavingType"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-check-alt"></i> সঞ্চয়ের ধরণ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-check-alt"></i>
+              </span>
+              <select
+                id="SavingType"
+                className="form-control border-primary"
+                value={SavingType}
+                onChange={handleSavingTypeChange}
+              >
+                <option value="">Choose...</option>
+                {Object.entries(SavingTypeTranslations).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {(SavingType === "Meyadi" || SavingType === "NonMeyadi") && (
+            <div className="col-3">
+              <label
+                htmlFor="SavingTime"
+                className="col-form-label"
+                style={{ fontWeight: "bold", color: "#4A5568" }}
+              >
+                <i className="fas fa-money-bill-wave"></i> সময়
+              </label>
+              <div className="input-group shadow-sm">
+                <span
+                  className="input-group-text bg-primary text-white"
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
+                >
+                  <i className="fas fa-money-bill-wave"></i>
+                </span>
+                <select
+                  id="SavingTime"
+                  className="form-control border-primary"
+                  onChange={handleTimeTypeChange}
+                  value={SavingTime}
+                >
+                  <option value="">বাছাই করুণ</option>
+                  {Object.entries(SavingTimeTranslations).map(
+                    ([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="col-3">
+            <label
+              htmlFor="SavingAmount"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-bill-wave"></i> সঞ্চয়ের পরিমাণ
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i>
+              </span>
+              <input
+                id="SavingAmount"
+                className="form-control border-primary"
+                type="text"
+                name="SavingAmount"
+                defaultValue={SavingEdit.SavingAmount}
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="CenterDay"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-money-bill-wave"></i> কেন্দ্র বার
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-money-bill-wave"></i>
+              </span>
+              <input
+                id="CenterDay"
+                className="form-control border-primary"
+                type="text"
+                name="installment"
+                defaultValue={SavingEdit.CenterDay}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="installmentStart"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-calendar-alt"></i> সঞ্চয় শুরু
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-calendar-alt"></i>
+              </span>
+              <div>
+                <DatePicker
+                  id="installmentStart"
+                  className="form-control border-primary"
+                  selected={installmentStart} // Ensure this is the correct value from state
+                  onChange={handleDateChange}
+                  dateFormat="MM/dd/yyyy" // Adjust format if needed
+                  placeholderText="Select date"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="d-flex justify-content-between mt-5">
-            <button type="submit" className=" btn btn-primary">
+            {/* Update Button (Danger) with Right Icon */}
+            <button
+              type="submit"
+              className="btn btn-danger btn-md position-relative"
+              style={{
+                background: "linear-gradient(45deg, #dc3545, #ff6347)", // Red gradient for danger
+                color: "#fff",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#c82333"; // Darker red on hover
+                e.currentTarget.style.transform = "scale(1.05)"; // Slightly enlarge on hover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#dc3545"; // Reset to original color
+                e.currentTarget.style.transform = "scale(1)"; // Reset size on mouse leave
+              }}
+            >
+              <i className="fas fa-check" style={{ marginLeft: "5px" }}></i>{" "}
               Update
+              {/* Right icon */}
             </button>
+
+            {/* Cancel Button (Fully Green) */}
             <button
               type="button"
               onClick={handleCancel}
-              className=" btn btn-primary btn-md"
+              className="btn btn-success btn-md position-relative"
+              style={{
+                backgroundColor: "#28a745", // Solid green
+                color: "#fff",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#218838"; // Darker green on hover
+                e.currentTarget.style.transform = "scale(1.05)"; // Slightly enlarge on hover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#28a745"; // Reset to original green color
+                e.currentTarget.style.transform = "scale(1)"; // Reset size on mouse leave
+              }}
             >
+              <i className="fas fa-times" style={{ marginRight: "5px" }}></i>
               Cancel
             </button>
           </div>
           <div>
             {submitMessage && (
-              <div className="alert alert-success" role="alert">
-                {submitMessage}
+              <div
+                className="alert alert-success mt-3 d-flex align-items-center"
+                role="alert"
+                style={{
+                  borderRadius: "0.5rem", // Rounded corners
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+                }}
+              >
+                <i
+                  className="fas fa-check-circle"
+                  style={{
+                    fontSize: "1.5rem",
+                    marginRight: "10px", // Space between icon and text
+                    color: "#155724", // Dark green for the icon
+                  }}
+                ></i>
+                <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
               </div>
             )}
           </div>

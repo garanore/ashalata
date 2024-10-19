@@ -6,7 +6,7 @@
 // const GrantCenter = () => {
 //   const [pendingCenters, setPendingCenters] = useState([]);
 //   const [error, setError] = useState("");
-//   const [userBranches, setUserBranches] = useState([]);
+//   const [Branches, setBranches] = useState([]);
 //   const [, setUserDesignations] = useState([]);
 //   const [hasAccess, setHasAccess] = useState(false);
 //   const [username, setUsername] = useState(""); // Add username state
@@ -25,13 +25,13 @@
 
 //     fetchPendingCenters();
 
-//     const storedUserData = localStorage.getItem("userBranchData");
+//     const storedUserData = localStorage.getItem("BranchData");
 //     if (storedUserData) {
 //       const parsedData = JSON.parse(storedUserData);
 //       const branches = Object.keys(parsedData)
-//         .filter((key) => key.startsWith("UserBranch"))
+//         .filter((key) => key.startsWith("Branch"))
 //         .map((key) => parsedData[key]);
-//       setUserBranches(branches);
+//       setBranches(branches);
 
 //       const designations = Object.keys(parsedData)
 //         .filter((key) => key.startsWith("designation"))
@@ -98,10 +98,10 @@
 //     }
 //   };
 
-//   const filteredCenters = userBranches.includes("AllBranch")
+//   const filteredCenters = Branches.includes("AllBranch")
 //     ? pendingCenters
 //     : pendingCenters.filter((center) =>
-//         userBranches.some((branch) => branch === center.centerBranch)
+//         Branches.some((branch) => branch === center.centerBranch)
 //       );
 
 //   if (!hasAccess) {

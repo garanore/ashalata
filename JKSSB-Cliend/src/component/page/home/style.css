@@ -41,10 +41,14 @@ h4 {
 #sidebar {
   max-width: 200px;
   min-width: 200px;
-
   background-color: rgb(84, 100, 105);
-  min-height: 100vh;
+  min-height: 100vh; /* Ensures it covers the full height */
   transition: all 0.35s ease-in-out;
+  position: -webkit-sticky; /* Ensures compatibility with Safari */
+  position: sticky;
+  top: 0; /* Sticks the sidebar to the top */
+  z-index: 999; /* Ensure it stays above other content */
+  padding-top: 0.5rem; /* Optional: Adds some padding at the top */
 }
 
 /* Sidebar Elements Style */
@@ -122,7 +126,7 @@ a.sidebar-link {
 }
 
 .card {
-  box-shadow: 0 0 0.875rem 0 rgba(34, 46, 60, 0.05);
+  box-shadow: 0 0 0.875rem 0 rgba(255, 255, 255, 0.05);
   margin-bottom: 24px;
 }
 

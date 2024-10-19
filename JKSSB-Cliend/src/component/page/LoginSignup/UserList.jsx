@@ -155,7 +155,7 @@ const UserList = () => {
   };
 
   const handleEditClick = (user) => {
-    navigate("/home/CenterEdit", { state: { centerID: user._id } });
+    navigate("/home/UserEdit", { state: { centerID: user._id } });
   };
 
   const handleDeleteClick = (user) => {
@@ -472,8 +472,9 @@ const UserList = () => {
           <table className="table table-hover">
             <thead className="table-light">
               <tr>
+                <th>Worker ID</th>
                 <th>User Name</th>
-                <th>নাম</th>
+                <th>Name</th>
                 <th>Mobile</th>
                 <th>Designation</th>
                 <th>Branch</th>
@@ -484,6 +485,7 @@ const UserList = () => {
             <tbody>
               {currentUsers.map((user) => (
                 <tr key={user.username}>
+                  <td>{user.workerID}</td>
                   <td>{user.username}</td>
                   <td>{user.accountName}</td>
                   <td>{user.phoneNumber}</td>

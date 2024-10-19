@@ -10,7 +10,7 @@ function LoanDetailsForBranch() {
   const [loans, setLoans] = useState({});
   const navigate = useNavigate();
   const [branches, setBranches] = useState([]);
-  const [userBranches, setUserBranches] = useState([]);
+  const [Branches, setBranches] = useState([]);
   const [username, setUsername] = useState(""); // Add username state
   const [hasAccess, setHasAccess] = useState(false); // Initially, set access to false
   const [accountName, setAccountName] = useState(""); // Add accountName state
@@ -52,14 +52,14 @@ function LoanDetailsForBranch() {
       });
 
     // Step 2: Retrieve user branch data and designation from localStorage
-    const storedUserData = localStorage.getItem("userBranchData");
+    const storedUserData = localStorage.getItem("BranchData");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
 
       const branches = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserBranch"))
+        .filter((key) => key.startsWith("Branch"))
         .map((key) => parsedData[key]);
-      setUserBranches(branches);
+      setBranches(branches);
 
       const designations = Object.keys(parsedData)
         .filter((key) => key.startsWith("designation"))
@@ -336,18 +336,15 @@ function LoanDetailsForBranch() {
               value={selectedBranch}
             >
               <option value="">Choose...</option>
-              {/* Step 3: Filter branches based on userBranches */}
-              {userBranches.includes("AllBranch") ||
-              userBranches.includes("AllCenter")
+              {/* Step 3: Filter branches based on Branches */}
+              {Branches.includes("AllBranch") || Branches.includes("AllCenter")
                 ? branches.map((branch) => (
                     <option key={branch._id} value={branch.BranchName}>
                       {branch.BranchName}
                     </option>
                   ))
                 : branches
-                    .filter((branch) =>
-                      userBranches.includes(branch.BranchName)
-                    )
+                    .filter((branch) => Branches.includes(branch.BranchName))
                     .map((branch) => (
                       <option key={branch._id} value={branch.BranchName}>
                         {branch.BranchName}

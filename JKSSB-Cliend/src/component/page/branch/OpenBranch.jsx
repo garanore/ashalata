@@ -109,7 +109,7 @@ function OpenBranch() {
         ...trimmedBranchData,
       });
 
-      setSubmitMessage("Branch created successfully");
+      setSubmitMessage("সঠিক ভাবে শাখা খুলা হয়েছে");
 
       setBranchData({
         BranchName: "",
@@ -137,8 +137,8 @@ function OpenBranch() {
               className="text-center mb-4"
               style={{ fontWeight: "bold", color: "#2D3748" }}
             >
-              <i className="fas fa-users" style={{ marginRight: "10px" }}></i>
-              User List
+              <i className="fas fa-lock" style={{ marginRight: "10px" }}></i>{" "}
+              শাখা খুলুন
             </h2>
           </div>
           <div
@@ -175,205 +175,199 @@ function OpenBranch() {
   }
 
   return (
-    <div className="container-fluid">
-      <div className="bg-light">
-        <div className="row mb-4">
-          <div className="col">
-            <div
-              className="d-flex justify-content-center align-items-center"
-              style={{
-                backgroundColor: "#f0f4f8", // Soft background for the header
-                borderRadius: "10px", // Rounded edges for a modern look
-                padding: "20px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
-              }}
-            >
-              <h2
-                className="text-center mb-0"
-                style={{
-                  fontWeight: "bold",
-                  color: "#2D3748",
-                  fontSize: "2rem", // Larger text for prominence
-                }}
-              >
-                <i className="fas fa-code-branch"></i> শাখা খুলুন
-              </h2>
-            </div>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col">
-            <hr
-              style={{
-                border: "none",
-                borderTop: "2px solid #2D3748", // Thicker line for emphasis
-                marginTop: "10px",
-              }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <form className="p-3">
-            <div className="row mb-4">
-              <div className="col-md-3">
-                <label
-                  htmlFor="BranchID"
-                  className="form-label"
-                  style={{ fontWeight: "bold", color: "#4A5568" }}
-                >
-                  <i className="fas fa-id-card"></i> Branch ID:
-                </label>
-                <div className="input-group shadow-sm">
-                  <span
-                    className="input-group-text bg-primary text-white"
-                    style={{
-                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
-                      color: "#fff",
-                    }}
-                  >
-                    <i className="fas fa-id-card"></i>
-                  </span>
-                  <input
-                    id="BranchID"
-                    className="form-control border-primary"
-                    type="text"
-                    value={branchID}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className="col-md-3">
-                <label
-                  htmlFor="BranchName"
-                  className="form-label"
-                  style={{ fontWeight: "bold", color: "#4A5568" }}
-                >
-                  <i className="fas fa-code-branch"></i> শাখার নাম
-                </label>
-                <div className="input-group shadow-sm">
-                  <span
-                    className="input-group-text bg-primary text-white"
-                    style={{
-                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
-                      color: "#fff",
-                    }}
-                  >
-                    <i className="fas fa-code-branch"></i>
-                  </span>
-                  <input
-                    id="BranchName"
-                    className="form-control border-primary"
-                    type="text"
-                    name="BranchName"
-                    value={branchData.BranchName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="col-md-3">
-                <label
-                  htmlFor="BranchAddress"
-                  className="form-label"
-                  style={{ fontWeight: "bold", color: "#4A5568" }}
-                >
-                  <i className="fas fa-home"></i> ঠিকানা
-                </label>
-                <div className="input-group shadow-sm">
-                  <span
-                    className="input-group-text bg-primary text-white"
-                    style={{
-                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
-                      color: "#fff",
-                    }}
-                  >
-                    <i className="fas fa-home"></i>
-                  </span>
-                  <input
-                    id="BranchAddress"
-                    className="form-control border-primary"
-                    type="text"
-                    name="BranchAddress"
-                    value={branchData.BranchAddress}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="col-md-3">
-                <label
-                  htmlFor="BranchMobile"
-                  className="col-form-label"
-                  style={{ fontWeight: "bold", color: "#4A5568" }}
-                >
-                  <i className="fas fa-mobile-alt"></i> Mobile:
-                </label>
-                <div className="input-group shadow-sm">
-                  <span
-                    className="input-group-text bg-primary text-white"
-                    style={{
-                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
-                      color: "#fff",
-                    }}
-                  >
-                    <i className="fas fa-mobile-alt"></i>
-                  </span>
-                  <input
-                    id="BranchMobile"
-                    className="form-control border-primary"
-                    type="number"
-                    name="BranchMobile"
-                    value={branchData.BranchMobile}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="col-12 mb-5 mt-5">
-              <div className="d-flex justify-content-center mb-3">
-                <button
-                  type="button"
-                  className="btn btn-primary btn-lg shadow"
-                  onClick={handleSubmit}
-                  style={{
-                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
-                    color: "#fff",
-                  }}
-                >
-                  <i className="fas fa-paper-plane"></i> Submit
-                </button>
-              </div>
-
-              {submitMessage && (
-                <div
-                  className="alert alert-success mt-3 d-flex align-items-center"
-                  role="alert"
-                  style={{
-                    borderRadius: "0.5rem", // Rounded corners
-                    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
-                  }}
-                >
-                  <i
-                    className="fas fa-check-circle"
-                    style={{
-                      fontSize: "1.5rem",
-                      marginRight: "10px", // Space between icon and text
-                      color: "#155724", // Dark green for the icon
-                    }}
-                  ></i>
-                  <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
-                </div>
-              )}
-            </div>
-          </form>
+    <div className="  bg-light container-fluid">
+      <div className="row mb-4 p-2">
+        <div
+          className="d-flex justify-content-center align-items-center "
+          style={{
+            backgroundColor: "#f0f4f8", // Soft background for the header
+            borderRadius: "10px", // Rounded edges for a modern look
+            padding: "20px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+          }}
+        >
+          <h2
+            className="text-center mb-0"
+            style={{
+              fontWeight: "bold",
+              color: "#2D3748",
+              fontSize: "2rem", // Larger text for prominence
+            }}
+          >
+            <i className="fas fa-code-branch"></i> শাখা খুলুন
+          </h2>
         </div>
       </div>
+      <div className="row">
+        <div className="col">
+          <hr
+            style={{
+              border: "none",
+              borderTop: "2px solid #2D3748", // Thicker line for emphasis
+              marginTop: "10px",
+            }}
+          />
+        </div>
+      </div>
+
+      <form className="p-2 container-fluid">
+        <div className="row mb-4">
+          <div className="col-md-3">
+            <label
+              htmlFor="BranchID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> Branch ID:
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                id="BranchID"
+                className="form-control border-primary"
+                type="text"
+                value={branchID}
+                disabled
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="BranchName"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-code-branch"></i> শাখার নাম
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-code-branch"></i>
+              </span>
+              <input
+                id="BranchName"
+                className="form-control border-primary"
+                type="text"
+                name="BranchName"
+                value={branchData.BranchName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="BranchAddress"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-home"></i> ঠিকানা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-home"></i>
+              </span>
+              <input
+                id="BranchAddress"
+                className="form-control border-primary"
+                type="text"
+                name="BranchAddress"
+                value={branchData.BranchAddress}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="BranchMobile"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mobile-alt"></i> Mobile:
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mobile-alt"></i>
+              </span>
+              <input
+                id="BranchMobile"
+                className="form-control border-primary"
+                type="number"
+                name="BranchMobile"
+                value={branchData.BranchMobile}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="col-12 mb-5 mt-5">
+          <div className="d-flex justify-content-center mb-3">
+            <button
+              type="button"
+              className="btn btn-primary btn-lg shadow"
+              onClick={handleSubmit}
+              style={{
+                background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                color: "#fff",
+              }}
+            >
+              <i className="fas fa-paper-plane"></i> Submit
+            </button>
+          </div>
+
+          {submitMessage && (
+            <div
+              className="alert alert-success mt-3 d-flex align-items-center"
+              role="alert"
+              style={{
+                borderRadius: "0.5rem", // Rounded corners
+                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+              }}
+            >
+              <i
+                className="fas fa-check-circle"
+                style={{
+                  fontSize: "1.5rem",
+                  marginRight: "10px", // Space between icon and text
+                  color: "#155724", // Dark green for the icon
+                }}
+              ></i>
+              <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
+            </div>
+          )}
+        </div>
+      </form>
     </div>
   );
 }

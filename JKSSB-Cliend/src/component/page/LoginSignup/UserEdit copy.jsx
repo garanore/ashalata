@@ -13,167 +13,130 @@ const UserEdit = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [error, setError] = useState("");
   const [centers, setCenters] = useState([]);
-  const [branchs, setbranchs] = useState([]);
-  const [designations, setdesignations] = useState([]);
+  const [branchs, setBranchs] = useState([]);
+  const [designations, setDesignations] = useState([]);
   const [submitMessage, setSubmitMessage] = useState("");
-  const [hasAccess, setHasAccess] = useState(false);
+  const [, setHasAccess] = useState(false);
+  const [accountName, setAccountName] = useState(""); // Add accountName state
+  const [currentUserDesignation, setCurrentUserDesignation] = useState(""); // Track logged-in user's designation
 
   useEffect(() => {
-    // Retrieve user branch data and username from localStorage
     const storedUserData = localStorage.getItem("userBranchData");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
-
       const branches = Object.keys(parsedData)
         .filter((key) => key.startsWith("UserBranch"))
         .map((key) => parsedData[key]);
-
       const userNames = Object.keys(parsedData)
         .filter((key) => key.startsWith("username"))
         .map((key) => parsedData[key]);
+      setUsername(userNames[0] || "Unknown");
 
-      const username = userNames.length > 0 ? userNames[0] : "Unknown";
-      setUsername(username);
+      // Fetch current user designation
+      const currentUserDesignation = Object.keys(parsedData)
+        .filter((key) => key.startsWith("designation"))
+        .map((key) => parsedData[key])[0];
+      setCurrentUserDesignation(currentUserDesignation);
 
-      // Check if "AllBranch" exists in the branches
-      const hasAllBranch = branches.includes("AllBranch");
-
-      // Grant access only if the user has "AllBranch"
-      setHasAccess(hasAllBranch);
+      setHasAccess(branches.includes("AllBranch"));
     }
   }, []);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       if (username) {
         try {
           const response = await axios.get(
             `http://localhost:5000/get-user-username/${username}`
           );
-
+          setSelectedUser(response.data[0] || null);
+          setError(response.data.length > 0 ? "" : "User not found");
           if (response.data.length > 0) {
-            setSelectedUser(response.data[0]); // Assuming the response returns an array
-            setError("");
-          } else {
-            setSelectedUser(null);
-            setError("User not found");
+            setAccountName(response.data[0].accountName);
           }
         } catch (error) {
           console.error("Error fetching user data:", error.message);
           setError("Failed to fetch user data");
         }
       }
+
+      try {
+        const [centerResponse, branchResponse, designationResponse] =
+          await Promise.all([
+            axios.get("http://localhost:5000/center-callback"),
+            axios.get("http://localhost:5000/branch-callback"),
+            axios.get("http://localhost:5000/designation-callback"),
+          ]);
+        setCenters(centerResponse.data);
+        setBranchs(branchResponse.data);
+        setDesignations(designationResponse.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     };
 
-    fetchUserData();
-
-    axios
-      .get("http://localhost:5000/center-callback")
-      .then((response) => {
-        setCenters(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching center data:", error);
-      });
-
-    axios
-      .get("http://localhost:5000/branch-callback")
-      .then((response) => {
-        setbranchs(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching branch data:", error);
-      });
-
-    axios
-      .get("http://localhost:5000/designation-callback")
-      .then((response) => {
-        setdesignations(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching branch data:", error);
-      });
+    fetchData();
   }, [username]);
 
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value.trim());
-  };
+  const forbiddenDesignations = [
+    "কর্মসূচী সংগঠক",
+    "সহকারী কর্মসূচী সংগঠক",
+    "উর্দ্ধতন কর্মসূচী সংগঠক",
+  ];
 
-  // For Center
+  // Determine if current user has forbidden designation
+  const currentUserHasForbiddenDesignation = forbiddenDesignations.includes(
+    currentUserDesignation
+  );
+
+  const handleUsernameChange = (e) => setUsername(e.target.value.trim());
 
   const handleCenterChange = (e, index) => {
     const updatedCenters = [...selectedUser.UserCenter];
     updatedCenters[index] = e.target.value;
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      UserCenter: updatedCenters,
-    }));
+    setSelectedUser({ ...selectedUser, UserCenter: updatedCenters });
   };
-  const handleAddCenter = () => {
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      UserCenter: [...prevState.UserCenter, ""],
-    }));
-  };
+
+  const handleAddCenter = () =>
+    setSelectedUser({
+      ...selectedUser,
+      UserCenter: [...selectedUser.UserCenter, ""],
+    });
 
   const handleRemoveCenter = (index) => {
     const updatedCenters = selectedUser.UserCenter.filter(
       (_, i) => i !== index
     );
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      UserCenter: updatedCenters,
-    }));
+    setSelectedUser({ ...selectedUser, UserCenter: updatedCenters });
   };
 
-  // For Account Name
+  const handleAccountNameChange = (e) =>
+    setSelectedUser({ ...selectedUser, accountName: e.target.value });
 
-  const handleAccountNameChange = (e) => {
-    const updatedAccountName = e.target.value;
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      accountName: updatedAccountName,
-    }));
-  };
-  const handlePhoneNumberChange = (e) => {
-    const updatedPhoneNumber = e.target.value;
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      phoneNumber: updatedPhoneNumber,
-    }));
-  };
+  const handlePhoneNumberChange = (e) =>
+    setSelectedUser({ ...selectedUser, phoneNumber: e.target.value });
 
   const handleBranchChange = (e, index) => {
     const updatedBranches = [...selectedUser.UserBranch];
     updatedBranches[index] = e.target.value;
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      UserBranch: updatedBranches,
-    }));
+    setSelectedUser({ ...selectedUser, UserBranch: updatedBranches });
   };
-  const handleAddBranch = () => {
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      UserBranch: [...prevState.UserBranch, ""],
-    }));
-  };
+
+  const handleAddBranch = () =>
+    setSelectedUser({
+      ...selectedUser,
+      UserBranch: [...selectedUser.UserBranch, ""],
+    });
+
   const handleRemoveBranch = (index) => {
     const updatedBranches = selectedUser.UserBranch.filter(
       (_, i) => i !== index
     );
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      UserBranch: updatedBranches,
-    }));
+    setSelectedUser({ ...selectedUser, UserBranch: updatedBranches });
   };
 
-  const handleDesignationChange = (e) => {
-    const selectedDesignation = e.target.value;
-    setSelectedUser((prevState) => ({
-      ...prevState,
-      designation: selectedDesignation,
-    }));
-  };
+  const handleDesignationChange = (e) =>
+    setSelectedUser({ ...selectedUser, designation: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -193,22 +156,20 @@ const UserEdit = () => {
         updatedUserData
       );
 
-      if (response.status === 200) {
-        setSubmitMessage("User updated successfully!");
-      } else {
-        setSubmitMessage("Failed to update user.");
-      }
+      setSubmitMessage(
+        response.status === 200
+          ? "User updated successfully!"
+          : "Failed to update user."
+      );
     } catch (error) {
       console.error("Error updating user:", error.message);
       alert("An error occurred while updating the user");
     }
   };
 
-  const handleCancel = () => {
-    navigate(MEMBER_LIST_CENTER_ROUTE);
-  };
+  const handleCancel = () => navigate(MEMBER_LIST_CENTER_ROUTE);
 
-  if (!hasAccess) {
+  if (currentUserHasForbiddenDesignation) {
     return (
       <div className="bg-light container-fluid">
         <div className="p-4">
@@ -217,18 +178,20 @@ const UserEdit = () => {
               className="text-center mb-4"
               style={{ fontWeight: "bold", color: "#2D3748" }}
             >
-              <i className="fas fa-users" style={{ marginRight: "10px" }}></i>{" "}
-              {/* User Icon */}
+              <i
+                className="fas fa-user-edit"
+                style={{ marginRight: "10px" }}
+              ></i>
               User Edit
             </h2>
           </div>
           <div
             className="d-flex justify-content-center align-items-center"
             style={{
-              backgroundColor: "#f8d7da", // Light red background for warning
-              borderRadius: "10px", // Rounded corners
+              backgroundColor: "#f8d7da",
+              borderRadius: "10px",
               padding: "20px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             }}
           >
             <p
@@ -236,15 +199,18 @@ const UserEdit = () => {
               style={{
                 fontSize: "1.25rem",
                 fontWeight: "bold",
-                color: "#721c24", // Darker red for the text
+                color: "#721c24",
               }}
             >
               <i
                 className="fas fa-exclamation-triangle"
                 style={{ fontSize: "1.5rem", marginRight: "10px" }}
-              ></i>{" "}
-              {/* Warning Icon */}
-              এই পেইজে আপনার অনুমতি নেই।
+              ></i>
+              প্রিয়{" "}
+              <span className="highlighted-username">
+                {accountName || username}
+              </span>
+              , এই পেইজে আপনার অনুমতি নেই।
             </p>
           </div>
         </div>
@@ -256,101 +222,234 @@ const UserEdit = () => {
     <div className="form-row bg-light container-fluid p-2 ">
       <form onSubmit={handleSubmit}>
         <div className="row">
-          <div className="border-bottom mb-3">
-            <h2 className="text-center mb-4 pt-3">User Edit</h2>
+          {/* Header */}
+          <div className="row mb-4">
+            <div className="col">
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{
+                  backgroundColor: "#f0f4f8", // Soft background for the header
+                  borderRadius: "10px", // Rounded edges for a modern look
+                  padding: "20px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+                }}
+              >
+                <h2
+                  className="text-center mb-0"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "2rem", // Larger text for prominence
+                  }}
+                >
+                  <i
+                    className="fas fa-user-edit"
+                    style={{ marginRight: "10px" }}
+                  ></i>{" "}
+                  User Edit
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                  marginTop: "10px",
+                }}
+              />
+            </div>
           </div>
 
-          <div className="mb-3 row">
-            <div className="col-3">
-              <label htmlFor="memberID" className="form-label">
-                User Name
-              </label>
+          <div className="col-md-3 mb-3">
+            <label
+              htmlFor="memberID"
+              className="form-label"
+              style={{
+                fontWeight: "bold",
+                color: "#2D3748",
+                fontSize: "0.95rem",
+              }}
+            >
+              <i className="fas fa-user"></i> User Name
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{ borderRadius: "5px 0 0 5px" }}
+              >
+                <i className="fas fa-user"></i>
+              </span>
               <input
                 type="text"
                 id="memberID"
-                className="form-control"
+                className="form-control border-primary"
                 placeholder="Enter user name"
                 value={username}
                 onChange={handleUsernameChange}
+                style={{
+                  borderRadius: "0 5px 5px 0",
+                  padding: "10px",
+                  backgroundColor: "#f8f9fa",
+                }}
               />
-              {error && <div className="text-danger mt-1">{error}</div>}
             </div>
+            {error && <div className="text-danger mt-2">{error}</div>}
           </div>
+
           {selectedUser && (
             <div className="mt-3 row">
-              <div className="col-2">
-                <label htmlFor="accountName" className="form-label">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="accountName"
-                  className="form-control"
-                  value={selectedUser.accountName || ""}
-                  onChange={handleAccountNameChange}
-                />
-              </div>
-
-              <div className="col-2">
-                <label htmlFor="username" className="form-label">
-                  User Name
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  className="form-control"
-                  value={selectedUser.username || ""}
-                  readOnly
-                />
-              </div>
-
-              <div className="col-3">
-                <label htmlFor="designation" className="form-label">
-                  Designation
-                </label>
-
-                <select
-                  id="designation"
-                  className="form-control"
-                  value={selectedUser.designation || ""}
-                  onChange={handleDesignationChange}
+              <div className="col-md-4 mb-3">
+                <label
+                  htmlFor="accountName"
+                  className="form-label"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "0.95rem",
+                  }}
                 >
-                  <option value="">Choose...</option>
-                  {designations.map((designation) => (
-                    <option
-                      key={designation._id}
-                      value={designation.DesignationName}
-                    >
-                      {designation.DesignationName}
-                    </option>
-                  ))}
-                </select>
+                  <i className="fas fa-user"></i> নাম
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{ borderRadius: "5px 0 0 5px" }}
+                  >
+                    <i className="fas fa-user"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="accountName"
+                    className="form-control border-primary shadow-sm"
+                    value={selectedUser.accountName || ""}
+                    onChange={handleAccountNameChange}
+                    style={{
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: "5px",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label
+                  htmlFor="accountName"
+                  className="form-label"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <i className="fas fa-user"></i> User Name
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{ borderRadius: "5px 0 0 5px" }}
+                  >
+                    <i className="fas fa-user"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="accountName"
+                    className="form-control border-primary shadow-sm"
+                    value={selectedUser.username || ""}
+                    readOnly
+                    onChange={handleAccountNameChange}
+                    style={{
+                      backgroundColor: "#f8f9fa",
+                      borderRadius: "5px",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <label
+                  htmlFor="Designation"
+                  className="form-label"
+                  style={{
+                    fontWeight: "bold",
+                    color: "#2D3748",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <i className="fas fa-user-tie"></i> Designation
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{ borderRadius: "5px 0 0 5px" }}
+                  >
+                    <i className="fas fa-user-tie"></i>
+                  </span>
+                  <select
+                    id="designation"
+                    className="form-select border-primary"
+                    value={selectedUser.designation || ""}
+                    onChange={handleDesignationChange}
+                    style={{
+                      borderRadius: "0 5px 5px 0",
+                      padding: "10px",
+                      backgroundColor: "#f8f9fa",
+                    }}
+                  >
+                    <option value="">--------</option>
+                    {designations.map((designation) => (
+                      <option
+                        key={designation._id}
+                        value={designation.DesignationName}
+                      >
+                        {designation.DesignationName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* UserBranch Section */}
               {selectedUser.UserBranch?.map((branch, index) => (
-                <div className="col-3 d-flex align-items-center" key={index}>
+                <div className=" col-3 d-flex align-items-center" key={index}>
                   <div className="w-100">
                     <label
-                      htmlFor={`UserBranch${index}`}
+                      htmlFor="BranchMember"
                       className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
                     >
+                      <i className="fas fa-code-branch"></i>
                       Branch
                     </label>
-                    <select
-                      id={`UserBranch${index}`}
-                      className="form-control"
-                      value={branch || "N/A"}
-                      onChange={(e) => handleBranchChange(e, index)}
-                    >
-                      <option value="">Choose...</option>
-                      {branchs.map((branch) => (
-                        <option key={branch._id} value={branch.BranchName}>
-                          {branch.BranchName}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-code-branch"></i>
+                      </span>
+                      <select
+                        id={`UserBranch${index}`}
+                        className="form-select border-primary"
+                        value={branch || "N/A"}
+                        onChange={(e) => handleBranchChange(e, index)}
+                      >
+                        <option value="">Choose...</option>
+                        {branchs.map((branch) => (
+                          <option key={branch._id} value={branch.BranchName}>
+                            {branch.BranchName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+
                   <button
                     type="button"
                     className="btn btn-primary btn-sm ms-2 mt-4"
@@ -375,24 +474,37 @@ const UserEdit = () => {
                 <div className="col-3 d-flex align-items-center" key={index}>
                   <div className="w-100">
                     <label
-                      htmlFor={`UserCenter${index}`}
+                      htmlFor="CenterIDMember"
                       className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
                     >
-                      Center
+                      <i className="fas fa-map-marker-alt"></i>Center
                     </label>
-                    <select
-                      id={`UserCenter${index}`}
-                      className="form-control"
-                      value={center || "N/A"}
-                      onChange={(e) => handleCenterChange(e, index)}
-                    >
-                      <option value="">Choose...</option>
-                      {centers.map((center) => (
-                        <option key={center._id} value={center.centerID}>
-                          {center.centerID}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-map-marker-alt"></i>
+                      </span>
+                      <select
+                        id={`UserCenter${index}`}
+                        className="form-select border-primary"
+                        value={center || "N/A"}
+                        onChange={(e) => handleCenterChange(e, index)}
+                      >
+                        <option value="">Choose...</option>
+                        {centers.map((center) => (
+                          <option key={center._id} value={center.centerID}>
+                            {center.centerID}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -413,38 +525,86 @@ const UserEdit = () => {
                 </div>
               ))}
 
-              <div className="col-3 mt-3">
-                <label htmlFor="phoneNumber" className="form-label">
+              <div className="col-3">
+                <label
+                  htmlFor="MemberMobile"
+                  className="col-form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-mobile-alt"></i>
                   Mobile
                 </label>
-                <input
-                  type="number"
-                  id="phoneNumber"
-                  className="form-control"
-                  value={selectedUser.phoneNumber || ""}
-                  onChange={handlePhoneNumberChange}
-                />
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-mobile-alt"></i>
+                  </span>
+                  <input
+                    type="number"
+                    id="phoneNumber"
+                    className="form-control border-primary"
+                    value={selectedUser.phoneNumber || ""}
+                    onChange={handlePhoneNumberChange}
+                    style={{ borderRadius: "5px" }}
+                  />
+                </div>
               </div>
             </div>
           )}
         </div>
 
         <div className="d-flex justify-content-between mt-5">
-          <button type="submit" className="btn btn-primary">
-            Update
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg shadow"
+            style={{
+              background: "linear-gradient(45deg, #007bff, #00d4ff)",
+              color: "#fff",
+            }}
+          >
+            <i className="fas fa-paper-plane"></i> Update
           </button>
+
+          {/* <button type="submit" className="btn btn-primary">
+            Update
+          </button> */}
+
           <button
             type="button"
+            className="btn btn-primary btn-lg shadow"
             onClick={handleCancel}
-            className="btn btn-primary btn-md"
+            style={{
+              background: "linear-gradient(45deg, #007bff, #00d4ff)",
+              color: "#fff",
+            }}
           >
-            Cancel
+            <i className="fas fa-cancel"></i> Cancel
           </button>
         </div>
       </form>
       {submitMessage && (
-        <div className="alert alert-success mt-3" role="alert">
-          {submitMessage}
+        <div
+          className="alert alert-success mt-3 d-flex align-items-center"
+          role="alert"
+          style={{
+            borderRadius: "0.5rem", // Rounded corners
+            boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+          }}
+        >
+          <i
+            className="fas fa-check-circle"
+            style={{
+              fontSize: "1.5rem",
+              marginRight: "10px", // Space between icon and text
+              color: "#155724", // Dark green for the icon
+            }}
+          ></i>
+          <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
         </div>
       )}
     </div>

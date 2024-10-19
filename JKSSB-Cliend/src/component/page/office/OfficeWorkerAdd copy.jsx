@@ -15,10 +15,10 @@ const WorkerAdmission = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [hasAccess, setHasAccess] = useState(true);
-  const [userBranches, setUserBranches] = useState([]);
+  const [Branches, setBranches] = useState([]);
   const [submitMessage, setSubmitMessage] = useState("");
   const [WorkerData, setWorkerData] = useState({
-    WorkerName: "",
+    Name: "",
     WorkerParent: "",
     WdateOfBirth: "",
     WorkerJob: "",
@@ -30,11 +30,11 @@ const WorkerAdmission = () => {
     WorkerMarital: "",
     WorkerStudy: "",
     WorkerNID: "",
-    WorkerMobile: "",
-    WorkerMail: "",
+    phoneNumber: "",
+    email: "",
     Workerimage: null,
-    WorkerCenterAdd: "",
-    WorkerBranchAdd: "",
+    Center: "",
+    Branch: "",
     Designation: "",
     JoiningDate: "",
     submittedBy: "", // Make sure this is part of the form state
@@ -98,14 +98,14 @@ const WorkerAdmission = () => {
       });
 
     // Step 2: Retrieve user branch data and designation from localStorage
-    const storedUserData = localStorage.getItem("userBranchData");
+    const storedUserData = localStorage.getItem("BranchData");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
 
       const branches = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserBranch"))
+        .filter((key) => key.startsWith("Branch"))
         .map((key) => parsedData[key]);
-      setUserBranches(branches);
+      setBranches(branches);
 
       const designations = Object.keys(parsedData)
         .filter((key) => key.startsWith("designation"))
@@ -173,11 +173,11 @@ const WorkerAdmission = () => {
           console.error("Error fetching center data:", error);
         });
     }
-    if (name === "WorkerBranchAdd") {
+    if (name === "Branch") {
       setSelectedBranch(value);
       setWorkerData((prevData) => ({
         ...prevData,
-        WorkerBranchAdd: value,
+        Branch: value,
       }));
     }
   };
@@ -215,7 +215,7 @@ const WorkerAdmission = () => {
       setWorkerID(generateWorkerID());
       setWorkerData({
         workerID: "",
-        WorkerName: "",
+        Name: "",
         WorkerParent: "",
         WdateOfBirth: "",
         WorkerJob: "",
@@ -227,11 +227,11 @@ const WorkerAdmission = () => {
         WorkerMarital: "",
         WorkerStudy: "",
         WorkerNID: "",
-        WorkerMobile: "",
-        WorkerMail: "",
+        phoneNumber: "",
+        email: "",
         Workerimage: null,
-        WorkerCenterAdd: "",
-        WorkerBranchAdd: "",
+        Center: "",
+        Branch: "",
         Designation: "",
         JoiningDate: "",
         approvalStatus: "Approved", // Ensure it's set correctly
@@ -289,17 +289,17 @@ const WorkerAdmission = () => {
           </div>
 
           <div className="col-md-4">
-            <label htmlFor="WorkerName" className="form-label">
+            <label htmlFor="Name" className="form-label">
               নাম
             </label>
             <input
               type="text"
               className="form-control"
-              id="WorkerName"
+              id="Name"
               required
               onChange={handleChange}
-              name="WorkerName"
-              value={WorkerData.WorkerName}
+              name="Name"
+              value={WorkerData.Name}
             ></input>
           </div>
 
@@ -480,33 +480,33 @@ const WorkerAdmission = () => {
           </div>
 
           <div className="col-3">
-            <label htmlFor="WorkerMobile" className="form-label">
+            <label htmlFor="phoneNumber" className="form-label">
               মোবাইল নাম্বার{" "}
             </label>
             <input
               type="number"
               className="form-control"
-              id="WorkerMobile"
+              id="phoneNumber"
               required
               onChange={handleChange}
-              name="WorkerMobile"
-              value={WorkerData.WorkerMobile}
+              name="phoneNumber"
+              value={WorkerData.phoneNumber}
             ></input>
           </div>
 
           <div className="col-3">
-            <label htmlFor="WorkerMail" className="col-form-label">
+            <label htmlFor="email" className="col-form-label">
               মেইল{" "}
             </label>
 
             <input
               type="email"
               className="form-control"
-              id="WorkerMail"
+              id="email"
               required
               onChange={handleChange}
-              name="WorkerMail"
-              value={WorkerData.WorkerMail}
+              name="email"
+              value={WorkerData.email}
             ></input>
           </div>
         </div>
@@ -536,29 +536,26 @@ const WorkerAdmission = () => {
             </select>
           </div>
           <div className="col-md-3">
-            <label htmlFor="WorkerBranchAdd" className="form-label">
+            <label htmlFor="Branch" className="form-label">
               শাঁখা নির্বাচন করুণ
             </label>
             <select
-              id="WorkerBranchAdd"
+              id="Branch"
               className="form-select"
-              value={selectedBranch.WorkerBranchAdd}
+              value={selectedBranch.Branch}
               onChange={handleBranchChange}
-              name="WorkerBranchAdd"
+              name="Branch"
             >
               <option value="">Choose...</option>
-              {/* Step 3: Filter branches based on userBranches */}
-              {userBranches.includes("AllBranch") ||
-              userBranches.includes("AllCenter")
+              {/* Step 3: Filter branches based on Branches */}
+              {Branches.includes("AllBranch") || Branches.includes("AllCenter")
                 ? branches.map((branch) => (
                     <option key={branch._id} value={branch.BranchName}>
                       {branch.BranchName}
                     </option>
                   ))
                 : branches
-                    .filter((branch) =>
-                      userBranches.includes(branch.BranchName)
-                    )
+                    .filter((branch) => Branches.includes(branch.BranchName))
                     .map((branch) => (
                       <option key={branch._id} value={branch.BranchName}>
                         {branch.BranchName}
@@ -568,14 +565,14 @@ const WorkerAdmission = () => {
           </div>
 
           <div className="col-md-3">
-            <label htmlFor="WorkerCenterAdd" className="form-label">
+            <label htmlFor="Center" className="form-label">
               কেন্দ্র নির্বাচন করুণ
             </label>
             <select
-              id="workerCenterAdd"
-              name="WorkerCenterAdd"
+              id="Center"
+              name="Center"
               className="form-select"
-              value={WorkerData.WorkerCenterAdd}
+              value={WorkerData.Center}
               onChange={handleChange}
             >
               <option value="">Choose...</option>

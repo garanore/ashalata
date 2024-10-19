@@ -326,7 +326,7 @@ function OpenSavings() {
           SavingType: SavingTypeTranslations[SavingType],
           SavingTime: SavingTimeTranslations[SavingTime],
           CenterDay: centerDay,
-          approvalStatus: "Pending",
+          approvalStatus: "Approved",
           ActiveStatus: "True",
           submittedBy: submittedBy, // Send the correct submittedBy value
           GrantedBy: "Null",
@@ -344,7 +344,9 @@ function OpenSavings() {
         setSavingTime("");
         setInstallment("");
         setMemberID("");
-        setSubmitMessage("Successfully submitted!");
+        setSubmitMessage(
+          "সঠিক ভাবে সঞ্চয় আবেদন করা হয়েছে। শাখা ব্যাবস্থাপকের অনুমতির জন্য অপেক্ষা করুণ।"
+        );
       } else {
         const errorData = await response.json();
         console.error("Unexpected response status:", response.status);
@@ -468,7 +470,7 @@ function OpenSavings() {
                     className="form-label"
                     style={{ fontWeight: "bold", color: "#4A5568" }}
                   >
-                    <i className="fas fa-use"></i> সদস্য নাম
+                    <i className="fas fa-user"></i> সদস্য নাম
                   </label>
                   <div className="input-group shadow-sm">
                     <span
@@ -524,7 +526,7 @@ function OpenSavings() {
                     className="form-label"
                     style={{ fontWeight: "bold", color: "#4A5568" }}
                   >
-                    <i className="fas fa-code-branch"></i> শাঁখা
+                    <i className="fas fa-code-branch"></i> শাখা
                   </label>
                   <div className="input-group shadow-sm">
                     <span
@@ -630,7 +632,7 @@ function OpenSavings() {
                   onChange={handleSavingTypeChange}
                   value={SavingType}
                 >
-                  <option value="">বাছাই করুণ</option>
+                  <option value="">--------</option>
                   {Object.entries(SavingTypeTranslations).map(
                     ([key, value]) => (
                       <option key={key} value={key}>

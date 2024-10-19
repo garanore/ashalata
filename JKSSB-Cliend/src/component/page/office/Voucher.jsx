@@ -585,7 +585,9 @@ function Voucher() {
                       ))}
               </select>
               {branchWarning && (
-                <div className="text-danger mt-2">Please select a branch.</div>
+                <div className="text-danger mt-2">
+                  দয়া করে শাখা নির্বাচন করুণ
+                </div>
               )}
             </div>
 
@@ -602,7 +604,9 @@ function Voucher() {
                   onChange={(date) => setSelectedDate(date)}
                 />
                 {dateWarning && (
-                  <div className="text-danger mt-2">Please select a date.</div>
+                  <div className="text-danger mt-2">
+                    দয়া করে তারিখ নির্বাচন করুণ
+                  </div>
                 )}
               </div>
             </div>

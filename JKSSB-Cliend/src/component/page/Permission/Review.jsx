@@ -4,6 +4,8 @@ import "./Permission.css"; // Import the CSS file
 import MemberReview from "./Member/MemberReview";
 import CenterReview from "./Center/ReviewCenter";
 import LoanReview from "./Loan/ReviewLoan";
+import SavingReview from "./Saving/ReviewSaving";
+import WorkerReview from "./Worker/ReviewWorker";
 
 const Review = () => {
   const [selectedOption, setSelectedOption] = useState("");
@@ -83,6 +85,8 @@ const Review = () => {
               <option value="review">সদস্য পুনঃনিরীক্ষণ</option>
               <option value="CenterReview">কেন্দ্র পুনঃনিরীক্ষণ</option>
               <option value="LoanReview">ঋণ পুনঃনিরীক্ষণ</option>
+              <option value="SavingReview">সঞ্চয় পুনঃনিরীক্ষণ</option>
+              <option value="WorkerReview">কর্মী পুনঃনিরীক্ষণ</option>
             </select>
           </div>
         </div>
@@ -101,6 +105,16 @@ const Review = () => {
         {selectedOption === "LoanReview" && (
           <div className="mt-5">
             <LoanReview />
+          </div>
+        )}
+        {selectedOption === "SavingReview" && (
+          <div className="mt-5">
+            <SavingReview />
+          </div>
+        )}
+        {selectedOption === "WorkerReview" && (
+          <div className="mt-5">
+            <WorkerReview />
           </div>
         )}
       </div>

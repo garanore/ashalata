@@ -217,228 +217,542 @@ const SavingsWithdraw = () => {
       <div className="p-2">
         <form>
           <div>
-            <div className="">
-              <div className="border-bottom mb-3">
-                <h2 className="text-center mb-4 pt-3">সঞ্চয় উত্তোলন</h2>
+            <div className="row mb-4">
+              <div className="col">
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{
+                    backgroundColor: "#f0f4f8", // Soft background for the header
+                    borderRadius: "10px", // Rounded edges for a modern look
+                    padding: "20px",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+                  }}
+                >
+                  <h2
+                    className="text-center mb-0"
+                    style={{
+                      fontWeight: "bold",
+                      color: "#2D3748",
+                      fontSize: "2rem", // Larger text for prominence
+                    }}
+                  >
+                    <i className="fas fa-money-bill-wave"></i> সঞ্চয় উত্তোলন
+                  </h2>
+                </div>
               </div>
             </div>
-            <div className="mb-3 row">
-              <div className="col-3">
-                <label htmlFor="SavingID" className="form-label">
-                  সঞ্চয় ID:
-                </label>
-                <input
-                  type="text"
-                  id="SavingID"
-                  className="form-control"
-                  placeholder="Enter SavingID"
-                  value={savingID}
-                  onChange={handleInputChange}
+            <div className="row">
+              <div className="col">
+                <hr
+                  style={{
+                    border: "none",
+                    borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                    marginTop: "10px",
+                  }}
                 />
               </div>
             </div>
 
+            <div className="row  mt-5">
+              <div className="col-md-3">
+                <label
+                  htmlFor="SavingID"
+                  className="form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
+                >
+                  <i className="fas fa-id-card"></i> সঞ্চয় ID
+                </label>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-id-card"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="SavingID"
+                    className="form-control border-primary"
+                    placeholder="সঞ্চয় ID লিখুন"
+                    value={savingID}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <small className="text-muted">উদাহরণ: B01M0001S01</small>
+              </div>
+            </div>
+
             {savingDetails && (
-              <div className="mt-3 row">
-                <div className="col-2">
-                  <label htmlFor="memberID" className="form-label">
-                    সদস্য ID
-                  </label>
-                  <input
-                    type="text"
-                    id="memberID"
-                    className="form-control"
-                    value={savingDetails.memberID || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-2">
-                  <label htmlFor="SavingName" className="form-label">
-                    নাম
-                  </label>
-                  <input
-                    type="text"
-                    id="SavingName"
-                    className="form-control"
-                    value={savingDetails.SavingName || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-2">
-                  <label htmlFor="fathername" className="form-label">
-                    পিতা/স্বামী
-                  </label>
-                  <input
-                    type="text"
-                    id="fathername"
-                    className="form-control"
-                    value={savingDetails.fathername || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-2">
-                  <label htmlFor="SavingBranch" className="form-label">
-                    শাঁখা
-                  </label>
-                  <input
-                    type="text"
-                    id="SavingBranch"
-                    className="form-control"
-                    value={savingDetails.SavingBranch || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-3">
-                  <label htmlFor="SavingCenter" className="form-label">
-                    কেন্দ্র
-                  </label>
-                  <input
-                    id="SavingCenter"
-                    type="text"
-                    className="form-control"
-                    value={savingDetails.SavingCenter || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-3 mt-3">
-                  <label htmlFor="SavingMobile" className="form-label">
-                    মোবাইল:
-                  </label>
-                  <input
-                    type="number"
-                    id="SavingMobile"
-                    className="form-control"
-                    value={savingDetails.SavingMobile || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="SavingType" className="form-label">
-                    সঞ্চয়ের ধরণ
-                  </label>
-                  <input
-                    id="SavingType"
-                    className="form-control"
-                    type="text"
-                    name="SavingType"
-                    value={savingDetails.SavingType || ""}
-                    readOnly
-                  />
-                </div>
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="SavingTime" className="form-label">
-                    সঞ্চয়ের সময়কাল
-                  </label>
-                  <input
-                    id="SavingTime"
-                    className="form-control"
-                    type="text"
-                    name="SavingTime"
-                    value={savingDetails.SavingTime || ""}
-                    readOnly
-                  />
+              <div>
+                <div className="row mt-3">
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="memberID"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-id-card"></i> সদস্য ID
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-id-card"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="memberID"
+                        className="form-control border-primary"
+                        value={savingDetails.memberID || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="SavingName"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-user"></i> সদস্য নাম
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-user"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="SavingName"
+                        className="form-control border-primary"
+                        value={savingDetails.SavingName || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="fathername"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-user-friends"></i> পিতা/স্বামী
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-user-friends"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="fathername"
+                        className="form-control border-primary"
+                        value={savingDetails.fathername || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="SavingBranch"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-code-branch"></i> শাখা
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-code-branch"></i>
+                      </span>
+                      <input
+                        type="text"
+                        id="SavingBranch"
+                        className="form-select border-primary"
+                        value={savingDetails.SavingBranch || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="totalSavings" className="form-label">
-                    মোট সঞ্চয়ের পরিমাণ
-                  </label>
-                  <input
-                    id="totalSavings"
-                    className="form-control"
-                    type="text"
-                    name="totalSavings"
-                    value={totalSavingAmount || ""}
-                    readOnly
-                  />
+                <div className="row mt-3">
+                  <div className="col-md-3">
+                    <label
+                      htmlFor="SavingCenter"
+                      className="form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-map-marker-alt"></i> কেন্দ্র
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-map-marker-alt"></i>
+                      </span>
+                      <input
+                        id="SavingCenter"
+                        type="text"
+                        className="form-select border-primary"
+                        value={savingDetails.SavingCenter || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-3">
+                    <label
+                      htmlFor="SavingMobile"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-mobile-alt"></i> মোবাইল
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-mobile-alt"></i>
+                      </span>
+                      <input
+                        type="number"
+                        id="SavingMobile"
+                        className="form-select border-primary"
+                        value={savingDetails.SavingMobile || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-3">
+                    <label
+                      htmlFor="SavingType"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-check-alt"></i> সঞ্চয়ের ধরণ
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-check-alt"></i>
+                      </span>
+                      <input
+                        id="SavingType"
+                        className="form-control border-primary"
+                        type="text"
+                        name="SavingType"
+                        value={savingDetails.SavingType || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-3">
+                    <label
+                      htmlFor="SavingTime"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> সময়
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="SavingTime"
+                        className="form-control"
+                        type="text"
+                        name="SavingTime"
+                        value={savingDetails.SavingTime || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="LastOldWithdraw" className="form-label">
-                    আগের সঞ্চয় উত্তোলন
-                  </label>
-                  <input
-                    id="LastOldWithdraw"
-                    className="form-control"
-                    type="text"
-                    name="LastOldWithdraw"
-                    value={lastOldWithdraw}
-                    readOnly
-                  />
-                </div>
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="LastOldWithdraw" className="form-label">
-                    অবশিষ্ট সঞ্চয়ের পরিমাণ
-                  </label>
-                  <input
-                    id="LastOldWithdraw"
-                    className="form-control"
-                    type="text"
-                    name="LastOldWithdraw"
-                    value={SavingCurrentBlance || ""}
-                    readOnly
-                  />
+                <div className="row mt-3">
+                  <div className="col-3">
+                    <label
+                      htmlFor="totalSavings"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> মোট সঞ্চয়ের
+                      পরিমাণ
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="totalSavings"
+                        className="form-control border-primary"
+                        type="text"
+                        name="totalSavings"
+                        value={totalSavingAmount || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-3">
+                    <label
+                      htmlFor="LastOldWithdraw"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> আগের সঞ্চয়
+                      উত্তোলন
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="LastOldWithdraw"
+                        className="form-control border-primary"
+                        type="text"
+                        name="LastOldWithdraw"
+                        value={lastOldWithdraw}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-3">
+                    <label
+                      htmlFor="SavingCurrentBlance"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> অবশিষ্ট সঞ্চয়ের
+                      পরিমাণ
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="SavingCurrentBlance"
+                        className="form-control border-primary"
+                        type="text"
+                        name="SavingCurrentBlance"
+                        value={SavingCurrentBlance || ""}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-3">
+                    <label
+                      htmlFor="WithDrawAmount"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> উত্তোলনের
+                      পরিমাণ
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="WithDrawAmount"
+                        className="form-control border-primary"
+                        type="number"
+                        name="WithDrawAmount"
+                        value={withDrawAmount}
+                        onChange={handleWithdrawAmountChange}
+                        max={totalSavingAmount - 20 || 0}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="WithDrawAmount" className="form-label">
-                    উত্তোলনের পরিমাণ
-                  </label>
-                  <input
-                    id="WithDrawAmount"
-                    className="form-control"
-                    type="number"
-                    name="WithDrawAmount"
-                    value={withDrawAmount}
-                    onChange={handleWithdrawAmountChange}
-                    max={totalSavingAmount - 20 || 0}
-                  />
-                </div>
-                <div className="col-md-4  mt-3">
-                  <label htmlFor="SavingInterest" className="form-label">
-                    মোট উত্তোলনের পরিমাণ
-                  </label>
-                  <input
-                    id="SavingInterest"
-                    className="form-control"
-                    type="number"
-                    name="SavingInterest"
-                    value={
-                      parseFloat(withDrawAmount) +
-                        parseFloat(calculatedInterest) || ""
-                    }
-                    readOnly
-                  />
-                </div>
+                <div className="row mt-3">
+                  <div className="col-3">
+                    <label
+                      htmlFor="SavingInterest"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> মোট উত্তোলনের
+                      পরিমাণ
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="SavingInterest"
+                        className="form-control border-primary"
+                        type="number"
+                        name="SavingInterest"
+                        value={
+                          parseFloat(withDrawAmount) +
+                            parseFloat(calculatedInterest) || ""
+                        }
+                        readOnly
+                      />
+                    </div>
+                  </div>
 
-                <div className="col-md-4 mt-3">
-                  <label htmlFor="WithdrawDate" className="form-label">
-                    উত্তোলনের তারিখ
-                  </label>
-                  <input
-                    id="WithdrawDate"
-                    className="form-control"
-                    type="date"
-                    value={withdrawDate}
-                    onChange={handleWithdrawDateChange}
-                  />
+                  <div className="col-3">
+                    <label
+                      htmlFor="SavingTime"
+                      className="col-form-label"
+                      style={{ fontWeight: "bold", color: "#4A5568" }}
+                    >
+                      <i className="fas fa-money-bill-wave"></i> উত্তোলনের তারিখ
+                    </label>
+                    <div className="input-group shadow-sm">
+                      <span
+                        className="input-group-text bg-primary text-white"
+                        style={{
+                          background:
+                            "linear-gradient(45deg, #007bff, #00d4ff)",
+                          color: "#fff",
+                        }}
+                      >
+                        <i className="fas fa-money-bill-wave"></i>
+                      </span>
+                      <input
+                        id="WithdrawDate"
+                        className="form-control border-primary"
+                        type="date"
+                        value={withdrawDate}
+                        onChange={handleWithdrawDateChange}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
+
             {savingDetails && (
-              <div className="mt-3">
+              <div className="d-flex justify-content-center mb-3 mt-5">
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-lg shadow"
                   onClick={handleWithdraw}
+                  style={{
+                    background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                    color: "#fff",
+                  }}
                 >
-                  Withdraw
+                  <i className="fas fa-paper-plane"></i> Withdraw
                 </button>
               </div>
             )}
+
             {submitMessage && (
-              <div className="alert alert-success mt-3" role="alert">
-                {submitMessage}
+              <div
+                className="alert alert-success mt-3 d-flex align-items-center"
+                role="alert"
+                style={{
+                  borderRadius: "0.5rem", // Rounded corners
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
+                }}
+              >
+                <i
+                  className="fas fa-check-circle"
+                  style={{
+                    fontSize: "1.5rem",
+                    marginRight: "10px", // Space between icon and text
+                    color: "#155724", // Dark green for the icon
+                  }}
+                ></i>
+                <span style={{ fontWeight: "bold" }}>{submitMessage}</span>
               </div>
             )}
           </div>

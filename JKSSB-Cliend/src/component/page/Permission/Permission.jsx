@@ -7,6 +7,8 @@ import "../../css/center.css";
 import GrantMember from "../Permission/Member/GrantMember";
 import CenterGrant from "../Permission/Center/GrantCenter";
 import LoanGrant from "../Permission/Loan/GrantLoan";
+import SavingGrant from "../Permission/Saving/GrantSaving";
+import WorkerGrant from "../Permission/Worker/OfficeWorkerGranted";
 import UserGrant from "../Permission/User/GrantUser";
 
 const Permission = () => {
@@ -86,6 +88,8 @@ const Permission = () => {
               <option value="grant">সদস্য অনুমতি</option>
               <option value="CenterGrant">কেন্দ্র অনুমতি</option>
               <option value="LoanGrant">ঋণ অনুমতি</option>
+              <option value="SavingGrant">সঞ্চয় অনুমতি</option>
+              <option value="WorkerGrant">কর্মীর অনুমতি</option>
               <option value="UserGrant">User Grant</option>
             </select>
           </div>
@@ -105,6 +109,16 @@ const Permission = () => {
         {selectedOption === "LoanGrant" && (
           <div className="mt-5">
             <LoanGrant />
+          </div>
+        )}
+        {selectedOption === "SavingGrant" && (
+          <div className="mt-5">
+            <SavingGrant />
+          </div>
+        )}
+        {selectedOption === "WorkerGrant" && (
+          <div className="mt-5">
+            <WorkerGrant />
           </div>
         )}
         {selectedOption === "UserGrant" && (

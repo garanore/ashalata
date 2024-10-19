@@ -19,7 +19,6 @@ router.post("/save-installments-collection", async (req, res) => {
           OLname: item.OLname,
           OLmobile: item.OLmobile,
           loanType: item.loanType,
-          onlyInterest: item.onlyInterest,
           centerName: centerName,
           centerBranch: centerBranch,
         },
@@ -28,6 +27,7 @@ router.post("/save-installments-collection", async (req, res) => {
           submittedBy: { $each: submittedBy }, // Allow duplicate submitters
           installment: { $each: item.installment }, // Allow duplicate installments
           installmentCount: { $each: item.installmentCount }, // Allow duplicate installments
+          onlyInterest: { $each: item.onlyInterest }, // Allow duplicate installments
         },
       };
 
@@ -57,15 +57,21 @@ router.post("/save-installments-collection", async (req, res) => {
 
 router.patch("/update-installments-collection/:loanID", async (req, res) => {
   const { loanID } = req.params;
-  const { installmentDate, installment, submittedBy, installmentCount } =
-    req.body; // added installment and submittedBy
+  const {
+    installmentDate,
+    installment,
+    submittedBy,
+    installmentCount,
+    onlyInterest,
+  } = req.body; // added installment and submittedBy
 
   if (
     !loanID ||
     !installmentDate ||
     !installment ||
     !submittedBy ||
-    !installmentCount
+    !installmentCount ||
+    !onlyInterest
   ) {
     return res
       .status(400)
@@ -84,6 +90,7 @@ router.patch("/update-installments-collection/:loanID", async (req, res) => {
           installment: installment, // Push new installment to the array
           submittedBy: submittedBy, // Push new submittedBy to the array
           installmentCount: installmentCount, // Push new submittedBy to the array
+          onlyInterest: onlyInterest, // Push new submittedBy to the array
         },
       },
       { new: true } // Return the updated document

@@ -15,25 +15,22 @@ const WorkerEdit = () => {
   const [submitMessage, setSubmitMessage] = useState("");
   const [centers, setCenters] = useState([]);
   const [branches, setBranchs] = useState([]);
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  // const [selectedImage, setSelectedImage] = useState(null);
   const [allWorker, setAllWorker] = useState({
-    WorkerCenterAdd: [""],
-    WorkerBranchAdd: [""],
+    Center: [""],
+    Branch: [""],
   });
 
   useEffect(() => {
-    // Fetch worker data
     // Fetch worker data
     fetch(`http://localhost:5000/worker-callback/${workerID}`)
       .then((res) => res.json())
       .then((data) => {
         setAllWorker({
           ...data,
-          WorkerCenterAdd: Array.isArray(data.WorkerCenterAdd)
-            ? data.WorkerCenterAdd
-            : [""],
-          WorkerBranchAdd: Array.isArray(data.WorkerBranchAdd)
-            ? data.WorkerBranchAdd
-            : [""],
+          Center: Array.isArray(data.Center) ? data.Center : [""],
+          Branch: Array.isArray(data.Branch) ? data.Branch : [""],
         });
       })
       .catch((error) => console.error("Error fetching worker data:", error));
@@ -73,42 +70,99 @@ const WorkerEdit = () => {
       });
   }, [workerID]);
 
-  const handleUpdateWorker = (e) => {
-    e.preventDefault();
-    const form = e.target;
+  // Toggle image edit mode
+  const handleEditImage = () => {
+    setIsEditingImage(!isEditingImage);
+  };
 
-    const updatedData = {
-      ID: form.ID.value,
-      WorkerName: form.WorkerName.value,
-      WorkerParent: form.WorkerParent.value,
-      WorkerJob: form.WorkerJob.value,
-      WorkerHome: form.WorkerHome.value,
-      WorkerUnion: form.WorkerUnion.value,
-      WorkerPost: form.WorkerPost.value,
-      WorkerSubDic: form.WorkerSubDic.value,
-      WorkerDic: form.WorkerDic.value,
-      WorkerNID: form.WorkerNID.value,
-      WorkerMobile: form.WorkerMobile.value,
-      WorkerBranchAdd: allWorker.WorkerBranchAdd,
-      WorkerCenterAdd: allWorker.WorkerCenterAdd,
-      Designation: form.Designation.value,
-    };
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]; // Get the uploaded file
 
-    fetch(`http://localhost:5000/worker-callback/${workerID}`, {
-      method: "PUT",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(updatedData),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setSubmitMessage("Successfully Updated!");
-        } else {
-          console.error("Worker Update Failed");
+    if (file) {
+      const img = new Image(); // Create an Image object to load and check dimensions
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const width = img.naturalWidth;
+        const height = img.naturalHeight;
+
+        // Check file size (in bytes)
+        if (file.size > 200 * 1024) {
+          // 200KB limit
+          alert("আপনার ছবি 200 KB এর বেশি, দয়া করে কমিয়ে নিন ।  ");
+          // Clear the input box by setting its value to empty string
+          e.target.value = "";
+          return;
         }
-      });
+
+        // Check dimensions (in pixels)
+        if (width > 600 || height > 600) {
+          alert("আপনার ছবি 600/600 এর বড়, দয়া করে ছোট করুণ");
+          // Clear the input box by setting its value to empty string
+          e.target.value = "";
+          return;
+        }
+
+        // If file is valid, update the WorkerData state with the image file
+        setAllWorker({ ...allWorker, WorkerImage: file });
+      };
+
+      img.onerror = () => {
+        alert("Invalid image file. Please upload jpg", "png", "jpeg");
+        // Clear the input box by setting its value to empty string
+        e.target.value = "";
+      };
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault(); // Prevent the default form submission behavior
+
+    // Create a FormData object to handle both text data and the image file
+    const formData = new FormData();
+
+    // Append updated worker data
+    formData.append("WorkerNID", e.target.WorkerNID.value);
+    formData.append("WorkerName", e.target.WorkerName.value);
+    formData.append("WorkerParent", e.target.WorkerParent.value);
+    formData.append("WorkerJob", e.target.WorkerJob.value);
+    formData.append("WorkerHome", e.target.WorkerHome.value);
+    formData.append("WorkerUnion", e.target.WorkerUnion.value);
+    formData.append("WorkerPost", e.target.WorkerPost.value);
+    formData.append("WorkerSubDic", e.target.WorkerSubDic.value);
+    formData.append("WorkerDic", e.target.WorkerDic.value);
+    formData.append("WorkerMobile", e.target.WorkerMobile.value);
+    formData.append("WorkerBranchAdd", allWorker.WorkerBranchAdd);
+    formData.append("WorkerCenterAdd", allWorker.WorkerCenterAdd);
+    formData.append("designation", e.target.designation.value);
+
+    // Check if an image file has been selected
+    if (e.target.WorkerImage.files[0]) {
+      formData.append("WorkerImage", e.target.WorkerImage.files[0]); // Append the image file
+    }
+
+    try {
+      // Send the request to update worker data (including the image if available)
+      const response = await fetch(
+        `http://localhost:5000/worker-callback/${allWorker._id}`,
+        {
+          method: "PUT",
+          body: formData, // Use FormData to send the data and image
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitMessage("Worker updated successfully");
+        // Optionally refresh the worker data or navigate to another page
+      } else {
+        alert(data.message || "Failed to update worker");
+      }
+    } catch (error) {
+      console.error("Update Worker Error:", error);
+      alert("An error occurred while updating the worker.");
+    }
   };
 
   const handleCenterChange = (e, index) => {
@@ -163,171 +217,494 @@ const WorkerEdit = () => {
   };
 
   const handleDesignationChange = (e) => {
-    setAllWorker({ ...allWorker, Designation: e.target.value });
+    setAllWorker({ ...allWorker, designation: e.target.value });
   };
 
   return (
     <div className="form-row bg-light container-fluid p-2">
-      <form onSubmit={handleUpdateWorker}>
-        <div className=" ">
-          <div className=" border-bottom mb-3 ">
-            <h2 className="text-center   mb-4 pt-3">কর্মী সম্পাদনা </h2>
+      <form onSubmit={handleUpdate}>
+        <div className="row mb-4">
+          <div className="col">
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{
+                backgroundColor: "#f0f4f8", // Soft background for the header
+                borderRadius: "10px", // Rounded edges for a modern look
+                padding: "20px",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+              }}
+            >
+              <h2
+                className="text-center mb-0"
+                style={{
+                  fontWeight: "bold",
+                  color: "#2D3748",
+                  fontSize: "2rem", // Larger text for prominence
+                }}
+              >
+                <i
+                  className="fas fa-user-edit"
+                  style={{ marginRight: "10px" }}
+                ></i>{" "}
+                কর্মী সম্পাদনা
+              </h2>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col">
+            <hr
+              style={{
+                border: "none",
+                borderTop: "2px solid #2D3748", // Thicker line for emphasis
+                marginTop: "10px",
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="d-flex justify-content-center">
+          <div className="col-md-3">
+            <div
+              className="d-flex justify-content-center align-items-center shadow-sm border border-primary"
+              style={{
+                width: "200px",
+                height: "200px",
+                overflow: "hidden",
+                borderRadius: "5px",
+              }}
+            >
+              {/* Show worker image */}
+              <img
+                src={allWorker.image}
+                alt="Preview"
+                className="img-fluid"
+                style={{
+                  objectFit: "cover",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                }}
+              />
+            </div>
+
+            {/* Toggle button to show/hide upload option */}
+            <button
+              type="button"
+              className="btn btn-primary mt-3"
+              onClick={handleEditImage}
+            >
+              {isEditingImage ? "Cancel" : "Change Image"}
+            </button>
+
+            {/* Image upload field - shown only when isEditingImage is true */}
+            {isEditingImage && (
+              <div className="mt-3">
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-image"></i>
+                  </span>
+                  <input
+                    id="WorkerImage"
+                    className="form-control border-primary"
+                    type="file"
+                    name="WorkerImage"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </div>
+                <small className="text-muted">
+                  ৬০০/৬০০ এবং ২০০ KB এর মধ্যে ছবি দিন ।
+                </small>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="row  g-4  mt-5">
           <div className="col-md-3">
-            <label htmlFor="workerID" className="form-label">
-              ID
+            <label
+              htmlFor="workerID"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> Worker ID
             </label>
-            <input
-              type="text"
-              name="ID"
-              className="form-control"
-              defaultValue={allWorker.workerID}
-              readOnly
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                id="workerID"
+                name="workerID"
+                className="form-control border-primary"
+                type="text"
+                defaultValue={allWorker.workerID}
+                disabled
+              />
+            </div>
           </div>
 
           <div className="col-md-3">
-            <label htmlFor="WorkerName" className="form-label">
+            <label
+              htmlFor="WorkerName"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user"></i>
               নাম
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerName"
-              defaultValue={allWorker.WorkerName}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerParent" className="form-label">
-              পিতা/স্বামীর নাম
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerParent"
-              defaultValue={allWorker.WorkerParent}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerJob" className="form-label">
-              পেশা
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerJob"
-              defaultValue={allWorker.WorkerJob}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerHome" className="form-label">
-              গ্রাম/পাড়া
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerHome"
-              defaultValue={allWorker.WorkerHome}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerUnion" className="form-label">
-              ইউনিয়ন
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerUnion"
-              defaultValue={allWorker.WorkerUnion}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerPost" className="form-label">
-              ডাকঘর
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerPost"
-              defaultValue={allWorker.WorkerPost}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerSubDic" className="form-label">
-              থানা
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerSubDic"
-              defaultValue={allWorker.WorkerSubDic}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="WorkerDic" className="form-label">
-              জেলা
-            </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerDic"
-              defaultValue={allWorker.WorkerDic}
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerName"
+                defaultValue={allWorker.WorkerName}
+              />
+            </div>
           </div>
 
           <div className="col-md-3">
-            <label htmlFor="WorkerNID" className="form-label">
-              NID নাম্বার
+            <label
+              htmlFor="WorkerParent"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user-friends"></i> পিতা/স্বামীর নাম
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerNID"
-              defaultValue={allWorker.WorkerNID}
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user-friends"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerParent"
+                defaultValue={allWorker.WorkerParent}
+              />
+            </div>
           </div>
+
           <div className="col-md-3">
-            <label htmlFor="WorkerMobile" className="form-label">
-              মোবাইল নাম্বার
+            <label
+              htmlFor="WorkerJob"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-graduation-cap"></i> পেশা
             </label>
-            <input
-              className="form-control"
-              type="text"
-              name="WorkerMobile"
-              defaultValue={allWorker.WorkerMobile}
-            />
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-graduation-cap"></i>
+              </span>
+              <input
+                className="form-select shadow-sm border-primary"
+                type="text"
+                name="WorkerJob"
+                defaultValue={allWorker.WorkerJob}
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerHome"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-home"></i> গ্রাম/পাড়া
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-home"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerHome"
+                defaultValue={allWorker.WorkerHome}
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerUnion"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map-signs"></i> ইউনিয়ন
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map-signs"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerUnion"
+                defaultValue={allWorker.WorkerUnion}
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerPost"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mail-bulk"></i> ডাকঘর
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mail-bulk"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerPost"
+                defaultValue={allWorker.WorkerPost}
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerSubDic"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map-marker-alt"></i> থানা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map-marker-alt"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerSubDic"
+                defaultValue={allWorker.WorkerSubDic}
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerDic"
+              className="form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-map"></i> জেলা
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-map"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="text"
+                name="WorkerDic"
+                defaultValue={allWorker.WorkerDic}
+              />
+            </div>
+          </div>
+
+          <div className="col-md-3">
+            <label
+              htmlFor="WorkerNID"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-id-card"></i> NID নাম্বার
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-id-card"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="number"
+                name="WorkerNID"
+                defaultValue={allWorker.WorkerNID}
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="WorkerMobile"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-mobile-alt"></i> মোবাইল নাম্বার
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-mobile-alt"></i>
+              </span>
+              <input
+                className="form-control border-primary"
+                type="number"
+                name="WorkerMobile"
+                defaultValue={allWorker.WorkerMobile}
+              />
+            </div>
+          </div>
+
+          <div className="col-3">
+            <label
+              htmlFor="designation"
+              className="col-form-label"
+              style={{ fontWeight: "bold", color: "#4A5568" }}
+            >
+              <i className="fas fa-user-tag"></i> পদবী
+            </label>
+            <div className="input-group shadow-sm">
+              <span
+                className="input-group-text bg-primary text-white"
+                style={{
+                  background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                  color: "#fff",
+                }}
+              >
+                <i className="fas fa-user-tag"></i>
+              </span>
+              <select
+                id="designation"
+                name="designation"
+                className="form-control border-primary"
+                value={allWorker.designation ? allWorker.designation : ""}
+                onChange={handleDesignationChange}
+              >
+                <option value="">Choose...</option>
+                {designations.map((designation) => (
+                  <option
+                    key={designation._id}
+                    value={designation.DesignationName}
+                  >
+                    {designation.DesignationName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Branches */}
-          {allWorker.WorkerBranchAdd.map((branch, index) => (
-            <div className="col-3 d-flex align-items-center" key={index}>
+          {allWorker.WorkerBranchAdd?.map((branch, index) => (
+            <div className="col-md-3 d-flex align-items-center" key={index}>
               <div className="w-100">
                 <label
-                  htmlFor={`WorkerBranchAdd${index}`}
+                  htmlFor="WorkerBranchAdd"
                   className="form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
                 >
-                  শাঁখা নির্বাচন করুণ
+                  <i className="fas fa-code-branch"></i> শাঁখা নির্বাচন করুণ
                 </label>
-                <select
-                  id={`WorkerBranchAdd${index}`}
-                  className="form-select"
-                  value={branch || "N/A"}
-                  onChange={(e) => handleBranchChange(e, index)}
-                >
-                  <option value="">Choose...</option>
-                  {branches.map((branch) => (
-                    <option key={branch._id} value={branch.BranchName}>
-                      {branch.BranchName}
-                    </option>
-                  ))}
-                </select>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-code-branch"></i>
+                  </span>
+                  <select
+                    id={`WorkerBranchAdd${index}`}
+                    className="form-select border-primary"
+                    value={branch || "N/A"}
+                    onChange={(e) => handleBranchChange(e, index)}
+                  >
+                    <option value="">--------</option>
+                    {branches.map((branch) => (
+                      <option key={branch._id} value={branch.BranchName}>
+                        {branch.BranchName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
               <button
                 type="button"
-                className="btn btn-primary btn-sm mt-4 ms-2"
+                className="btn btn-primary btn-sm mt-4 ms-2 me-1"
                 onClick={handleAddBranch}
               >
                 +
@@ -345,29 +722,43 @@ const WorkerEdit = () => {
           ))}
 
           {/* Centers */}
-          {allWorker.WorkerCenterAdd.map((center, index) => (
+          {allWorker.WorkerCenterAdd?.map((center, index) => (
             <div className="col-3 d-flex align-items-center" key={index}>
               <div className="w-100">
                 <label
-                  htmlFor={`WorkerCenterAdd${index}`}
+                  htmlFor="CenterIDMember"
                   className="form-label"
+                  style={{ fontWeight: "bold", color: "#4A5568" }}
                 >
-                  কেন্দ্র নির্বাচন করুণ
+                  <i className="fas fa-map-marker-alt"></i> কেন্দ্র নির্বাচন
+                  করুণ
                 </label>
-                <select
-                  id={`WorkerCenterAdd${index}`}
-                  className="form-select"
-                  value={center || "N/A"}
-                  onChange={(e) => handleCenterChange(e, index)}
-                >
-                  <option value="">Choose...</option>
-                  {centers.map((center) => (
-                    <option key={center._id} value={center.centerID}>
-                      {center.centerID}
-                    </option>
-                  ))}
-                </select>
+                <div className="input-group shadow-sm">
+                  <span
+                    className="input-group-text bg-primary text-white"
+                    style={{
+                      background: "linear-gradient(45deg, #007bff, #00d4ff)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="fas fa-map-marker-alt"></i>
+                  </span>
+                  <select
+                    id={`WorkerCenterAdd${index}`}
+                    className="form-select"
+                    value={center || "N/A"}
+                    onChange={(e) => handleCenterChange(e, index)}
+                  >
+                    <option value="">--------</option>
+                    {centers.map((center) => (
+                      <option key={center._id} value={center.centerID}>
+                        {center.centerID}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
               <button
                 type="button"
                 className="btn btn-primary btn-sm ms-2 mt-4"
@@ -386,29 +777,6 @@ const WorkerEdit = () => {
               )}
             </div>
           ))}
-
-          <div className="col-md-3">
-            <label htmlFor="Designation" className="form-label">
-              পদবি
-            </label>
-            <select
-              id="Designation"
-              name="Designation"
-              className="form-select"
-              value={allWorker.Designation ? allWorker.Designation : ""}
-              onChange={handleDesignationChange}
-            >
-              <option value="">Choose...</option>
-              {designations.map((designation) => (
-                <option
-                  key={designation._id}
-                  value={designation.DesignationName}
-                >
-                  {designation.DesignationName}
-                </option>
-              ))}
-            </select>
-          </div>
 
           <div className="d-flex justify-content-between mt-5">
             <button type="submit" className=" btn btn-primary">

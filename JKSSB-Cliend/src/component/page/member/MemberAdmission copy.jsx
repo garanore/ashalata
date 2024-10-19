@@ -16,7 +16,7 @@ const MemberAdmission = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedCenter, setSelectedCenter] = useState({});
-  const [userBranches, setUserBranches] = useState([]);
+  const [Branches, setBranches] = useState([]);
 
   const [memberData, setmemberData] = useState({
     BranchMember: "",
@@ -137,14 +137,14 @@ const MemberAdmission = () => {
       });
 
     // Step 2: Retrieve user branch data and designation from localStorage
-    const storedUserData = localStorage.getItem("userBranchData");
+    const storedUserData = localStorage.getItem("BranchData");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
 
       const branches = Object.keys(parsedData)
-        .filter((key) => key.startsWith("UserBranch"))
+        .filter((key) => key.startsWith("Branch"))
         .map((key) => parsedData[key]);
-      setUserBranches(branches);
+      setBranches(branches);
 
       const userNames = Object.keys(parsedData)
         .filter((key) => key.startsWith("username"))
@@ -342,18 +342,16 @@ const MemberAdmission = () => {
                 required
               >
                 <option value="">Choose...</option>
-                {/* Step 3: Filter branches based on userBranches */}
-                {userBranches.includes("AllBranch") ||
-                userBranches.includes("AllCenter")
+                {/* Step 3: Filter branches based on Branches */}
+                {Branches.includes("AllBranch") ||
+                Branches.includes("AllCenter")
                   ? branches.map((branch) => (
                       <option key={branch._id} value={branch.BranchName}>
                         {branch.BranchName}
                       </option>
                     ))
                   : branches
-                      .filter((branch) =>
-                        userBranches.includes(branch.BranchName)
-                      )
+                      .filter((branch) => Branches.includes(branch.BranchName))
                       .map((branch) => (
                         <option key={branch._id} value={branch.BranchName}>
                           {branch.BranchName}

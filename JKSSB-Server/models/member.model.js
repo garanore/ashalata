@@ -33,7 +33,7 @@ const memberSchema = new mongoose.Schema(
     MemberNIDnumber: { type: String, required: true },
     MemberMobile: { type: String, required: true },
     NominiName: { type: String, required: true },
-    NominiNID: { type: String, required: true },
+    NominiNID: { type: String },
     NominiFather: { type: String, required: true },
     MemberNominiRelation: { type: String, required: true },
     AdmissionFee: { type: Number, required: true },

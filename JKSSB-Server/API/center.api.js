@@ -9,7 +9,6 @@ const { ObjectId } = require("mongoose").Types;
 //   return `C${paddedCount}`;
 // };
 
-
 const generateCenterID = async (BranchID) => {
   try {
     const count = await OpenCenter.countDocuments({ BranchID: BranchID });
@@ -20,7 +19,6 @@ const generateCenterID = async (BranchID) => {
     throw error; // Rethrow the error to propagate it up
   }
 };
-
 
 router.get("/opencenter/count", async (req, res) => {
   try {
@@ -45,8 +43,6 @@ router.post("/opencenter", async (req, res) => {
       BranchID,
       submittedBy, // Get the submittedBy from the request
     } = req.body;
-
-    
 
     const centerID = await generateCenterID(BranchID);
 

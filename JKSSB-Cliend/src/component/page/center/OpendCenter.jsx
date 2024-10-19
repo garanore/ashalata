@@ -163,7 +163,9 @@ function OpenCenter() {
         ...trimmedFormData,
       });
 
-      setSubmitMessage("Pending for Approval");
+      setSubmitMessage(
+        "সঠিক ভাবে কেন্দ্রের আবেদন করা হয়েছে। নির্বাহী পরিচালকের অনুমতির জন্য অপেক্ষা করুণ।"
+      );
 
       // Reset form fields and update center count and ID
       setCenterCount(centerCount + 1);

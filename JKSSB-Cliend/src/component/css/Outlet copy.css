@@ -1,0 +1,16 @@
+.Size {
+  min-width: 87%;
+  position: relative; /* Ensure the content follows the z-index hierarchy */
+  z-index: 1; /* Lower than navbar and notification */
+  margin-top: 84px;
+}
+
+.behind {
+  position: fixed; /* Makes sure the navbar stays on top as you scroll */
+  top: 0;
+  width: 100%; /* Stretches across the width of the screen */
+  z-index: 1000; /* High enough to stay on top of other content */
+  background-color: var(
+    --bs-dark-bg-subtle
+  ); /* Optional: Add background to prevent content overlap */
+}

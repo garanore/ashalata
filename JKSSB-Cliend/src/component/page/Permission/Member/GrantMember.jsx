@@ -58,6 +58,7 @@ const GrantMember = () => {
     const storedUserData = localStorage.getItem("userBranchData");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
+
       const branches = Object.keys(parsedData)
         .filter((key) => key.startsWith("UserBranch"))
         .map((key) => parsedData[key]);

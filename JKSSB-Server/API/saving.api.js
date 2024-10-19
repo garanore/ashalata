@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const OpenSaving = require("../models/saving.model.js");
 const { ObjectId } = require("mongoose").Types;
+const moment = require("moment");
 
 const generateSavingID = async (memberID) => {
   try {
@@ -78,7 +79,7 @@ router.post("/opensaving", async (req, res) => {
       CenterDay,
       installmentStart,
       nextDates: nextDates.length > 0 ? nextDates : [], // Default to an empty array if nextDates is missing
-      approvalStatus: "Pending", // Default to Pending if not provided
+      approvalStatus: "Approved", // Default to Approved if not provided
       ActiveStatus: "True", // Default to True if not provided
       submittedBy, // Ensure submittedBy is provided
       GrantedBy: "Null", // Default to 'Null' if not provided
@@ -244,6 +245,44 @@ router.get("/saving-callback", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
+// saving callback by SavingType , Center, Date----------------------------------------------------------------
+
+router.get(
+  "/saving-callback-type-center-date/:savingType/:selectedDate",
+  async (req, res) => {
+    const { savingType, selectedDate } = req.params;
+
+    try {
+      // Log the received parameters
+      console.log("Received Params:", { savingType, selectedDate });
+
+      if (!savingType || !selectedDate) {
+        return res.status(400).json({ message: "Missing parameters" });
+      }
+
+      // Parse the selectedDate to match the format in the database
+      const formattedDate = moment(selectedDate, "DD-MM-YYYY").format(
+        "YYYY-MM-DD"
+      );
+
+      // Find data matching the given SavingType and the selected date from nextDates
+      const savingData = await OpenSaving.find({
+        SavingType: savingType,
+        nextDates: formattedDate, // MongoDB will check if the formattedDate exists in the array
+      });
+
+      if (savingData.length > 0) {
+        res.json(savingData);
+      } else {
+        res.status(404).json({ message: "No matching savings found" });
+      }
+    } catch (error) {
+      console.error("Error fetching saving data:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  }
+);
 
 //Saving Callback by Saving ID-------------------------------------------------------------------------------------------
 router.get("/get-saving-savingid/:SavingID", async (req, res) => {

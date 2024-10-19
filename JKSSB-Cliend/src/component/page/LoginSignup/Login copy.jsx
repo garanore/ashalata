@@ -42,7 +42,7 @@ const Login = () => {
       const userResponse = await axios.get(
         `http://localhost:5000/get-branch-center/${username}`
       );
-      localStorage.setItem("userBranchData", JSON.stringify(userResponse.data));
+      localStorage.setItem("BranchData", JSON.stringify(userResponse.data));
 
       // Clear any previous error
       setError("");

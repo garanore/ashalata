@@ -16,6 +16,7 @@ router.post("/signup", async (req, res) => {
       password,
       designation,
       accountName,
+      workerID,
       UserBranch,
       UserCenter,
       approvalStatus,
@@ -49,6 +50,7 @@ router.post("/signup", async (req, res) => {
       password,
       designation,
       accountName,
+      workerID,
       UserBranch,
       UserCenter,
       approvalStatus,
@@ -326,6 +328,9 @@ router.get("/get-branch-center/:username", async (req, res) => {
       ...userBranchData,
       ...userCenterData,
       designation: user.designation,
+      email: user.email,
+      workerID: user.workerID,
+      phoneNumber: user.phoneNumber,
     });
   } catch (error) {
     console.error("Error fetching user data:", error.message);
@@ -337,13 +342,20 @@ router.get("/get-branch-center/:username", async (req, res) => {
 
 router.put("/update-user/:id", async (req, res) => {
   try {
-    const { phoneNumber, designation, accountName, UserBranch, UserCenter } =
-      req.body;
+    const {
+      phoneNumber,
+      workerID,
+      designation,
+      accountName,
+      UserBranch,
+      UserCenter,
+    } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       {
         phoneNumber,
+        workerID,
         designation,
         accountName,
         UserBranch,

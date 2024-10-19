@@ -8,7 +8,7 @@
 // const GrantLoan = () => {
 //   const [pendingLoans, setPendingLoans] = useState([]);
 //   const [error, setError] = useState("");
-//   const [userBranches, setUserBranches] = useState([]);
+//   const [Branches, setBranches] = useState([]);
 //   const [hasAccess, setHasAccess] = useState(false);
 //   const [username, setUsername] = useState(""); // Add username state
 //   const navigate = useNavigate();
@@ -32,15 +32,15 @@
 //     fetchPendingSavins();
 
 //     // Retrieve user data from localStorage
-//     const storedUserData = localStorage.getItem("userBranchData");
+//     const storedUserData = localStorage.getItem("BranchData");
 //     if (storedUserData) {
 //       const parsedData = JSON.parse(storedUserData);
 
 //       // Retrieve branches (if needed for further logic)
 //       const branches = Object.keys(parsedData)
-//         .filter((key) => key.startsWith("UserBranch"))
+//         .filter((key) => key.startsWith("Branch"))
 //         .map((key) => parsedData[key]);
-//       setUserBranches(branches);
+//       setBranches(branches);
 
 //       // Retrieve designations from user data
 //       const designations = Object.keys(parsedData)
@@ -131,11 +131,11 @@
 //     });
 //   };
 
-//   // Filter logic based on userBranches
-//   const filteredLoans = userBranches.includes("AllBranch")
+//   // Filter logic based on Branches
+//   const filteredLoans = Branches.includes("AllBranch")
 //     ? pendingLoans
 //     : pendingLoans.filter((Loans) =>
-//         userBranches.some((branch) => branch === Loans.OLbranch)
+//         Branches.some((branch) => branch === Loans.OLbranch)
 //       );
 
 //   // Pagination logic

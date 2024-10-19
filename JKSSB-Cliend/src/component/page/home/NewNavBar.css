@@ -1,0 +1,133 @@
+/* Custom styles for the navbar */
+.navbar {
+  background-color: #1c7c7c; /* Custom Color */
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+}
+
+.navbar .site-name {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.5rem;
+  color: #ffffff;
+}
+
+.navbar .form-control {
+  border-radius: 0.25rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow for input */
+}
+
+.navbar .btn {
+  border-radius: 0.25rem;
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Button shadow */
+}
+
+.navbar .btn:hover {
+  background-color: #ffffff;
+  color: #1c7c7c;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Increase shadow on hover */
+}
+
+/* Search Icon */
+.search-icon i {
+  color: #2f3542; /* Dark gray color for a modern look */
+  transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+
+/* Notification Bell */
+.notification-bell i {
+  color: #2f3542; /* Dark gray color for a modern look */
+  transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+
+.notification-bell i:hover {
+  color: #ff6b81; /* Soft red on hover */
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+  min-width: 15rem; /* Set a minimum width for better layout */
+  background-color: #f1f2f6; /* Light background color */
+  border: 1px solid #ced6e0; /* Light border for structure */
+  border-radius: 0.5rem; /* Rounded corners for a modern look */
+}
+
+.notification-dropdown .dropdown-item {
+  color: #2f3542;
+}
+
+/* Account Name Span */
+.navbar-text {
+  background-color: #f1f2f6; /* Light gray background for subtle contrast */
+  color: #2f3542; /* Dark gray text for a clean, modern look */
+  font-weight: 500; /* Medium bold for better readability */
+  font-size: 1rem; /* Adjust font size for clarity */
+  border: 1px solid #ced6e0; /* Light border to give the span some structure */
+  border-radius: 0.5rem; /* Rounded corners for a modern look */
+}
+
+/* image :hover */
+
+/* Default image styling */
+.user-image {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border: 1px solid #ced6e0;
+  position: relative; /* Required for pop-up positioning */
+}
+
+/* Container to hold the pop-up */
+.user-image-container {
+  position: relative;
+  display: inline-block; /* Keep the image inline with other navbar items */
+  overflow: visible; /* Make sure the pop-up is visible outside the container */
+}
+
+/* Pop-up image hidden by default */
+.user-image-popup {
+  display: none;
+  position: absolute;
+  top: 20px; /* Position below the current image */
+  /* Position below the current image */
+
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  border: 1px solid #ced6e0;
+  object-fit: cover;
+  z-index: 10;
+  background-color: white; /* Optional, adds a background behind the image */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Add a shadow to the pop-up */
+  border-radius: 10px; /* Rounded corners for the pop-up */
+}
+
+/* Show the pop-up on hover */
+.user-image-container:hover .user-image-popup {
+  display: block;
+}
+
+/* Optional: Smooth transition for appearance */
+.user-image-popup {
+  transition: opacity 0.3s ease;
+}
+
+/* Make sure the pop-up doesn't go off the screen */
+@media (max-width: 600px) {
+  .user-image-popup {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+}
+
+/* for account name */
+
+.AccountName {
+  background-color: #f1f2f6; /* Light gray background for subtle contrast */
+  color: #2f3542; /* Dark gray text for a clean, modern look */
+  font-weight: 500; /* Medium bold for better readability */
+  font-size: 1rem; /* Adjust font size for clarity */
+  border: 1px solid #ced6e0; /* Light border to give the span some structure */
+}

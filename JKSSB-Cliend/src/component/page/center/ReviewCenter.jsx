@@ -17,7 +17,7 @@
 //   });
 
 //   const [branches, setBranches] = useState([]);
-//   const [userBranches, setUserBranches] = useState([]);
+//   const [Branches, setBranches] = useState([]);
 //   const [hasAccess, setHasAccess] = useState(true);
 
 //   useEffect(() => {
@@ -32,14 +32,14 @@
 //       });
 
 //     // Retrieve user branch data and designation from localStorage
-//     const storedUserData = localStorage.getItem("userBranchData");
+//     const storedUserData = localStorage.getItem("BranchData");
 //     if (storedUserData) {
 //       const parsedData = JSON.parse(storedUserData);
 
-//       const userBranchList = Object.keys(parsedData)
-//         .filter((key) => key.startsWith("UserBranch"))
+//       const BranchList = Object.keys(parsedData)
+//         .filter((key) => key.startsWith("Branch"))
 //         .map((key) => parsedData[key]);
-//       setUserBranches(userBranchList);
+//       setBranches(BranchList);
 
 //       const designations = Object.keys(parsedData)
 //         .filter((key) => key.startsWith("designation"))
@@ -67,7 +67,7 @@
 //         );
 //         const centers = response.data;
 
-//         const storedUserData = localStorage.getItem("userBranchData");
+//         const storedUserData = localStorage.getItem("BranchData");
 //         const parsedData = JSON.parse(storedUserData);
 //         const currentUsername = parsedData.username;
 
@@ -198,8 +198,8 @@
 //                           onChange={handleFieldChange}
 //                         >
 //                           <option value="">Choose...</option>
-//                           {userBranches.includes("AllBranch") ||
-//                           userBranches.includes("AllCenter")
+//                           {Branches.includes("AllBranch") ||
+//                           Branches.includes("AllCenter")
 //                             ? branches.map((branch) => (
 //                                 <option
 //                                   key={branch._id}
@@ -210,7 +210,7 @@
 //                               ))
 //                             : branches
 //                                 .filter((branch) =>
-//                                   userBranches.includes(branch.BranchName)
+//                                   Branches.includes(branch.BranchName)
 //                                 )
 //                                 .map((branch) => (
 //                                   <option

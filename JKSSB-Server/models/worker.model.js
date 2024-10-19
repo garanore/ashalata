@@ -18,10 +18,9 @@ const addworkerSchema = new mongoose.Schema(
     WorkerNID: { type: String, required: true },
     WorkerMobile: { type: String, required: true },
     WorkerMail: { type: String, required: true },
-    Workerimage: { type: String, default: null }, // Image path or URL
     WorkerCenterAdd: { type: [String] }, // save as Array
     WorkerBranchAdd: { type: [String] }, // save as Array
-    Designation: { type: String, required: true },
+    designation: { type: String, required: true },
     JoiningDate: { type: String, required: true },
     agreementChecked: { type: Boolean, required: true },
     approvalStatus: {
@@ -38,6 +37,7 @@ const addworkerSchema = new mongoose.Schema(
     GrantedBy: { type: String, default: "Null", required: true },
     DeletedStatus: { type: String, default: "Null", required: true },
     DeleteDate: { type: Date, default: null },
+    image: String,
   },
   { timestamps: true }
 );
